@@ -1,0 +1,540 @@
+# Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# General
+#
+
+# Module name and description
+ModuleVerifactuName = VeriFactu
+ModuleVerifactuDesc = Integración con el Sistema de Facturación VeriFactu de la AEAT
+
+VERIFACTU_DOCUMENTATION_MENU = Documentación
+VERIFACTU_GUIDES_MENU = Guías y Manuales
+VERIFACTU_DOCUMENTATION_INTRO = Documentación de soporte para VeriFactu organizada por categorías.
+VERIFACTU_NO_DOCUMENTATION = No hay documentación disponible. Los documentos deben ubicarse en la carpeta 'documentation' del módulo.
+
+#
+# Admin page
+#
+VerifactuAbout = Acerca de VeriFactu
+VerifactuAboutDesc = Integración con VeriFactu de la AEAT para gestión de facturas emitidas y recibidas.
+VerifactuSetup = Configuración VeriFactu
+Settings = Ajustes
+VerifactuSetupPage = Configuración del módulo VeriFactu
+VERIFACTU_MODE = Modo de operación
+VERIFACTU_MODE_TOOLTIP = Actualmente solo disponible el modo VeriFactu. Modo NO-VeriFactu en desarrollo.
+VERIFACTU_HOLDER_COMPANY_NAME = Razón social
+VERIFACTU_HOLDER_NIF = NIF
+VERIFACTU_HOLDER_REPRESENTATIVE_NIF = NIF del representante
+VERIFACTU_ENVIRONMENT = Entorno (pruebas/producción)
+VERIFACTU_ENVIRONMENT_INFO = Información del entorno
+VERIFACTU_ENVIRONMENT_TOOLTIP = Visite <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> para más información
+VERIFACTU_FORCE_PRODUCTION = Forzar producción
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ PRECAUCIÓN: Activa el entorno de producción antes del 1 de enero de 2026. Las facturas se enviarán a la AEAT real.
+VERIFACTU_CERTIFICATE = Certificado digital
+VERIFACTU_CERTIFICATE_TOOLTIP = Certificado de firma electrónica para VeriFactu. Formato PEM requerido; los formatos P12/PFX se convierten automáticamente.
+VERIFACTU_CERTIFICATE_PASSWORD = Contraseña del certificado
+VERIFACTU_CERTIFICATE_PRIVATE_KEY = Clave privada
+VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = Si el servidor solo proporciona certificado público, pegue aquí la clave privada. El sistema añade las etiquetas PEM automáticamente si faltan.
+VERIFACTU_LOCAL_USE_CERTIFICATE = Usar certificado local
+VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = Si está activo, usa un certificado local (.pfx, .p12 o .pem). Si no, combine la clave privada con el certificado del servidor de licencias.
+sendInvoicesWithErrorsCronName = VeriFactu - Reenvío de facturas con errores de conexión
+
+# Section titles
+BasicConfig = 📋 Configuración Básica
+AdditionalConfig = ⚙️ Configuración Adicional
+QRConfig = 📱 Código QR
+AdvancedConfig = 🔧 Configuración Avanzada
+
+# Activation messages
+VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Activación Requerida
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Empresa española detectada.</strong><br><br>Según el <strong>RD 1007/2023</strong> y la <strong>Orden HAC/1177/2024</strong>, todos los sistemas de facturación deben cumplir VeriFactu.<br><br><strong>📅 Plazos:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sociedades:</strong> 1 de enero de 2026</li><li><strong>Autónomos:</strong> 1 de julio de 2026</li></ul><br><strong>Debe habilitar y configurar este módulo para cumplir la normativa.</strong><br><br><strong>Con clave de activación:</strong> Introdúzcala abajo para acceder a la configuración.<br><br><strong>Sin clave de activación:</strong> Contacte con nosotros para obtenerla.
+VERIFACTU_ACTIVATION_CONTACT_INFO = Soporte
+VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Clave de Activación
+VERIFACTU_ENTER_ACTIVATION_KEY = Introduzca su clave de activación
+GoToSetup = Ir a Configuración
+
+# Status panel
+LicenseStatus = Estado de Licencia
+LicenseValid = Válida
+NoValidLicense = Sin licencia válida
+ActiveEnvironment = Entorno Activo
+Production = Producción
+Test = Pruebas
+Configuration = Configuración
+Complete = Completa
+Pending = Pendiente
+
+# Activation texts (no HTML)
+ActivationRequired = ACTIVACIÓN REQUERIDA
+YouAreSpanishCompany = Empresa española detectada.
+SpanishLegislation = Según el RD 1007/2023 y Orden HAC/1177/2024, todos los sistemas de facturación deben cumplir VeriFactu.
+MandatoryDeadlines = Plazos obligatorios:
+Companies = Sociedades
+SelfEmployed = Autónomos
+ToComplyWithLaw = Debe habilitar este módulo para cumplir la ley.
+IfYouHaveKey = Si dispone de clave de activación:
+EnterKeyBelow = Introdúzcala abajo para acceder a la configuración.
+IfYouDontHaveKey = Sin clave de activación:
+ContactUsToObtain = Contacte con nosotros para obtenerla.
+ContactLabel = Contacto:
+ProactiveHelpNote = Podemos contactarle para ayudarle con la normativa.
+
+# Header
+VerifactuHeaderTitle = VERIFACTU - Facturación Electrónica
+VerifactuHeaderSubtitle = Configuración del módulo para la AEAT
+
+# Certificate cache
+VERIFACTU_PURGE_CERT_CACHE = Limpiar Caché de Certificado
+VERIFACTU_PURGE_CERT_CACHE_HELP = Elimina la caché del certificado. Útil tras cambios de configuración o problemas con el certificado.
+
+# Certificate management
+ManageCertificates = Gestionar Certificados
+CertificateFile = Archivo de Certificado
+CertificatePassword = Contraseña
+MANAGE_CERTIFICATES_TITLE = Gestión de Certificados
+MANAGE_CERTIFICATES_DESC = Extracción de clave pública y registro en servidor
+ManageDownload = Gestión de Descargas
+MANAGE_DOWNLOAD_TITLE = Descargas del Módulo
+MANAGE_DOWNLOAD_DESC = Verificar y descargar actualizaciones de VeriFactu
+CurrentVersion = Versión Actual
+Environment = Entorno
+LatestVersion = Última Versión
+UpdateAvailable = Actualización Disponible
+UpToDate = Actualizado
+CheckUpdates = Buscar Actualizaciones
+CheckForUpdates = Buscar Actualizaciones
+DownloadUpdate = Descargar
+DownloadVersion = Descargar Versión
+DownloadedFiles = Archivos Descargados
+Size = Tamaño
+Date = Fecha
+Actions = Acciones
+NoDownloadedFiles = Sin archivos descargados
+DownloadDirectoryNotFound = Directorio no encontrado
+Note = Nota
+DownloadPath = Ruta de descarga
+ConfirmDeleteFile = ¿Eliminar el archivo: %s?
+ConfirmApplyUpdate = ¿Aplicar actualización de: %s? Se reemplazarán los archivos actuales.
+ApplyUpdate = Aplicar
+ApplyingUpdate = Aplicando actualización
+UpdateAppliedSuccess = Actualización aplicada correctamente
+UpdateAppliedError = Error al aplicar actualización
+NoFileFound = Archivo no encontrado
+FeatureComingSoon = Próximamente disponible
+ErrorFileIsNotZip = El archivo no es un ZIP válido
+ErrorFileNotFound = Archivo no encontrado
+ErrorNoFileSelected = Ningún archivo seleccionado
+ErrorFailToCreateBackup = Error al crear copia de seguridad
+ErrorFailToCopyFile = Error al copiar de %s a %s
+ModuleUpdateSuccess = Módulo actualizado. Recargue la página de módulos para ver los cambios.
+
+PERMISSIONS_MANAGE_VERIFACTU = Gestionar módulo VeriFactu
+verifactu_INVOICE_TYPE = Tipo de factura
+verifactu_INVOICE_TYPE_TOOLTIP = Tipo de factura para VeriFactu
+verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">Datos VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estado de la factura en VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">CAMPOS FISCALES ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANTE: Impuesto, Clave Régimen, Calificación y Operación Exenta son responsabilidad de la empresa. Consulte con su asesor fiscal en caso de duda."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_CSV_INVOICE = Código CSV
+verifactu_CSV_INVOICE_TOOLTIP = Código de verificación de AEAT. Si no existe, la factura no ha sido enviada.
+verifactu_INVOICE_ID = ID en VeriFactu
+verifactu_INVOICE_ID_TOOLTIP = Identificador de la factura en VeriFactu
+verifactu_INVOICE_DATE = Fecha de emisión
+verifactu_INVOICE_DATE_TOOLTIP = Fecha de emisión registrada en VeriFactu
+verifactu_LAST_OUTPUT = Última respuesta
+verifactu_LAST_OUTPUT_TOOLTIP = Última respuesta de VeriFactu
+verifactu_LAST_MODIFICATION_DATE = Última modificación
+verifactu_LAST_MODIFICATION_DATE_TOOLTIP = Fecha de última modificación en VeriFactu
+verifactu_FINGERPRINT = Huella digital
+verifactu_FINGERPRINT_TOOLTIP = Huella SHA-256 de la factura
+verifactu_GENERATION_DATETIME = Fecha/hora de huella
+verifactu_GENERATION_DATETIME_TOOLTIP = Fecha y hora de generación de la huella (ISO 8601)
+verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Cliente de factura simplificada
+verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE_TOOLTIP = Si está activo, las facturas se envían como tipo F2 (simplificada)
+verifactu_SIMPLIFIED_INVOICE = Factura Simplificada
+verifactu_SIMPLIFIED_INVOICE_TOOLTIP = Cliente destinatario de facturas simplificadas (tipo F2) para consumidores finales.
+verifactu_STATUS = Estado
+verifactu_STATUS_TOOLTIP = Estado de la factura en VeriFactu
+verifactu_ERROR = Error
+verifactu_ERROR_TOOLTIP = Último error al enviar a VeriFactu
+VERIFACTU_SEND_INVOICES_MENU = Facturas emitidas
+VERIFACTU_SEND_INVOICES_MENU_HELP = Listado de facturas para enviar a VeriFactu
+VERIFACTU_RECEIVE_INVOICES_MENU = Facturas recibidas
+VERIFACTU_RECEIVE_INVOICES_MENU_HELP = Listado de facturas de proveedores
+VERIFACTU_SEND_INVOICES_QUERY_MENU = Consulta AEAT
+VERIFACTU_SEND_INVOICES_QUERY_MENU_HELP = Consultar facturas emitidas directamente en el portal VeriFactu
+VERIFACTU_RECEIVE_INVOICES_QUERY_MENU = Consulta recibidas
+VERIFACTU_RECEIVE_INVOICES_QUERY_MENU_HELP = Consultar facturas recibidas directamente en el portal VeriFactu
+VERIFACTU_DECLARATION_MENU = Declaración responsable
+VERIFACTU_DECLARATION_MENU_HELP = Declaración responsable del sistema VeriFactu
+
+# Statistics
+VERIFACTU_STAT_TOTAL_SENT = Total enviadas
+VERIFACTU_STAT_SENT_OK = Enviadas correctamente
+VERIFACTU_STAT_WITH_ERRORS = Con errores
+VERIFACTU_STAT_STATUS_DISTRIBUTION = Distribución por estado
+VERIFACTU_STAT_BY_MONTH = Por mes
+VERIFACTU_STAT_BY_YEAR = Por año
+VERIFACTU_LAST_SENT_INVOICES = Últimas enviadas
+VERIFACTU_INVOICES_WITH_ERRORS = Con errores
+VERIFACTU_PENDING_INVOICES = Pendientes de envío
+
+verifactu_ISSUE_DATE = Fecha VeriFactu
+verifactu_ISSUE_DATE_TOOLTIP = Fecha de expedición en VeriFactu
+NOCIF_PREPAREINVOICE = Falta CIF/NIF del tercero %s en factura %s. No se enviará a VeriFactu.
+NOLINES_PREPAREINVOICE = La factura %s no tiene líneas. No se enviará a VeriFactu.
+NO_MARK_SENDINVOICE = La factura %s no se ha marcado para envío a VeriFactu.<br>%s
+YES_MARK_SENDINVOICE = Factura %s marcada como enviada correctamente a VeriFactu.
+YES_MARK_SENDINVOICE_BUT_NO_UPDATE_EXTRAFIELDS = Factura %s enviada pero no se actualizaron los campos extra.<br>%s
+NO_MARK_SENDINVOICE_BUT_NO_UPDATE_EXTRAFIELDS = Factura %s no enviada y no se actualizaron los campos extra.<br>%s
+VERIFACTU_STATUS_NOT_SEND = No Enviada
+VERIFACTU_STATUS_SEND = Enviada
+VERIFACTU_STATUS_SEND_PARTIAL = Parcial
+VERIFACTU_STATUS_ERROR = Error
+VERIFACTU_STATUS_CANCELLED = Anulada
+VERIFACTU_STATUS_NO_INTERNET = Sin Conexión
+VERIFACTU_STATUS_PENDING_SERVICE = Pendiente
+VERIFACTU_STATUS_SENT_DUPLICATE = Enviada (Duplicada)
+VERIFACTU_STATUS_DUPLICATE_DIFF = Duplicada (Importes diferentes)
+VERIFACTU_ALL_STATUS = Todos
+
+# Duplicate invoices (error 3000)
+VERIFACTU_DUPLICATE_QUERY_ERROR = No se pudo verificar la factura duplicada. Consulte manualmente en el portal AEAT.
+VERIFACTU_DUPLICATE_AMOUNTS_MATCH = La factura %s ya existe en AEAT con los mismos importes. Marcada como enviada.
+VERIFACTU_DUPLICATE_AMOUNTS_DIFFER = La factura %s existe en AEAT con importes diferentes: Dolibarr=%s, AEAT=%s (diferencia: %s)
+VERIFACTU_DUPLICATE_AMOUNTS_DIFFER_DETAIL = Factura %s duplicada con importes diferentes: Dolibarr=%s €, AEAT=%s € (diferencia: %s €). Requiere acción manual.
+VERIFACTU_DUPLICATE_ACTION_REQUIRED = ACCIÓN REQUERIDA: Si Dolibarr es correcto, cree factura rectificativa. Si AEAT es correcto, ajuste Dolibarr.
+FACTURE_VERIFACTU_TAB = VeriFactu
+verifactu_LAST_OUTPUT_TOOLTIP = Última respuesta de VeriFactu
+VerifactuArea = Área VeriFactu
+CustomersInvoicesVERIFACTU = Facturas Emitidas
+CustomersInvoicesVERIFACTUQuery = Consulta de Facturas
+VERIFACTU_BUTTON_SENDTO_ALTA = Enviar Alta
+VERIFACTU_BUTTON_SENDTO_MOD = Enviar Modificación
+VERIFACTU_BUTTON_SENDTO_BAJA = Enviar Baja
+CONFIRM_SEND_TO_VERIFACTU_TITLE = Confirmar envío
+CONFIRM_SEND_TO_VERIFACTU_MESSAGE = ¿Enviar las facturas seleccionadas a VeriFactu?
+CONFIRM_SEND_TO_AEAT_TITLE = Confirmar envío
+CONFIRM_SEND_TO_AEAT_MESSAGE = ¿Enviar las facturas seleccionadas a VeriFactu?
+NUMBER_INVOICES_SELECTED = Facturas seleccionadas: <strong>%s</strong>
+INVALID_VERIFACTU_STATUS_TO_SEND = La factura %s debe estar validada o cerrada para enviar a VeriFactu.
+NO_FILTER_PROVIDED = No se ha aplicado ningún filtro
+verifactu_THIRD_PARTY_EXEMPT_OPERATIONS = Exención de operaciones
+verifactu_THIRD_PARTY_EXEMPT_OPERATIONS_TOOLTIP = Tipo de exención para operaciones sujetas y exentas
+verifactu_TAX_TYPE = Impuesto
+verifactu_TAX_TYPE_TOOLTIP = Tipo de impuesto aplicable. Por defecto IVA. Necesario para la tipología de factura.
+verifactu_REGIME_KEY = Clave Régimen
+verifactu_REGIME_KEY_TOOLTIP = Clave del régimen especial. Solo aplicable para IVA o IGIC, no para IPSI u OTROS.
+verifactu_INCIDENT = Incidencia
+verifactu_INCIDENT_TOOLTIP = Indica si hubo incidencia técnica (sin electricidad, sin internet, fallo del sistema). Por defecto "N".
+verifactu_ID_TYPE = Tipo de Identificación
+verifactu_ID_TYPE_TOOLTIP = Tipo de identificación del destinatario extranjero.
+
+# Special case fields
+verifactu_OPERATION_QUALIFICATION = Calificación Operación
+verifactu_OPERATION_QUALIFICATION_TOOLTIP = Clave de operación sujeta/no exenta o no sujeta. S1=Sin inversión, S2=Con inversión, N1=No sujeta art.7,14, N2=No sujeta localización.
+verifactu_EXEMPT_OPERATION = Operación Exenta
+verifactu_EXEMPT_OPERATION_TOOLTIP = Tipo de exención (E1-E6) cuando la operación está exenta de IVA/IGIC/IPSI.
+VERIFACTU_CERT_TYPE = Tipo de certificado
+VERIFACTU_CERT_TYPE_TOOLTIP = Tipo de certificado para VeriFactu.<br><strong>Normal:</strong> Compatible con todos los certificados (recomendado)<br><strong>Sello:</strong> Solo certificados empresariales de sello<br><br>Si obtiene errores "no XML document" en consultas, use 'normal'.
+
+# Auto inference messages
+VERIFACTU_AUTO_INFERENCE_ENABLED = Inferencia automática activa
+VERIFACTU_COHERENCE_WARNING = Los valores manuales podrían no ser coherentes con la configuración automática
+
+#
+# Certificate upload
+#
+UploadCertificates = Subir certificados
+ChooseYourCertificates = Seleccione sus certificados
+NumberOfInvoices = Facturas: %s
+COLUM_FACTURE_ID = ID Factura
+COLUM_FACTURE_ASSOC = Factura asociada
+COLUM_FACTURE_DATE = Fecha
+COLUM_FACTURE_PRESENTATION_DATE = Fecha presentación
+COLUM_FACTURE_SOC_NIF = NIF
+COLUM_FACTURE_SOC_NAME = Nombre
+COLUM_FACTURE_FINGERPRINT = Huella
+COLUM_FACTURE_TOTAL = Total
+COLUM_FACTURE_CSV = CSV
+COLUM_FACTURE_SUBMISSION_DATE = Fecha presentación
+COLUM_FACTURE_RECONCILIATION_STATUS = Estado cuadre
+COLUM_FACTURE_REGISTRATION_STATUS = Estado registro
+FilterButton = Buscar
+FILTER_BILLING_PERIOD = Periodo
+FILTER_INVOICE_SERIAL_NUMBER = Número serie
+FILTER_BILLING_YEAR = Ejercicio
+FILTER_NIF = NIF
+FILTER_NAME = Nombre
+NO_RECORDS_FOUNDS = Sin resultados
+SOAP_EXTENSION_NOT_INSTALLED = La extensión SOAP no está instalada. Instálela y reinicie el servidor web.
+
+# QR Configuration
+QRConfig = Código QR
+VERIFACTU_SHOW_QR_IN_PDF = Mostrar QR en PDF
+VERIFACTU_SHOW_QR_IN_PDF_HELP = Activa la visualización del código QR en los PDF de facturas
+VERIFACTU_QR_SIZE = Tamaño (mm)
+VERIFACTU_QR_SIZE_HELP = Tamaño del QR en milímetros. AEAT especifica 30-40mm (recomendado: 35mm)
+VERIFACTU_QR_POSITION_X = Posición horizontal
+VERIFACTU_QR_POSITION_X_HELP = Posición horizontal del QR:<br>• Izquierda: 10mm del borde<br>• Centro: Centrado (recomendado AEAT)<br>• Derecha: 10mm del borde derecho<br>• Personalizada: Usa valor del campo personalizado<br>• Valor numérico: Posición exacta en mm
+VERIFACTU_QR_POSITION_X_CUSTOM = Posición X personalizada (mm)
+VERIFACTU_QR_POSITION_X_CUSTOM_HELP = Posición horizontal exacta en mm (solo si selecciona "Personalizada")
+VERIFACTU_QR_POSITION_Y = Posición vertical (mm)
+VERIFACTU_QR_POSITION_Y_HELP = Posición vertical desde arriba. Especificación: próximo al margen superior.
+VERIFACTU_QR_SHOW_TEXT = Mostrar texto
+VERIFACTU_QR_SHOW_TEXT_HELP = Texto "QR tributario:" arriba y "VeriFactu" abajo. Obligatorio según AEAT.
+VERIFACTU_QR_SHOW_TEXT_TPV = Mostrar texto en TPV
+VERIFACTU_QR_SHOW_TEXT_TPV_HELP = Muestra el texto explicativo también en tickets de TPV. Obligatorio según AEAT.
+VERIFACTU_QR_TEXT_SIZE = Tamaño de texto
+VERIFACTU_QR_TEXT_SIZE_HELP = Tamaño de fuente del texto. Debe ser igual o mayor que el resto de datos de la factura.
+VERIFACTU_QR_ALL_PAGES = QR en todas las páginas
+VERIFACTU_QR_ALL_PAGES_HELP = Si está activo, muestra el QR en todas las páginas. Especificación oficial: solo primera página.
+
+# Advanced configuration
+VERIFACTU_DIRECT_CALL_ON_VALIDATE = Envío automático al validar
+VERIFACTU_DIRECT_CALL_ON_VALIDATE_TOOLTIP = Envía automáticamente a VeriFactu al validar la factura. Desactive para revisar datos antes del envío.
+
+# Default values
+VERIFACTU_DEFAULT_TAX_TYPE = Impuesto por defecto
+VERIFACTU_DEFAULT_TAX_TYPE_HELP = Tipo de impuesto por defecto para nuevas facturas
+VERIFACTU_DEFAULT_REGIME_KEY = Clave Régimen por defecto
+VERIFACTU_DEFAULT_REGIME_KEY_HELP = Clave de régimen por defecto para nuevas facturas
+VERIFACTU_DEFAULT_OPERATION_QUALIFICATION = Calificación por defecto
+VERIFACTU_DEFAULT_OPERATION_QUALIFICATION_HELP = Calificación de operación por defecto (opcional)
+VERIFACTU_DEFAULT_EXEMPT_OPERATION = Operación exenta por defecto
+VERIFACTU_DEFAULT_EXEMPT_OPERATION_HELP = Tipo de exención por defecto (opcional)
+
+# QR texts per AEAT specifications
+VerifactuQR = QR tributario:
+VerifactuQRCode = Código QR VeriFactu
+VerifactuQRTributario = QR tributario:
+VerifactuQRLegend = VeriFactu
+VerifactuQRSedeElectronica = Verificable en sede electrónica AEAT
+
+# Top menu
+VERIFACTU_MENU_TOOLTIP = Información del módulo VeriFactu
+VERIFACTU_TIME_REMAINING = Producción en
+VERIFACTU_NEW_VERSION_AVAILABLE = Actualización recomendada para mejoras y seguridad
+VERIFACTU_RESPONSIBLE_DECLARATION = Declaración responsable
+VERIFACTU_MODULE_STATUS = Estado del Módulo
+VERIFACTU_CURRENT_VERSION = Versión actual
+VERIFACTU_NEW_VERSION = Nueva versión
+VERIFACTU_ACCESS_DECLARATION = Acceder a declaración responsable
+
+# Existing configurations
+VERIFACTU_COMPANY_TYPE = Tipo de Empresa
+VERIFACTU_COMPANY_TYPE_HELP = Tipo de empresa. Sociedades: producción 01/01/2026. Autónomos: producción 01/07/2026.
+
+# Positions
+Left = Izquierda
+Center = Centro
+Right = Derecha
+Custom = Personalizada
+
+# Operation Qualification (L9)
+VERIFACTU_QUALIFICATION_S1 = Sujeta sin inversión del sujeto pasivo
+VERIFACTU_QUALIFICATION_S2 = Sujeta con inversión del sujeto pasivo
+VERIFACTU_QUALIFICATION_N1 = No sujeta (art. 7, 14, otros)
+VERIFACTU_QUALIFICATION_N2 = No sujeta por localización
+
+# Exempt Operation (L10)
+VERIFACTU_EXEMPT_OPERATION_E1 = Exenta art. 20
+VERIFACTU_EXEMPT_OPERATION_E2 = Exenta art. 21
+VERIFACTU_EXEMPT_OPERATION_E3 = Exenta art. 22
+VERIFACTU_EXEMPT_OPERATION_E4 = Exenta arts. 23 y 24
+VERIFACTU_EXEMPT_OPERATION_E5 = Exenta art. 25
+VERIFACTU_EXEMPT_OPERATION_E6 = Exenta por otros
+
+# Auto help messages
+VERIFACTU_AUTO_HELP_TITLE = ℹ️ Cálculo Automático Activo
+VERIFACTU_AUTO_HELP_TEXT = El sistema calcula los parámetros VeriFactu automáticamente. Solo modifique manualmente para casos especiales.
+VERIFACTU_INFERENCE_CLIENT_SPAIN = España → IVA + Régimen General
+VERIFACTU_INFERENCE_CLIENT_CANARY = Canarias → IGIC
+VERIFACTU_INFERENCE_CLIENT_CEUTA_MELILLA = Ceuta/Melilla → IPSI
+VERIFACTU_INFERENCE_CLIENT_EU = UE → IVA + Entrega Intracomunitaria
+VERIFACTU_INFERENCE_CLIENT_FOREIGN = Extranjero → IVA + Exportación
+
+# Cancellation types
+VERIFACTU_CANCELLATION_TYPE = Tipo de anulación
+VERIFACTU_CANCELLATION_NORMAL = Anulación normal
+VERIFACTU_CANCELLATION_PREVIOUS_REJECTION = Por rechazo previo
+VERIFACTU_CANCELLATION_NO_PREVIOUS_REGISTRATION = Sin registro previo
+
+# Cancellation descriptions
+VERIFACTU_CANCELLATION_NORMAL_DESC = Para facturas registradas correctamente que necesitan cancelarse
+VERIFACTU_CANCELLATION_PREVIOUS_REJECTION_DESC = Para facturas rechazadas previamente por VeriFactu
+VERIFACTU_CANCELLATION_NO_PREVIOUS_REGISTRATION_DESC = Para facturas no registradas previamente en VeriFactu
+
+# Cancellation type info
+VERIFACTU_INFO_CANCELLATION_NORMAL = <strong>Normal:</strong> Anula facturas registradas correctamente.
+VERIFACTU_INFO_CANCELLATION_PREVIOUS_REJECTION = <strong>Por Rechazo:</strong> Anula facturas rechazadas anteriormente.
+VERIFACTU_INFO_CANCELLATION_NO_PREVIOUS_REGISTRATION = <strong>Sin Registro:</strong> Anula facturas no registradas en VeriFactu.
+
+# Validation and configuration
+VERIFACTU_CONFIG_INCOMPLETE = Configuración VeriFactu incompleta. Revise los ajustes del módulo.
+VERIFACTU_SUCCESS = Operación completada correctamente
+VERIFACTU_ERROR = Error en la operación VeriFactu
+VERIFACTU_ERROR_INVOICE_NOT_VALIDATED = El envío a VeriFactu falló para la factura %s. La factura permanece como borrador - corrija los problemas e inténtelo de nuevo.
+VERIFACTU_BATCH_VALIDATION_FAILED = Error validando factura %s: %s
+VERIFACTU_BATCH_VALIDATION_STOPPED = Validación por lotes detenida tras el error. %s facturas validadas de %s seleccionadas.
+VERIFACTU_BATCH_VALIDATION_SUCCESS = %s facturas validadas correctamente.
+VERIFACTU_BATCH_VALIDATION_PARTIAL = Validación parcial: %s facturas validadas, %s con errores.
+VERIFACTU_EXCEPTION = Error VeriFactu: %s
+INVALID_VERIFACTU_ACTION = Acción no válida: %s
+VERIFACTU_VALIDATION_INVOICE_NOT_VALIDATED = La factura debe estar validada para enviar a VeriFactu
+VERIFACTU_VALIDATION_INVOICE_PROVISIONAL = No se pueden enviar facturas provisionales (con "PROV" en referencia)
+VERIFACTU_ERROR_INVOICE_ALREADY_CANCELLED = La factura ya está anulada en VeriFactu
+VERIFACTU_CANNOT_SEND_TITLE = No se puede enviar a VeriFactu
+VERIFACTU_BUTTON_DISABLED = Deshabilitado
+
+# Certificates and troubleshooting
+VERIFACTU_CERT_TYPE_NORMAL_DESC = Tipo 'normal': Compatible con certificados personales y empresariales (www1.aeat.es)
+VERIFACTU_CERT_TYPE_SEAL_DESC = Tipo 'sello': Solo certificados empresariales con sello (www10.aeat.es)
+VERIFACTU_CERT_TYPE_RECOMMENDATION = En caso de duda, use 'normal' - compatible con todos los certificados
+VERIFACTU_TROUBLESHOOTING_XML_ERROR = Si obtiene errores "no XML document", su certificado personal no es compatible con 'sello'. Use 'normal'.
+VERIFACTU_CERT_COMPATIBILITY_WARNING = ⚠️ Certificados personales (AC FNMT) pueden tener problemas con tipo 'sello' en consultas
+
+# VeriFactu states
+VERIFACTU_STATE_CORRECT = Correcto
+VERIFACTU_STATE_INCORRECT = Incorrecto
+VERIFACTU_STATE_CANCELLED = Anulado
+VERIFACTU_STATE_ERROR = Error
+VERIFACTU_STATE_DUPLICATE = Duplicado
+VERIFACTU_STATE_NOT_SENT = No Enviada
+
+# Error messages
+VerifactuConnectorPrivateKeyError = ⚠️ No se pudo obtener la clave privada: %s. Verifique el conector de certificados.
+VERIFACTU_ERROR_DUPLICATE_REGISTRATION = Registro duplicado
+VERIFACTU_CERT_KEY_MISMATCH = Clave privada incorrecta o contraseña errónea
+VERIFACTU_CERTIFICATE_CONVERTED_SUCCESS = Certificado '%s' convertido a PEM correctamente
+VERIFACTU_CERTIFICATE_VALIDATED_SUCCESS = Certificado '%s' validado (ya era PEM)
+VERIFACTU_CERTIFICATE_ERROR = Error procesando certificado '%s': %s
+VERIFACTU_WARNING_OPERATION_COMPLETED = Operación completada - la factura ya tenía el estado solicitado
+VERIFACTU_INVOICE_CANNOT_BE_MODIFIED = La factura %s no puede modificarse (restricción VeriFactu)
+VERIFACTU_INVOICE_CANNOT_BE_VALID_CIF_REQUIRED = Factura %s: CIF/NIF del cliente obligatorio para VeriFactu
+VERIFACTU_INVOICE_CANNOT_BE_VALID_VAT_INTRA_REQUIRED = Factura %s: CIF Intracomunitario obligatorio para VeriFactu
+VERIFACTU_INVOICE_CANNOT_BE_VALID_ADDRESS_REQUIRED = Factura %s: Dirección del cliente obligatoria para VeriFactu
+VERIFACTU_INVOICE_REF_CONTAINS_SPACES = La máscara de numeración contiene espacios. Modifíquela para continuar.
+VERIFACTU_INVOICE_REF_NOT_ALPHANUMERIC = Referencia "%s" no válida. Solo caracteres alfanuméricos, guiones (-), guiones bajos (_) y barras (/).
+VERIFACTU_INVOICE_REF_TOO_LONG = Referencia "%s" demasiado larga (%s caracteres). Máximo 60 caracteres.
+
+VERIFACTU_INVOICE_CANNOT_EXCEED_MAX_DATE = La fecha de factura <strong>%s</strong> no puede ser anterior a la última fecha válida <strong>%s</strong>. Fecha ajustada a <strong>%s</strong>.
+VERIFACTU_CANNOT_DELETE_EXTRA_FIELD = No se puede eliminar este campo. Los campos 'verifactu_' son esenciales para el módulo.
+THIRD_PARTY_HAS_INVOICES_NIF_NOT_MODIFIED = <strong>CIF/NIF</strong> no actualizado. <strong>%s</strong> tiene <strong>%s</strong> facturas en VeriFactu.
+THIRD_PARTY_HAS_INVOICES_VAT_INTRA_NOT_MODIFIED = <strong>CIF Intra</strong> no actualizado. <strong>%s</strong> tiene <strong>%s</strong> facturas en VeriFactu.
+
+# Rectified Invoices
+VERIFACTU_RECTIFIED_INVOICES = Facturas Rectificadas
+VERIFACTU_RECTIFIED_INVOICE_ADDED = Factura rectificada añadida
+VERIFACTU_RECTIFIED_INVOICE_ERROR = Error al añadir factura rectificada
+VERIFACTU_ISSUER_ID_REQUIRED = ID del emisor obligatorio
+VERIFACTU_SERIAL_NUMBER_REQUIRED = Número de serie obligatorio
+VERIFACTU_ISSUE_DATE_REQUIRED = Fecha de expedición obligatoria
+VERIFACTU_ISSUE_DATE_INVALID_FORMAT = Formato de fecha: dd-mm-yyyy
+VERIFACTU_RECTIFIED_BASE_NEGATIVE = La base no puede ser negativa
+VERIFACTU_RECTIFIED_QUOTA_NEGATIVE = La cuota no puede ser negativa
+VERIFACTU_SURCHARGE_NEGATIVE = El recargo no puede ser negativo
+VERIFACTU_RECTIFICATION_TYPE_R1_ERROR = R1 - Error fundado en derecho (Art. 80 Uno, Dos y Seis LIVA)
+VERIFACTU_RECTIFICATION_TYPE_R2_ART80_3 = R2 - Art. 80.3 LIVA
+VERIFACTU_RECTIFICATION_TYPE_R3_ART80_4 = R3 - Art. 80.4 LIVA
+VERIFACTU_RECTIFICATION_TYPE_R4_OTHER = R4 - Resto de casos
+VERIFACTU_RECTIFICATION_TYPE_R5_SIMPLIFIED = R5 - Rectificativa simplificada
+VERIFACTU_CREDIT_NOTE_PROCESSED = Abono procesado como rectificativa R1 tipo I
+VERIFACTU_REPLACEMENT_INVOICE_PROCESSED = Sustitución procesada como rectificativa R1 tipo S
+VERIFACTU_MODULE_RD10072023_REQUIRED = El módulo RD10072023 debe estar activo
+VERIFACTU_CERTIFICATE_PRIVATE_KEY_TOOLTIP = Clave privada en formato PEM. Los archivos P12 se convierten automáticamente.
+
+#
+# Responsible Declaration
+#
+NO_VERIFACTU_ACTIVATION_KEY = No hay clave de activación configurada. Vaya a Configuración -> Módulos -> VeriFactu.
+ERROR_VERIFACTU_CONNECTION = Error de conexión con el servidor de licencias. Verifique su conexión a internet.
+YES_VERIFACTU_INTEGRITY = ✓ El módulo cumple los requisitos de integridad y la licencia es válida.
+NO_VERIFACTU_INTEGRITY = ✗ El módulo no cumple los requisitos o la licencia no es válida.
+
+# Top menu (additional)
+VERIFACTU_MODULE_VERSION = VeriFactu
+VERIFACTU_ACCESS_SETUP = Acceder a configuración
+
+# Auto configuration by third party
+VERIFACTU_DEFAULT_THIRD_PARTY_TAX_SET = Impuesto por defecto de '%s' aplicado
+VERIFACTU_DEFAULT_THIRD_PARTY_REGIME_KEY_SET = Clave de régimen de '%s' aplicada
+VERIFACTU_DEFAULT_THIRD_PARTY_OPERATION_QUALIFICATION_SET = Calificación de '%s' aplicada
+VERIFACTU_DEFAULT_THIRD_PARTY_EXEMPT_OPERATION_SET = Operación exenta de '%s' aplicada
+
+# Validation confirmation
+ConfirmValidateBillVerifactu = ¿Validar factura <strong>%s</strong>?<br><br>⚠️ <strong>IMPORTANTE:</strong><br>• Se enviarán los datos a VeriFactu de la AEAT<br>• <strong>No podrá editar ni eliminar</strong> esta factura después<br><br>📋 <strong>VERIFIQUE antes de continuar:</strong><br>• Impuesto, Clave Régimen, Calificación y Exención<br><br>⚖️ <strong>Usted es responsable</strong> de la veracidad de estos datos fiscales.<br>En caso de duda, <strong>consulte con su asesor fiscal</strong>.
+
+# Environment configuration
+VERIFACTU_CURRENT_ENVIRONMENT = Entorno Actual
+VerifactuCopying = Acuerdo de licencia
+VERIFACTU_INIT_LICENSE_ACCEPTED = <strong>LICENCIA GPL v3</strong><br><br>Al activar este módulo, acepta los términos de la licencia GPL v3.<br><br><strong>RESPONSABILIDAD FISCAL:</strong><br>Los campos Impuesto, Clave Régimen, Calificación y Operación Exenta son RESPONSABILIDAD de su empresa. Consulte con su asesor fiscal en caso de duda.
+VERIFACTU_INIT_LICENSE_ACCEPTED_SHORT = Al activar acepta GPL v3. Configuración fiscal es responsabilidad de la empresa.
+VERIFACTU_HAS_NO_INTERNET_CONNECTION = Sin conexión a internet. La factura %s se validará localmente. Realice el envío manual posteriormente.
+
+# Service status
+VERIFACTU_SERVICE_UNAVAILABLE = Servicio VeriFactu no disponible temporalmente
+VERIFACTU_SERVICE_UNAVAILABLE_INFO = Factura %s validada localmente. No se pudo enviar a VeriFactu. Marcada como "Pendiente" para reintento. Error: %s
+VERIFACTU_SERVICE_RETRY_LATER = Servicio no disponible. Se procesará localmente para reintento posterior.
+VERIFACTU_SERVICE_STATUS_CHECK = Verificando servicio VeriFactu...
+VERIFACTU_SERVICE_AVAILABLE = ✓ Servicio disponible
+VERIFACTU_SERVICE_NOT_AVAILABLE = ⚠️ Servicio no disponible
+VERIFACTU_PENDING_RETRY_INFO = Factura pendiente por indisponibilidad del servicio. Puede reintentarse cuando esté disponible.
+
+# Invoice view
+VERIFACTU_ACTIONS_SECTION_TITLE = Acciones VeriFactu
+VERIFACTU_AEAT_DATA_SECTION_TITLE = Datos en la AEAT
+
+# Main dashboard
+VERIFACTU_DASHBOARD_CARD_SUBTITLE_MANAGEMENT = Gestión de Envíos
+VERIFACTU_DASHBOARD_CARD_SUBTITLE_PORTAL = Portal VeriFactu
+VERIFACTU_DASHBOARD_FEATURE_AUTO_SEND = Envío automático
+VERIFACTU_DASHBOARD_FEATURE_VALIDATION = Validación normativa
+VERIFACTU_DASHBOARD_FEATURE_TRACEABILITY = Trazabilidad completa
+VERIFACTU_DASHBOARD_FEATURE_ERROR_MANAGEMENT = Gestión de errores
+VERIFACTU_DASHBOARD_FEATURE_CONNECTION = Conexión directa AEAT
+VERIFACTU_DASHBOARD_FEATURE_VERIFICATION = Verificación en tiempo real
+VERIFACTU_DASHBOARD_FEATURE_HISTORY = Historial de consultas
+VERIFACTU_DASHBOARD_FEATURE_EXPORT = Exportación de datos
+VERIFACTU_DASHBOARD_ACTION_ACCESS = Acceder
+VERIFACTU_DASHBOARD_ACTION_QUERY = Consultar
+PDFVerifactuDescription = Plantilla PDF con código QR VeriFactu y datos fiscales AEAT.
+VATIntra = CIF intra/ID extranjero
+VATIntraShort = CIF intra/ID extranjero
+VATIntraVerifactu = <span class="badge badge-status1 badge-status">CIF intra/ID extranjero ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="📋 USO:<br><br><strong>Clientes NO españoles:</strong><br>• Introduzca identificación fiscal extranjera<br>• Seleccione el Tipo de Identificación<br><br><strong>Clientes españoles:</strong><br>• Use solo el campo CIF/NIF<br>• Deje este campo vacío"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+ProfId1ESVerifactu = <span class="badge badge-status4 badge-status">CIF/NIF</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="📋 CIF/NIF:<br><br><strong>Clientes españoles:</strong> ✅ OBLIGATORIO<br><strong>Clientes extranjeros:</strong> ⚪ Use 'CIF intra/ID extranjero'<br><br>⚠️ No modificable tras envío a VeriFactu."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+VerifactuRequire16orHigher = ⚠️ Requiere Dolibarr 16.0+
+
+# Certificates
+VERIFACTU_CERT_CONFIGURED = Certificado Configurado
+VERIFACTU_CERT_READY = Sistema listo para firmar y enviar a VeriFactu
+VERIFACTU_CERT_ERROR = Error de Certificado
+
+# Invoice already sent
+VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Factura ya enviada correctamente. Solo puede enviar una Baja para anularla.
+VERIFACTU_ALREADY_SENT_TOOLTIP = Factura ya enviada a VeriFactu
+VERIFACTU_BUTTON_VERIFY_STATUS = Verificar Estado en AEAT
+
+# Pre-check before sending
+VERIFACTU_PRECHECK_SKIP_SEND = La factura %s ya existe en AEAT. No se realizó envío adicional.
+VERIFACTU_PRECHECK_ALREADY_EXISTS = Factura verificada - Ya existía en AEAT
+VERIFACTU_PRECHECK_AMOUNTS_DIFFER = La factura %s existe en AEAT con importes diferentes: Dolibarr=%s, AEAT=%s. Revise los datos.
+
+# Status verification
+VERIFACTU_VERIFY_NOT_FOUND_IN_AEAT = Factura %s no encontrada en AEAT. Puede enviarla normalmente.
+VERIFACTU_VERIFY_NOT_FOUND_CLEARED = Factura %s no existe en AEAT. Errores anteriores limpiados. Puede enviarla.
+VERIFACTU_VERIFY_STATUS_CORRECTED = Factura %s verificada. Estado: Enviada. Importe: %s
+VERIFACTU_VERIFY_AMOUNTS_DIFFER = Factura %s en AEAT con importes diferentes: Dolibarr=%s, AEAT=%s (diferencia: %s). Requiere revisión.
+VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verificación exitosa: Importes coinciden (Dolibarr: %s, AEAT: %s)

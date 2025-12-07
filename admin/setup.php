@@ -1,0 +1,839 @@
+<?php
+/* ini_set("display_errors", "1");	// Do not display errors on screen. Errors are logged into the log file.
+error_reporting(E_ALL);	// Suppress warnings, notices, deprecated and strict messages
+ */
+/* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
+ * Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * \file    verifactu/admin/setup.php
+ * \ingroup verifactu
+ * \brief   Verifactu setup page.
+ */
+
+// Load Dolibarr environment
+$res = 0;
+// Try main.inc.php into web root known defined into CONTEXT_DOCUMENT_ROOT (not always defined)
+if (!$res && !empty($_SERVER["CONTEXT_DOCUMENT_ROOT"])) {
+	$res = @include $_SERVER["CONTEXT_DOCUMENT_ROOT"] . "/main.inc.php";
+}
+// Try main.inc.php into web root detected using web root calculated from SCRIPT_FILENAME
+$tmp = empty($_SERVER['SCRIPT_FILENAME']) ? '' : $_SERVER['SCRIPT_FILENAME'];
+$tmp2 = realpath(__FILE__);
+$i = strlen($tmp) - 1;
+$j = strlen($tmp2) - 1;
+while ($i > 0 && $j > 0 && isset($tmp[$i]) && isset($tmp2[$j]) && $tmp[$i] == $tmp2[$j]) {
+	$i--;
+	$j--;
+}
+if (!$res && $i > 0 && file_exists(substr($tmp, 0, ($i + 1)) . "/main.inc.php")) {
+	$res = @include substr($tmp, 0, ($i + 1)) . "/main.inc.php";
+}
+if (!$res && $i > 0 && file_exists(dirname(substr($tmp, 0, ($i + 1))) . "/main.inc.php")) {
+	$res = @include dirname(substr($tmp, 0, ($i + 1))) . "/main.inc.php";
+}
+// Try main.inc.php using relative path
+if (!$res && file_exists("../../main.inc.php")) {
+	$res = @include "../../main.inc.php";
+}
+if (!$res && file_exists("../../../main.inc.php")) {
+	$res = @include "../../../main.inc.php";
+}
+if (!$res) {
+	die("Include of main fails");
+}
+
+global $langs, $user;
+
+// Libraries
+require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
+require_once DOL_DOCUMENT_ROOT . "/core/lib/files.lib.php";
+dol_include_once('/verifactu/lib/verifactu.lib.php');
+require '../lib/verifactu-types.array.php';
+//require_once "../class/myclass.class.php";
+
+
+// Translations
+$langs->loadLangs(array("admin", "verifactu@verifactu"));
+
+// Initialize technical object to manage hooks of page. Note that conf->hooks_modules contains array of hook context
+$hookmanager->initHooks(array('verifactusetup', 'globalsetup'));
+
+// Access control
+if (!$user->admin) {
+	accessforbidden();
+}
+
+// Parameters
+$action = GETPOST('action', 'aZ09');
+$backtopage = GETPOST('backtopage', 'alpha');
+$modulepart = GETPOST('modulepart', 'aZ09');	// Used by actions_setmoduleoptions.inc.php
+
+$value = GETPOST('value', 'alpha');
+$label = GETPOST('label', 'alpha');
+$scandir = GETPOST('scan_dir', 'alpha');
+$type = 'myobject';
+
+
+$error = 0;
+$setupnotempty = 0;
+
+// Set this to 1 to use the factory to manage constants. Warning, the generated module will be compatible with version v15+ only
+$useFormSetup = 1;
+
+if (!class_exists('FormSetup')) {
+	// For retrocompatibility Dolibarr < 16.0
+	if (floatval(DOL_VERSION) < 16.0 && !class_exists('FormSetup')) {
+		require_once __DIR__ . '/../backport/v16/core/class/html.formsetup.class.php';
+	} else {
+		require_once DOL_DOCUMENT_ROOT . '/core/class/html.formsetup.class.php';
+	}
+}
+
+$formSetup = new FormSetup($db);
+
+// Host
+/* $item = $formSetup->newItem('NO_PARAM_JUST_TEXT');
+$item->fieldOverride = (empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'];
+$item->cssClass = 'minwidth500'; */
+
+// Title for basic configuration
+$formSetup->newItem('BasicConfig')->setAsTitle();
+// Basic company fields (always visible)
+$item = $formSetup->newItem('VERIFACTU_HOLDER_COMPANY_NAME');
+$item->defaultFieldValue = $mysoc->name;
+$item->cssClass = 'minwidth500';
+$item->helpText = $langs->transnoentities('VERIFACTU_HOLDER_COMPANY_NAME_HELP');
+
+$item = $formSetup->newItem('VERIFACTU_HOLDER_NIF');
+$item->defaultFieldValue = $mysoc->idprof1;
+$item->cssClass = 'minwidth500';
+$item->helpText = $langs->transnoentities('VERIFACTU_HOLDER_NIF_HELP');
+
+$item = $formSetup->newItem('VERIFACTU_COMPANY_TYPE')->setAsSelect(array('sociedad' => 'Sociedad', 'autonomo' => 'Autónomo'));
+$item->cssClass = 'minwidth500';
+$item->helpText = $langs->transnoentities('VERIFACTU_COMPANY_TYPE_HELP');
+
+// Local certificate selector
+$item = $formSetup->newItem('VERIFACTU_CERTIFICATE');
+$certificados = dol_dir_list(
+	$conf->verifactu->multidir_output[$conf->entity] . "/certificates",
+	$types = "files",
+	$recursive = 0,
+	$filter = '\.(pfx|p12|pem)$',
+	$excludefilter = null,
+	$sortcriteria = "name",
+	$sortorder = SORT_ASC,
+	$mode = 0,
+	$nohook = 0,
+	$relativename = "",
+	$donotfollowsymlinks = 0
+);
+$certificados = array_combine(array_column($certificados, 'name'), array_column($certificados, 'name'));
+$item->setAsSelect($certificados);
+$item->helpText = $langs->transnoentities('VERIFACTU_CERTIFICATE_HELP');
+
+// Certificate key (PFX/P12 passphrase)
+$item = $formSetup->newItem('VERIFACTU_CERTIFICATE_KEY');
+$item->helpText = $langs->transnoentities('VERIFACTU_CERTIFICATE_KEY_HELP');
+
+// Check if basic fields are complete
+$basicFieldsComplete = false;
+if (
+	!empty($conf->global->VERIFACTU_HOLDER_COMPANY_NAME) &&
+	!empty($conf->global->VERIFACTU_HOLDER_NIF) &&
+	!empty($conf->global->VERIFACTU_CERTIFICATE)
+) {
+	$basicFieldsComplete = true;
+}
+
+// Only show remaining configuration if basic fields are complete
+if ($basicFieldsComplete) {
+
+	// Title for additional configuration
+	$formSetup->newItem('AdditionalConfig')->setAsTitle();
+
+	// System configuration
+	$item = $formSetup->newItem('VERIFACTU_MODE');
+	$item->setAsSelect(array('verifactu' => 'Verifactu'));
+	$item->helpText = $langs->transnoentities('VERIFACTU_MODE_HELP');
+
+	$item = $formSetup->newItem('VERIFACTU_HOLDER_REPRESENTATIVE_NIF');
+	$item->defaultFieldValue = $mysoc->idprof2;
+	$item->cssClass = 'minwidth500';
+	$item->helpText = $langs->transnoentities('VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP');
+
+	// Environment information (not configurable) - dynamic based on configuration
+	$item = $formSetup->newItem('VERIFACTU_ENVIRONMENT_INFO');
+
+	// Determine current environment using getEnvironment() function
+	$currentEnvironment = getEnvironment();
+	$isForced = !empty($conf->global->VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT);
+
+	if ($isForced) {
+		$item->fieldOverride = '<span class="badge badge-status4">'.$langs->trans("Production").'</span> <span class="opacitymedium">('.$langs->trans("Forced").')</span>';
+	} elseif ($currentEnvironment === 'production') {
+		$item->fieldOverride = '<span class="badge badge-status4">'.$langs->trans("Production").'</span>';
+	} else {
+		$productionDate = ($conf->global->VERIFACTU_COMPANY_TYPE === 'autonomo') ? '1 julio 2026' : '1 enero 2026';
+		$item->fieldOverride = '<span class="badge badge-status1">'.$langs->trans("Test").'</span> <span class="opacitymedium">('.$langs->trans("ProductionMandatoryFrom").' '.$productionDate.')</span>';
+	}
+
+	$item = $formSetup->newItem('VERIFACTU_CERT_TYPE');
+	$item->setAsSelect(array('normal' => 'Normal', 'sello' => 'Sello'));
+	$item->helpText = $langs->transnoentities('VERIFACTU_CERT_TYPE_HELP');
+
+	// Title for QR configuration
+	$formSetup->newItem('QRConfig')->setAsTitle();
+
+	// QR size
+	$item = $formSetup->newItem('VERIFACTU_QR_SIZE');
+	$item->setAsSelect(array_combine(range(30, 40), array_map(function ($i) {
+		return $i . ' mm';
+	}, range(30, 40))));
+	$item->defaultFieldValue = '35';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SIZE_HELP');
+
+	// QR X position
+	$item = $formSetup->newItem('VERIFACTU_QR_POSITION_X');
+	$item->setAsSelect(array(
+		'left' => $langs->trans('Left'),
+		'center' => $langs->trans('Center'),
+		'right' => $langs->trans('Right'),
+		'custom' => $langs->trans('Custom')
+	));
+	$item->defaultFieldValue = 'center';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_POSITION_X_HELP');
+
+	// Custom X position (numeric value)
+	$item = $formSetup->newItem('VERIFACTU_QR_POSITION_X_CUSTOM');
+	$item->setAsSelect(array_combine(range(0, 210), array_map(function ($i) {
+		return $i . ' mm';
+	}, range(0, 210))));
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_POSITION_X_CUSTOM_HELP');
+
+	// QR Y position
+	$item = $formSetup->newItem('VERIFACTU_QR_POSITION_Y');
+	$item->setAsSelect(array_combine(range(0, 100), array_map(function ($i) {
+		return $i . ' mm';
+	}, range(0, 100))));
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_POSITION_Y_HELP');
+
+	// Hiding QR explanatory text is not allowed
+	// // Show explanatory text
+	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT');
+	$item->setAsYesNo();
+	$item->defaultFieldValue = '1';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_HELP');
+	$item->cssClass = 'width150';
+
+	// Show POS explanatory text
+	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT_TPV');
+	$item->setAsYesNo();
+	$item->defaultFieldValue = '1';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_TPV_HELP');
+	$item->cssClass = 'width150';
+
+	// Explanatory text size
+	$item = $formSetup->newItem('VERIFACTU_QR_TEXT_SIZE');
+	$item->defaultFieldValue = '8';
+	$item->cssClass = 'minwidth100';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_TEXT_SIZE_HELP');
+
+	// Show QR on all pages
+	$item = $formSetup->newItem('VERIFACTU_QR_ALL_PAGES');
+	$item->setAsYesNo();
+	$item->defaultFieldValue = '0';
+	$item->helpText = $langs->transnoentities('VERIFACTU_QR_ALL_PAGES_HELP');
+	$item->cssClass = 'width150';
+
+	// Title for advanced configuration
+	$formSetup->newItem('AdvancedConfig')->setAsTitle();
+
+	// Default configuration for VERIFACTU fields
+	$item = $formSetup->newItem('VERIFACTU_DEFAULT_TAX_TYPE');
+	$item->setAsSelect(array('' => 'Automático (recomendado)') + $tipoImpuestos);
+	$item->helpText = $langs->transnoentities('VERIFACTU_DEFAULT_TAX_TYPE_HELP');
+
+	$item = $formSetup->newItem('VERIFACTU_DEFAULT_TAX_REGIME');
+	$item->setAsSelect(array('' => 'Automático (recomendado)') + $claveRegimen);
+	$item->helpText = $langs->transnoentities('VERIFACTU_DEFAULT_TAX_REGIME_HELP');
+
+	$item = $formSetup->newItem('VERIFACTU_DEFAULT_OPERATION_QUALIFICATION');
+	$item->setAsSelect(array('' => 'Automático (recomendado)') + $calificacionOperacion);
+	$item->helpText = $langs->transnoentities('VERIFACTU_DEFAULT_OPERATION_QUALIFICATION_HELP');
+
+	$item = $formSetup->newItem('VERIFACTU_DEFAULT_EXEMPT_OPERATION');
+	$item->setAsSelect(array('' => 'Automático (recomendado)') + $operacionExenta);
+	$item->helpText = $langs->transnoentities('VERIFACTU_DEFAULT_EXEMPT_OPERATION_HELP');
+} // End of conditional configuration
+
+/* // Installation number
+$item = $formSetup->newItem('VERIFACTU_DIRECT_CALL_ON_VALIDATE')->setAsYesNo(); */
+
+
+/*
+// Setup conf VERIFACTU_MYPARAM1 as a simple textarea input but we replace the text of field title
+$item = $formSetup->newItem('VERIFACTU_MYPARAM2');
+$item->nameText = $item->getNameText().' more html text ';
+
+// Setup conf VERIFACTU_MYPARAM3
+$item = $formSetup->newItem('VERIFACTU_MYPARAM3');
+$item->setAsThirdpartyType();
+
+// Setup conf VERIFACTU_MYPARAM4 : exemple of quick define write style
+$formSetup->newItem('VERIFACTU_MYPARAM4')->setAsYesNo();
+
+// Setup conf VERIFACTU_MYPARAM5
+$formSetup->newItem('VERIFACTU_MYPARAM5')->setAsEmailTemplate('thirdparty');
+
+// Setup conf VERIFACTU_MYPARAM6
+$formSetup->newItem('VERIFACTU_MYPARAM6')->setAsSecureKey()->enabled = 0; // disabled
+
+// Setup conf VERIFACTU_MYPARAM7
+$formSetup->newItem('VERIFACTU_MYPARAM7')->setAsProduct();
+
+$formSetup->newItem('Title')->setAsTitle();
+
+// Setup conf VERIFACTU_MYPARAM8
+$item = $formSetup->newItem('VERIFACTU_MYPARAM8');
+$TField = array(
+	'test01' => $langs->trans('test01'),
+	'test02' => $langs->trans('test02'),
+	'test03' => $langs->trans('test03'),
+	'test04' => $langs->trans('test04'),
+	'test05' => $langs->trans('test05'),
+	'test06' => $langs->trans('test06'),
+);
+$item->setAsMultiSelect($TField);
+$item->helpText = $langs->transnoentities('VERIFACTU_MYPARAM8');
+
+
+// Setup conf VERIFACTU_MYPARAM9
+$formSetup->newItem('VERIFACTU_MYPARAM9')->setAsSelect($TField);
+
+
+// Setup conf VERIFACTU_MYPARAM10
+$item = $formSetup->newItem('VERIFACTU_MYPARAM10');
+$item->setAsColor();
+$item->defaultFieldValue = '#FF0000';
+$item->nameText = $item->getNameText().' more html text ';
+$item->fieldInputOverride = '';
+$item->helpText = $langs->transnoentities('AnHelpMessage'); */
+//$item->fieldValue = '';
+//$item->fieldAttr = array() ; // fields attribute only for compatible fields like input text
+//$item->fieldOverride = false; // set this var to override field output will override $fieldInputOverride and $fieldOutputOverride too
+//$item->fieldInputOverride = false; // set this var to override field input
+//$item->fieldOutputOverride = false; // set this var to override field output
+
+
+$setupnotempty = +count($formSetup->items);
+
+
+$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+
+
+/*
+ * Actions
+ */
+
+// For retrocompatibility Dolibarr < 15.0
+if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'update' && !empty($user->admin)) {
+	$formSetup->saveConfFromPost();
+}
+
+include DOL_DOCUMENT_ROOT . '/core/actions_setmoduleoptions.inc.php';
+
+if ($action == 'updateMask') {
+	$maskconst = GETPOST('maskconst', 'alpha');
+	$maskvalue = GETPOST('maskvalue', 'alpha');
+
+	if ($maskconst) {
+		$res = dolibarr_set_const($db, $maskconst, $maskvalue, 'chaine', 0, '', $conf->entity);
+		if (!($res > 0)) {
+			$error++;
+		}
+	}
+
+	if (!$error) {
+		setEventMessages($langs->trans("SetupSaved"), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans("Error"), null, 'errors');
+	}
+} elseif ($action == 'setproduction') {
+	// Cambiar a entorno de producción
+	$res = dolibarr_set_const($db, 'VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT', '1', 'chaine', 0, '', $conf->entity);
+	if ($res > 0) {
+		setEventMessages('✅ Entorno cambiado a PRODUCCIÓN. Las facturas se enviarán al servidor real de la AEAT.', null, 'warnings');
+	} else {
+		setEventMessages('Error al cambiar el entorno', null, 'errors');
+	}
+} elseif ($action == 'settest') {
+	// Cambiar a entorno de pruebas
+	$res = dolibarr_del_const($db, 'VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT', $conf->entity);
+	if ($res >= 0) {
+		setEventMessages('✅ Entorno cambiado a PRUEBAS. Las facturas se enviarán al servidor de test de la AEAT.', null, 'mesgs');
+	} else {
+		setEventMessages('Error al cambiar el entorno', null, 'errors');
+	}
+} elseif ($action == 'specimen') {
+	$modele = GETPOST('module', 'alpha');
+	$tmpobjectkey = GETPOST('object');
+
+	$tmpobject = new $tmpobjectkey($db);
+	$tmpobject->initAsSpecimen();
+
+	// Search template files
+	$file = '';
+	$classname = '';
+	$filefound = 0;
+	$dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
+	foreach ($dirmodels as $reldir) {
+		$file = dol_buildpath($reldir . "core/modules/verifactu/doc/pdf_" . $modele . "_" . strtolower($tmpobjectkey) . ".modules.php", 0);
+		if (file_exists($file)) {
+			$filefound = 1;
+			$classname = "pdf_" . $modele . "_" . strtolower($tmpobjectkey);
+			break;
+		}
+	}
+
+	if ($filefound) {
+		require_once $file;
+
+		$module = new $classname($db);
+
+		if ($module->write_file($tmpobject, $langs) > 0) {
+			header("Location: " . DOL_URL_ROOT . "/document.php?modulepart=verifactu-" . strtolower($tmpobjectkey) . "&file=SPECIMEN.pdf");
+			return;
+		} else {
+			setEventMessages($module->error, null, 'errors');
+			dol_syslog($module->error, LOG_ERR);
+		}
+	} else {
+		setEventMessages($langs->trans("ErrorModuleNotFound"), null, 'errors');
+		dol_syslog($langs->trans("ErrorModuleNotFound"), LOG_ERR);
+	}
+} elseif ($action == 'setmod') {
+	// TODO Check if numbering module chosen can be activated by calling method canBeActivated
+	$tmpobjectkey = GETPOST('object');
+	if (!empty($tmpobjectkey)) {
+		$constforval = 'VERIFACTU_' . strtoupper($tmpobjectkey) . "_ADDON";
+		dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity);
+	}
+} elseif ($action == 'set') {
+	// Activate a model
+	$ret = addDocumentModel($value, $type, $label, $scandir);
+} elseif ($action == 'del') {
+	$ret = delDocumentModel($value, $type);
+	if ($ret > 0) {
+		$tmpobjectkey = GETPOST('object');
+		if (!empty($tmpobjectkey)) {
+			$constforval = 'VERIFACTU_' . strtoupper($tmpobjectkey) . '_ADDON_PDF';
+			if ($conf->global->$constforval == "$value") {
+				dolibarr_del_const($db, $constforval, $conf->entity);
+			}
+		}
+	}
+} elseif ($action == 'setdoc') {
+	// Set or unset default model
+	$tmpobjectkey = GETPOST('object');
+	if (!empty($tmpobjectkey)) {
+		$constforval = 'VERIFACTU_' . strtoupper($tmpobjectkey) . '_ADDON_PDF';
+		if (dolibarr_set_const($db, $constforval, $value, 'chaine', 0, '', $conf->entity)) {
+			// The constant that was read before the new set
+			// We therefore requires a variable to have a coherent view
+			$conf->global->$constforval = $value;
+		}
+
+		// We disable/enable the document template (into llx_document_model table)
+		$ret = delDocumentModel($value, $type);
+		if ($ret > 0) {
+			$ret = addDocumentModel($value, $type, $label, $scandir);
+		}
+	}
+} elseif ($action == 'unsetdoc') {
+	$tmpobjectkey = GETPOST('object');
+	if (!empty($tmpobjectkey)) {
+		$constforval = 'VERIFACTU_' . strtoupper($tmpobjectkey) . '_ADDON_PDF';
+		dolibarr_del_const($db, $constforval, $conf->entity);
+	}
+}
+
+
+
+/*
+ * View
+ */
+
+$form = new Form($db);
+
+$help_url = '';
+$page_name = "VerifactuSetup";
+
+llxHeader('', $langs->trans($page_name), $help_url);
+
+/*
+
+$htmlContent .= '
+
+		<script src="' . dol_buildpath('/verifactu/js/certificados.js', 1) . '"></script>
+		<script>
+		window.verifactuCertConfig = ' . json_encode($certSelectorConfig) . ';
+		</script>
+		<script src="' . dol_buildpath('/verifactu/js/cert-selector.js', 1) . '"></script>';
+
+
+*/
+
+// Subheader
+$linkback = '<a href="' . ($backtopage ? $backtopage : DOL_URL_ROOT . '/admin/modules.php?restore_lastsearch_values=1') . '">' . $langs->trans("BackToModuleList") . '</a>';
+
+print load_fiche_titre($langs->trans($page_name), $linkback, 'title_setup');
+
+// Configuration header
+$head = verifactuAdminPrepareHead();
+print dol_get_fiche_head($head, 'settings', $langs->trans($page_name), -1, "verifactu@verifactu");
+
+// Setup page goes here
+print '<br>';
+
+// Show environment status
+$environmentStatus = getEnvironment();
+
+// Info box with environment status
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td colspan="2">'.$langs->trans("EnvironmentStatus").'</td>';
+print '</tr>';
+print '<tr class="oddeven">';
+print '<td width="50%">'.$langs->trans("ActiveEnvironment").'</td>';
+print '<td>';
+if ($environmentStatus === 'production') {
+	print '<span class="badge badge-status4">'.$langs->trans("Production").'</span>';
+	print ' <a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?action=settest&token='.newToken().'" onclick="return confirm(\''.$langs->trans("ConfirmSwitchToTest").'\')">'.$langs->trans("SwitchToTest").'</a>';
+} else {
+	print '<span class="badge badge-status1">'.$langs->trans("Test").'</span>';
+	print ' <a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=setproduction&token='.newToken().'" onclick="return confirm(\''.$langs->trans("ConfirmSwitchToProduction").'\')">'.$langs->trans("SwitchToProduction").'</a>';
+}
+print '</td>';
+print '</tr>';
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("ConfigurationStatus").'</td>';
+print '<td>';
+if ($basicFieldsComplete) {
+	print '<span class="badge badge-status4">'.$langs->trans("Complete").'</span>';
+} else {
+	print '<span class="badge badge-status8">'.$langs->trans("Incomplete").'</span>';
+}
+print '</td>';
+print '</tr>';
+print '</table>';
+print '</div>';
+print '<br>';
+
+print '<span class="opacitymedium">'.$langs->trans("VerifactuSetupPage").'</span><br><br>';
+
+if ($action == 'edit') {
+	print $formSetup->generateOutput(true);
+	print '<br>';
+} elseif (!empty($formSetup->items)) {
+	print $formSetup->generateOutput();
+	print '<div class="tabsAction">';
+	print '<a class="butAction" href="' . $_SERVER["PHP_SELF"] . '?action=edit&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '">' . $langs->trans("Modify") . '</a>';
+	print '</div>';
+} else {
+	print '<br>' . $langs->trans("NothingToSetup");
+}
+
+
+$moduledir = 'verifactu';
+$myTmpObjects = array();
+$myTmpObjects['MyObject'] = array('includerefgeneration' => 0, 'includedocgeneration' => 0);
+
+
+foreach ($myTmpObjects as $myTmpObjectKey => $myTmpObjectArray) {
+	if ($myTmpObjectKey == 'MyObject') {
+		continue;
+	}
+	if ($myTmpObjectArray['includerefgeneration']) {
+		/*
+		 * Orders Numbering model
+		 */
+		$setupnotempty++;
+
+		print load_fiche_titre($langs->trans("NumberingModules", $myTmpObjectKey), '', '');
+
+		print '<table class="noborder centpercent">';
+		print '<tr class="liste_titre">';
+		print '<td>' . $langs->trans("Name") . '</td>';
+		print '<td>' . $langs->trans("Description") . '</td>';
+		print '<td class="nowrap">' . $langs->trans("Example") . '</td>';
+		print '<td class="center" width="60">' . $langs->trans("Status") . '</td>';
+		print '<td class="center" width="16">' . $langs->trans("ShortInfo") . '</td>';
+		print '</tr>' . "\n";
+
+		clearstatcache();
+
+		foreach ($dirmodels as $reldir) {
+			$dir = dol_buildpath($reldir . "core/modules/" . $moduledir);
+
+			if (is_dir($dir)) {
+				$handle = opendir($dir);
+				if (is_resource($handle)) {
+					while (($file = readdir($handle)) !== false) {
+						if (strpos($file, 'mod_' . strtolower($myTmpObjectKey) . '_') === 0 && substr($file, dol_strlen($file) - 3, 3) == 'php') {
+							$file = substr($file, 0, dol_strlen($file) - 4);
+
+							require_once $dir . '/' . $file . '.php';
+
+							$module = new $file($db);
+
+							// Show modules according to features level
+							if ($module->version == 'development' && $conf->global->MAIN_FEATURES_LEVEL < 2) {
+								continue;
+							}
+							if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1) {
+								continue;
+							}
+
+							if ($module->isEnabled()) {
+								dol_include_once('/' . $moduledir . '/class/' . strtolower($myTmpObjectKey) . '.class.php');
+
+								print '<tr class="oddeven"><td>' . $module->name . "</td><td>\n";
+								print $module->info();
+								print '</td>';
+
+								// Show example of numbering model
+								print '<td class="nowrap">';
+								$tmp = $module->getExample();
+								if (preg_match('/^Error/', $tmp)) {
+									$langs->load("errors");
+									print '<div class="error">' . $langs->trans($tmp) . '</div>';
+								} elseif ($tmp == 'NotConfigured') {
+									print $langs->trans($tmp);
+								} else {
+									print $tmp;
+								}
+								print '</td>' . "\n";
+
+								print '<td class="center">';
+								$constforvar = 'VERIFACTU_' . strtoupper($myTmpObjectKey) . '_ADDON';
+								if ($conf->global->$constforvar == $file) {
+									print img_picto($langs->trans("Activated"), 'switch_on');
+								} else {
+									print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setmod&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '&object=' . strtolower($myTmpObjectKey) . '&value=' . urlencode($file) . '">';
+									print img_picto($langs->trans("Disabled"), 'switch_off');
+									print '</a>';
+								}
+								print '</td>';
+
+								$mytmpinstance = new $myTmpObjectKey($db);
+								$mytmpinstance->initAsSpecimen();
+
+								// Info
+								$htmltooltip = '';
+								$htmltooltip .= '' . $langs->trans("Version") . ': <b>' . $module->getVersion() . '</b><br>';
+
+								$nextval = $module->getNextValue($mytmpinstance);
+								if ("$nextval" != $langs->trans("NotAvailable")) {  // Keep " on nextval
+									$htmltooltip .= '' . $langs->trans("NextValue") . ': ';
+									if ($nextval) {
+										if (preg_match('/^Error/', $nextval) || $nextval == 'NotConfigured') {
+											$nextval = $langs->trans($nextval);
+										}
+										$htmltooltip .= $nextval . '<br>';
+									} else {
+										$htmltooltip .= $langs->trans($module->error) . '<br>';
+									}
+								}
+
+								print '<td class="center">';
+								print $form->textwithpicto('', $htmltooltip, 1, 0);
+								print '</td>';
+
+								print "</tr>\n";
+							}
+						}
+					}
+					closedir($handle);
+				}
+			}
+		}
+		print "</table><br>\n";
+	}
+
+	if ($myTmpObjectArray['includedocgeneration']) {
+		/*
+		 * Document templates generators
+		 */
+		$setupnotempty++;
+		$type = strtolower($myTmpObjectKey);
+
+		print load_fiche_titre($langs->trans("DocumentModules", $myTmpObjectKey), '', '');
+
+		// Load array def with activated templates
+		$def = array();
+		$sql = "SELECT nom";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "document_model";
+		$sql .= " WHERE type = '" . $db->escape($type) . "'";
+		$sql .= " AND entity = " . $conf->entity;
+		$resql = $db->query($sql);
+		if ($resql) {
+			$i = 0;
+			$num_rows = $db->num_rows($resql);
+			while ($i < $num_rows) {
+				$array = $db->fetch_array($resql);
+				array_push($def, $array[0]);
+				$i++;
+			}
+		} else {
+			dol_print_error($db);
+		}
+
+		print "<table class=\"noborder\" width=\"100%\">\n";
+		print "<tr class=\"liste_titre\">\n";
+		print '<td>' . $langs->trans("Name") . '</td>';
+		print '<td>' . $langs->trans("Description") . '</td>';
+		print '<td class="center" width="60">' . $langs->trans("Status") . "</td>\n";
+		print '<td class="center" width="60">' . $langs->trans("Default") . "</td>\n";
+		print '<td class="center" width="38">' . $langs->trans("ShortInfo") . '</td>';
+		print '<td class="center" width="38">' . $langs->trans("Preview") . '</td>';
+		print "</tr>\n";
+
+		clearstatcache();
+
+		foreach ($dirmodels as $reldir) {
+			foreach (array('', '/doc') as $valdir) {
+				$realpath = $reldir . "core/modules/" . $moduledir . $valdir;
+				$dir = dol_buildpath($realpath);
+
+				if (is_dir($dir)) {
+					$handle = opendir($dir);
+					if (is_resource($handle)) {
+						while (($file = readdir($handle)) !== false) {
+							$filelist[] = $file;
+						}
+						closedir($handle);
+						arsort($filelist);
+
+						foreach ($filelist as $file) {
+							if (preg_match('/\.modules\.php$/i', $file) && preg_match('/^(pdf_|doc_)/', $file)) {
+								if (file_exists($dir . '/' . $file)) {
+									$name = substr($file, 4, dol_strlen($file) - 16);
+									$classname = substr($file, 0, dol_strlen($file) - 12);
+
+									require_once $dir . '/' . $file;
+									$module = new $classname($db);
+
+									$modulequalified = 1;
+									if ($module->version == 'development' && $conf->global->MAIN_FEATURES_LEVEL < 2) {
+										$modulequalified = 0;
+									}
+									if ($module->version == 'experimental' && $conf->global->MAIN_FEATURES_LEVEL < 1) {
+										$modulequalified = 0;
+									}
+
+									if ($modulequalified) {
+										print '<tr class="oddeven"><td width="100">';
+										print(empty($module->name) ? $name : $module->name);
+										print "</td><td>\n";
+										if (method_exists($module, 'info')) {
+											print $module->info($langs);
+										} else {
+											print $module->description;
+										}
+										print '</td>';
+
+										// Active
+										if (in_array($name, $def)) {
+											print '<td class="center">' . "\n";
+											print '<a href="' . $_SERVER["PHP_SELF"] . '?action=del&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '&value=' . urlencode($name) . '">';
+											print img_picto($langs->trans("Enabled"), 'switch_on');
+											print '</a>';
+											print '</td>';
+										} else {
+											print '<td class="center">' . "\n";
+											print '<a href="' . $_SERVER["PHP_SELF"] . '?action=set&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '&value=' . urlencode($name) . '&scan_dir=' . urlencode($module->scandir) . '&label=' . urlencode($module->name) . '">' . img_picto($langs->trans("Disabled"), 'switch_off') . '</a>';
+											print "</td>";
+										}
+
+										// Default
+										print '<td class="center">';
+										$constforvar = 'VERIFACTU_' . strtoupper($myTmpObjectKey) . '_ADDON';
+										if ($conf->global->$constforvar == $name) {
+											//print img_picto($langs->trans("Default"), 'on');
+											// Even if choice is the default value, we allow to disable it. Replace this with previous line if you need to disable unset
+											print '<a href="' . $_SERVER["PHP_SELF"] . '?action=unsetdoc&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '&object=' . urlencode(strtolower($myTmpObjectKey)) . '&value=' . urlencode($name) . '&scan_dir=' . urlencode($module->scandir) . '&label=' . urlencode($module->name) . '&amp;type=' . urlencode($type) . '" alt="' . $langs->trans("Disable") . '">' . img_picto($langs->trans("Enabled"), 'on') . '</a>';
+										} else {
+											print '<a href="' . $_SERVER["PHP_SELF"] . '?action=setdoc&token=' . (function_exists('newToken') ? newToken() : $_SESSION['newtoken']) . '&object=' . urlencode(strtolower($myTmpObjectKey)) . '&value=' . urlencode($name) . '&scan_dir=' . urlencode($module->scandir) . '&label=' . urlencode($module->name) . '" alt="' . $langs->trans("Default") . '">' . img_picto($langs->trans("Disabled"), 'off') . '</a>';
+										}
+										print '</td>';
+
+										// Info
+										$htmltooltip = '' . $langs->trans("Name") . ': ' . $module->name;
+										$htmltooltip .= '<br>' . $langs->trans("Type") . ': ' . ($module->type ? $module->type : $langs->trans("Unknown"));
+										if ($module->type == 'pdf') {
+											$htmltooltip .= '<br>' . $langs->trans("Width") . '/' . $langs->trans("Height") . ': ' . $module->page_largeur . '/' . $module->page_hauteur;
+										}
+										$htmltooltip .= '<br>' . $langs->trans("Path") . ': ' . preg_replace('/^\//', '', $realpath) . '/' . $file;
+
+										$htmltooltip .= '<br><br><u>' . $langs->trans("FeaturesSupported") . ':</u>';
+										$htmltooltip .= '<br>' . $langs->trans("Logo") . ': ' . yn($module->option_logo, 1, 1);
+										$htmltooltip .= '<br>' . $langs->trans("MultiLanguage") . ': ' . yn($module->option_multilang, 1, 1);
+
+										print '<td class="center">';
+										print $form->textwithpicto('', $htmltooltip, 1, 0);
+										print '</td>';
+
+										// Preview
+										print '<td class="center">';
+										if ($module->type == 'pdf') {
+											$newname = preg_replace('/_' . preg_quote(strtolower($myTmpObjectKey), '/') . '/', '', $name);
+											print '<a href="' . $_SERVER["PHP_SELF"] . '?action=specimen&module=' . urlencode($newname) . '&object=' . urlencode($myTmpObjectKey) . '">' . img_object($langs->trans("Preview"), 'pdf') . '</a>';
+										} else {
+											print img_object($langs->trans("PreviewNotAvailable"), 'generic');
+										}
+										print '</td>';
+
+										print "</tr>\n";
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		print '</table>';
+	}
+}
+
+if (empty($setupnotempty)) {
+	print '<br>' . $langs->trans("NothingToSetup");
+}
+
+// Page end
+print dol_get_fiche_end();
+
+llxFooter();
+$db->close();
+if ($action == 'update') {
+	//redirect using javascript
+	print '<script type="text/javascript">window.location.href = "' . $_SERVER['PHP_SELF'] . '";</script>';
+}

@@ -1,0 +1,540 @@
+# Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# General
+#
+
+# Module name and description
+ModuleVerifactuName = VeriFactu
+ModuleVerifactuDesc = AEATren VeriFactu Fakturazio Sistemarekin integrazioa
+
+VERIFACTU_DOCUMENTATION_MENU = Dokumentazioa
+VERIFACTU_GUIDES_MENU = Gidak eta Eskuliburuak
+VERIFACTU_DOCUMENTATION_INTRO = VeriFactu-rako laguntza dokumentazioa kategoriaka antolatua.
+VERIFACTU_NO_DOCUMENTATION = Ez dago dokumentaziorik eskuragarri. Dokumentuak moduluaren 'documentation' karpetan egon behar dute.
+
+#
+# Admin page
+#
+VerifactuAbout = VeriFactu-ri buruz
+VerifactuAboutDesc = AEATren VeriFactu-rekin integrazioa igortutako eta jasotako fakturak kudeatzeko.
+VerifactuSetup = VeriFactu Konfigurazioa
+Settings = Ezarpenak
+VerifactuSetupPage = VeriFactu moduluaren konfigurazioa
+VERIFACTU_MODE = Funtzionamendu modua
+VERIFACTU_MODE_TOOLTIP = Gaur egun VeriFactu modua bakarrik dago eskuragarri. EZ-VeriFactu modua garapenean.
+VERIFACTU_HOLDER_COMPANY_NAME = Sozietate izena
+VERIFACTU_HOLDER_NIF = IFK
+VERIFACTU_HOLDER_REPRESENTATIVE_NIF = Ordezkariaren IFK
+VERIFACTU_ENVIRONMENT = Ingurunea (probak/produkzioa)
+VERIFACTU_ENVIRONMENT_INFO = Ingurunearen informazioa
+VERIFACTU_ENVIRONMENT_TOOLTIP = Bisitatu <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> informazio gehiagorako
+VERIFACTU_FORCE_PRODUCTION = Produkzioa behartu
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ KONTUZ: Produkzio ingurunea aktibatzen du 2026ko urtarrilaren 1a baino lehen. Fakturak benetako AEATera bidaliko dira.
+VERIFACTU_CERTIFICATE = Ziurtagiri digitala
+VERIFACTU_CERTIFICATE_TOOLTIP = VeriFactu-rako sinadura elektronikoko ziurtagiria. PEM formatua behar da; P12/PFX formatuak automatikoki bihurtzen dira.
+VERIFACTU_CERTIFICATE_PASSWORD = Ziurtagiriaren pasahitza
+VERIFACTU_CERTIFICATE_PRIVATE_KEY = Gako pribatua
+VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = Zerbitzariak ziurtagiri publikoa bakarrik ematen badu, itsatsi hemen gako pribatua. Sistemak PEM etiketak automatikoki gehitzen ditu falta badira.
+VERIFACTU_LOCAL_USE_CERTIFICATE = Ziurtagiri lokala erabili
+VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = Aktibo badago, ziurtagiri lokala erabiltzen du (.pfx, .p12 edo .pem). Bestela, gako pribatua lizentzia zerbitzariaren ziurtagiriarekin konbinatzen du.
+sendInvoicesWithErrorsCronName = VeriFactu - Konexio erroreekin fakturen birbidaltzea
+
+# Section titles
+BasicConfig = 📋 Oinarrizko Konfigurazioa
+AdditionalConfig = ⚙️ Konfigurazio Gehigarria
+QRConfig = 📱 QR Kodea
+AdvancedConfig = 🔧 Konfigurazio Aurreratua
+
+# Activation messages
+VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Aktibazioa Beharrezkoa
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Espainiako enpresa detektatua.</strong><br><br><strong>1007/2023 ED</strong> eta <strong>HAC/1177/2024 Agindua</strong>ren arabera, fakturazio sistema guztiek VeriFactu bete behar dute.<br><br><strong>📅 Epeak:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sozietateak:</strong> 2026ko urtarrilaren 1a</li><li><strong>Autonomoak:</strong> 2026ko uztailaren 1a</li></ul><br><strong>Modulu hau gaitu eta konfiguratu behar duzu araudia betetzeko.</strong><br><br><strong>Aktibazio gakorik baduzu:</strong> Sartu behean konfigurazioaren sarrera lortzeko.<br><br><strong>Aktibazio gakorik gabe:</strong> Jarri gurekin harremanetan lortzeko.
+VERIFACTU_ACTIVATION_CONTACT_INFO = Laguntza
+VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Aktibazio Gakoa
+VERIFACTU_ENTER_ACTIVATION_KEY = Sartu zure aktibazio gakoa
+GoToSetup = Konfiguraziora joan
+
+# Status panel
+LicenseStatus = Lizentziaren Egoera
+LicenseValid = Baliozkoa
+NoValidLicense = Lizentzia baliozkorik gabe
+ActiveEnvironment = Ingurune Aktiboa
+Production = Produkzioa
+Test = Probak
+Configuration = Konfigurazioa
+Complete = Osatua
+Pending = Zain
+
+# Activation texts (no HTML)
+ActivationRequired = AKTIBAZIOA BEHARREZKOA
+YouAreSpanishCompany = Espainiako enpresa detektatua.
+SpanishLegislation = 1007/2023 ED eta HAC/1177/2024 Agindua arabera, fakturazio sistema guztiek VeriFactu bete behar dute.
+MandatoryDeadlines = Epe derrigorrezkoak:
+Companies = Sozietateak
+SelfEmployed = Autonomoak
+ToComplyWithLaw = Modulu hau gaitu behar duzu legea betetzeko.
+IfYouHaveKey = Aktibazio gakoa baduzu:
+EnterKeyBelow = Sartu behean konfigurazioaren sarrera lortzeko.
+IfYouDontHaveKey = Aktibazio gakorik gabe:
+ContactUsToObtain = Jarri gurekin harremanetan lortzeko.
+ContactLabel = Kontaktua:
+ProactiveHelpNote = Zurekin harremanetan jar gaitezke araudiarekin laguntzeko.
+
+# Header
+VerifactuHeaderTitle = VERIFACTU - Fakturazio Elektronikoa
+VerifactuHeaderSubtitle = AEATrako moduluaren konfigurazioa
+
+# Certificate cache
+VERIFACTU_PURGE_CERT_CACHE = Ziurtagiriaren Cachea Garbitu
+VERIFACTU_PURGE_CERT_CACHE_HELP = Ziurtagiriaren cachea ezabatzen du. Erabilgarria konfigurazio aldaketen edo ziurtagiri arazoen ondoren.
+
+# Certificate management
+ManageCertificates = Ziurtagiriak Kudeatu
+CertificateFile = Ziurtagiri Fitxategia
+CertificatePassword = Pasahitza
+MANAGE_CERTIFICATES_TITLE = Ziurtagirien Kudeaketa
+MANAGE_CERTIFICATES_DESC = Gako publikoaren erauzketa eta zerbitzarian erregistroa
+ManageDownload = Deskargen Kudeaketa
+MANAGE_DOWNLOAD_TITLE = Moduluaren Deskargak
+MANAGE_DOWNLOAD_DESC = VeriFactu eguneraketak egiaztatu eta deskargatu
+CurrentVersion = Uneko Bertsioa
+Environment = Ingurunea
+LatestVersion = Azken Bertsioa
+UpdateAvailable = Eguneratzea Eskuragarri
+UpToDate = Eguneratua
+CheckUpdates = Eguneraketak Bilatu
+CheckForUpdates = Eguneraketak Bilatu
+DownloadUpdate = Deskargatu
+DownloadVersion = Bertsioa Deskargatu
+DownloadedFiles = Deskargatutako Fitxategiak
+Size = Tamaina
+Date = Data
+Actions = Ekintzak
+NoDownloadedFiles = Deskargatutako fitxategirik gabe
+DownloadDirectoryNotFound = Direktorioa ez da aurkitu
+Note = Oharra
+DownloadPath = Deskarga bidea
+ConfirmDeleteFile = Fitxategia ezabatu: %s?
+ConfirmApplyUpdate = %s-tik eguneratzea aplikatu? Uneko fitxategiak ordezkatuko dira.
+ApplyUpdate = Aplikatu
+ApplyingUpdate = Eguneratzea aplikatzen
+UpdateAppliedSuccess = Eguneratzea ondo aplikatu da
+UpdateAppliedError = Errorea eguneratzea aplikatzean
+NoFileFound = Fitxategia ez da aurkitu
+FeatureComingSoon = Laster eskuragarri
+ErrorFileIsNotZip = Fitxategia ez da baliozko ZIP bat
+ErrorFileNotFound = Fitxategia ez da aurkitu
+ErrorNoFileSelected = Ez da fitxategirik hautatu
+ErrorFailToCreateBackup = Errorea segurtasun kopia sortzerakoan
+ErrorFailToCopyFile = Errorea %s-tik %s-ra kopiatzerakoan
+ModuleUpdateSuccess = Modulua eguneratua. Birkargatu moduluen orria aldaketak ikusteko.
+
+PERMISSIONS_MANAGE_VERIFACTU = VeriFactu modulua kudeatu
+verifactu_INVOICE_TYPE = Faktura mota
+verifactu_INVOICE_TYPE_TOOLTIP = VeriFactu-rako faktura mota
+verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">VeriFactu Datuak</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Fakturaren egoera VeriFactu-n"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">EREMU FISKALAK ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ GARRANTZITSUA: Zerga, Erregimen Gakoa, Kalifikazioa eta Eragiketa Salbuetsiak enpresaren erantzukizuna dira. Kontsultatu zure zerga aholkulariarekin zalantzarik izanez gero."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_CSV_INVOICE = CSV Kodea
+verifactu_CSV_INVOICE_TOOLTIP = AEATren egiaztapen kodea. Ez badago, faktura ez da bidali.
+verifactu_INVOICE_ID = ID VeriFactu-n
+verifactu_INVOICE_ID_TOOLTIP = Fakturaren identifikatzailea VeriFactu-n
+verifactu_INVOICE_DATE = Jaulkipen data
+verifactu_INVOICE_DATE_TOOLTIP = VeriFactu-n erregistratutako jaulkipen data
+verifactu_LAST_OUTPUT = Azken erantzuna
+verifactu_LAST_OUTPUT_TOOLTIP = VeriFactu-ren azken erantzuna
+verifactu_LAST_MODIFICATION_DATE = Azken aldaketa
+verifactu_LAST_MODIFICATION_DATE_TOOLTIP = VeriFactu-n azken aldaketaren data
+verifactu_FINGERPRINT = Hatz-marka digitala
+verifactu_FINGERPRINT_TOOLTIP = Fakturaren SHA-256 hatz-marka
+verifactu_GENERATION_DATETIME = Hatz-markaren data/ordua
+verifactu_GENERATION_DATETIME_TOOLTIP = Hatz-markaren sorrera data eta ordua (ISO 8601)
+verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Faktura sinplifikatuaren bezeroa
+verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE_TOOLTIP = Aktibo badago, fakturak F2 mota gisa (sinplifikatua) bidaltzen dira
+verifactu_SIMPLIFIED_INVOICE = Faktura Sinplifikatua
+verifactu_SIMPLIFIED_INVOICE_TOOLTIP = Azken kontsumitzaileentzako faktura sinplifikatuen (F2 mota) hartzaile bezeroa.
+verifactu_STATUS = Egoera
+verifactu_STATUS_TOOLTIP = Fakturaren egoera VeriFactu-n
+verifactu_ERROR = Errorea
+verifactu_ERROR_TOOLTIP = Azken errorea VeriFactu-ra bidaltzean
+VERIFACTU_SEND_INVOICES_MENU = Igortutako fakturak
+VERIFACTU_SEND_INVOICES_MENU_HELP = VeriFactu-ra bidaltzeko fakturen zerrenda
+VERIFACTU_RECEIVE_INVOICES_MENU = Jasotako fakturak
+VERIFACTU_RECEIVE_INVOICES_MENU_HELP = Hornitzaileen fakturen zerrenda
+VERIFACTU_SEND_INVOICES_QUERY_MENU = AEAT Kontsulta
+VERIFACTU_SEND_INVOICES_QUERY_MENU_HELP = Igortutako fakturak zuzenean VeriFactu atarian kontsultatu
+VERIFACTU_RECEIVE_INVOICES_QUERY_MENU = Jasotakoak kontsultatu
+VERIFACTU_RECEIVE_INVOICES_QUERY_MENU_HELP = Jasotako fakturak zuzenean VeriFactu atarian kontsultatu
+VERIFACTU_DECLARATION_MENU = Adierazpen arduratsu
+VERIFACTU_DECLARATION_MENU_HELP = VeriFactu sistemaren adierazpen arduratsua
+
+# Statistics
+VERIFACTU_STAT_TOTAL_SENT = Guztira bidaliak
+VERIFACTU_STAT_SENT_OK = Ondo bidaliak
+VERIFACTU_STAT_WITH_ERRORS = Erroreekin
+VERIFACTU_STAT_STATUS_DISTRIBUTION = Egoeraren araberako banaketa
+VERIFACTU_STAT_BY_MONTH = Hilabeteka
+VERIFACTU_STAT_BY_YEAR = Urteka
+VERIFACTU_LAST_SENT_INVOICES = Azken bidaliak
+VERIFACTU_INVOICES_WITH_ERRORS = Erroreekin
+VERIFACTU_PENDING_INVOICES = Bidalketa zain
+
+verifactu_ISSUE_DATE = VeriFactu Data
+verifactu_ISSUE_DATE_TOOLTIP = VeriFactu-n espedizio data
+NOCIF_PREPAREINVOICE = %s hirugarrenaren IFK/NAN falta da %s fakturan. Ez da VeriFactu-ra bidaliko.
+NOLINES_PREPAREINVOICE = %s fakturak ez du lerrorik. Ez da VeriFactu-ra bidaliko.
+NO_MARK_SENDINVOICE = %s faktura ez da VeriFactu-ra bidaltzeko markatu.<br>%s
+YES_MARK_SENDINVOICE = %s faktura ondo bidali gisa markatu da VeriFactu-ra.
+YES_MARK_SENDINVOICE_BUT_NO_UPDATE_EXTRAFIELDS = %s faktura bidali da baina eremu gehigarriak ez dira eguneratu.<br>%s
+NO_MARK_SENDINVOICE_BUT_NO_UPDATE_EXTRAFIELDS = %s faktura ez da bidali eta eremu gehigarriak ez dira eguneratu.<br>%s
+VERIFACTU_STATUS_NOT_SEND = Bidali gabe
+VERIFACTU_STATUS_SEND = Bidalia
+VERIFACTU_STATUS_SEND_PARTIAL = Partziala
+VERIFACTU_STATUS_ERROR = Errorea
+VERIFACTU_STATUS_CANCELLED = Baliogabetua
+VERIFACTU_STATUS_NO_INTERNET = Konexiorik gabe
+VERIFACTU_STATUS_PENDING_SERVICE = Zain
+VERIFACTU_STATUS_SENT_DUPLICATE = Bidalia (Bikoiztua)
+VERIFACTU_STATUS_DUPLICATE_DIFF = Bikoiztua (Zenbateko desberdinak)
+VERIFACTU_ALL_STATUS = Denak
+
+# Duplicate invoices (error 3000)
+VERIFACTU_DUPLICATE_QUERY_ERROR = Ezin izan da bikoiztatutako faktura egiaztatu. Kontsultatu eskuz AEAT atarian.
+VERIFACTU_DUPLICATE_AMOUNTS_MATCH = %s faktura dagoeneko badago AEAT-en zenbateko berdinekin. Bidali gisa markatu da.
+VERIFACTU_DUPLICATE_AMOUNTS_DIFFER = %s faktura AEAT-en dago zenbateko desberdinekin: Dolibarr=%s, AEAT=%s (aldea: %s)
+VERIFACTU_DUPLICATE_AMOUNTS_DIFFER_DETAIL = %s faktura bikoiztua zenbateko desberdinekin: Dolibarr=%s €, AEAT=%s € (aldea: %s €). Eskuzko ekintza behar du.
+VERIFACTU_DUPLICATE_ACTION_REQUIRED = EKINTZA BEHARREZKOA: Dolibarr zuzena bada, sortu zuzentzeko faktura. AEAT zuzena bada, egokitu Dolibarr.
+FACTURE_VERIFACTU_TAB = VeriFactu
+verifactu_LAST_OUTPUT_TOOLTIP = VeriFactu-ren azken erantzuna
+VerifactuArea = VeriFactu Eremua
+CustomersInvoicesVERIFACTU = Igortutako Fakturak
+CustomersInvoicesVERIFACTUQuery = Fakturen Kontsulta
+VERIFACTU_BUTTON_SENDTO_ALTA = Alta Bidali
+VERIFACTU_BUTTON_SENDTO_MOD = Aldaketa Bidali
+VERIFACTU_BUTTON_SENDTO_BAJA = Baja Bidali
+CONFIRM_SEND_TO_VERIFACTU_TITLE = Bidalketa baieztatu
+CONFIRM_SEND_TO_VERIFACTU_MESSAGE = Hautatutako fakturak VeriFactu-ra bidali?
+CONFIRM_SEND_TO_AEAT_TITLE = Bidalketa baieztatu
+CONFIRM_SEND_TO_AEAT_MESSAGE = Hautatutako fakturak VeriFactu-ra bidali?
+NUMBER_INVOICES_SELECTED = Hautatutako fakturak: <strong>%s</strong>
+INVALID_VERIFACTU_STATUS_TO_SEND = %s faktura balioztatu edo itxita egon behar da VeriFactu-ra bidaltzeko.
+NO_FILTER_PROVIDED = Ez da iragazkirik aplikatu
+verifactu_THIRD_PARTY_EXEMPT_OPERATIONS = Eragiketen salbuespena
+verifactu_THIRD_PARTY_EXEMPT_OPERATIONS_TOOLTIP = Salbuespen mota lotutako eta salbuetsitako eragiketetarako
+verifactu_TAX_TYPE = Zerga
+verifactu_TAX_TYPE_TOOLTIP = Aplikagarri den zerga mota. Lehenespenez BEZ. Faktura tipologiarako beharrezkoa.
+verifactu_REGIME_KEY = Erregimen Gakoa
+verifactu_REGIME_KEY_TOOLTIP = Erregimen bereziko gakoa. BEZ edo IGIC-rako bakarrik aplikagarria, ez IPSI edo BESTEetarako.
+verifactu_INCIDENT = Intzidentzia
+verifactu_INCIDENT_TOOLTIP = Intzidentzia teknikorik (argirik gabe, internetik gabe, sistemaren hutsa) egon den adierazten du. Lehenespenez "N".
+verifactu_ID_TYPE = Identifikazio Mota
+verifactu_ID_TYPE_TOOLTIP = Atzerriko hartzailearen identifikazio mota.
+
+# Special case fields
+verifactu_OPERATION_QUALIFICATION = Eragiketaren Kalifikazioa
+verifactu_OPERATION_QUALIFICATION_TOOLTIP = Lotutako/salbuetsi gabeko edo lotu gabeko eragiketaren gakoa. S1=Inbertsiorik gabe, S2=Inbertsioarekin, N1=Lotu gabe 7,14 art., N2=Lotu gabe kokapenagatik.
+verifactu_EXEMPT_OPERATION = Eragiketa Salbuetsia
+verifactu_EXEMPT_OPERATION_TOOLTIP = Salbuespen mota (E1-E6) eragiketa BEZ/IGIC/IPSI-tik salbuetsita dagoenean.
+VERIFACTU_CERT_TYPE = Ziurtagiri mota
+VERIFACTU_CERT_TYPE_TOOLTIP = VeriFactu-rako ziurtagiri mota.<br><strong>Normala:</strong> Ziurtagiri guztiekin bateragarria (gomendatua)<br><strong>Zigilu:</strong> Zigilu ziurtagiri enpresarialak bakarrik<br><br>"no XML document" erroreak lortzen badituzu kontsultetan, erabili 'normala'.
+
+# Auto inference messages
+VERIFACTU_AUTO_INFERENCE_ENABLED = Inferentzia automatikoa aktibo
+VERIFACTU_COHERENCE_WARNING = Eskuzko balioak konfigurazio automatikoarekin koherenteak ez izan daitezke
+
+#
+# Certificate upload
+#
+UploadCertificates = Ziurtagiriak igo
+ChooseYourCertificates = Hautatu zure ziurtagiriak
+NumberOfInvoices = Fakturak: %s
+COLUM_FACTURE_ID = Faktura ID
+COLUM_FACTURE_ASSOC = Lotutako faktura
+COLUM_FACTURE_DATE = Data
+COLUM_FACTURE_PRESENTATION_DATE = Aurkezpen data
+COLUM_FACTURE_SOC_NIF = IFK
+COLUM_FACTURE_SOC_NAME = Izena
+COLUM_FACTURE_FINGERPRINT = Hatz-marka
+COLUM_FACTURE_TOTAL = Guztira
+COLUM_FACTURE_CSV = CSV
+COLUM_FACTURE_SUBMISSION_DATE = Aurkezpen data
+COLUM_FACTURE_RECONCILIATION_STATUS = Adostasun egoera
+COLUM_FACTURE_REGISTRATION_STATUS = Erregistro egoera
+FilterButton = Bilatu
+FILTER_BILLING_PERIOD = Aldia
+FILTER_INVOICE_SERIAL_NUMBER = Serie zenbakia
+FILTER_BILLING_YEAR = Ekitaldia
+FILTER_NIF = IFK
+FILTER_NAME = Izena
+NO_RECORDS_FOUNDS = Emaitzarik gabe
+SOAP_EXTENSION_NOT_INSTALLED = SOAP hedapena ez dago instalatuta. Instalatu eta berrabiarazi web zerbitzaria.
+
+# QR Configuration
+QRConfig = QR Kodea
+VERIFACTU_SHOW_QR_IN_PDF = QR erakutsi PDFan
+VERIFACTU_SHOW_QR_IN_PDF_HELP = QR kodearen bistaratzea aktibatzen du fakturen PDFetan
+VERIFACTU_QR_SIZE = Tamaina (mm)
+VERIFACTU_QR_SIZE_HELP = QRaren tamaina milimetrotan. AEATek 30-40mm zehazten du (gomendatua: 35mm)
+VERIFACTU_QR_POSITION_X = Posizio horizontala
+VERIFACTU_QR_POSITION_X_HELP = QRaren posizio horizontala:<br>• Ezkerra: 10mm ertzetik<br>• Zentroa: Zentratua (AEAT gomendatua)<br>• Eskuina: 10mm eskuineko ertzetik<br>• Pertsonalizatua: Eremu pertsonalizatuaren balioa erabiltzen du<br>• Balio zenbakizkoa: Posizio zehatza mm-tan
+VERIFACTU_QR_POSITION_X_CUSTOM = X posizio pertsonalizatua (mm)
+VERIFACTU_QR_POSITION_X_CUSTOM_HELP = Posizio horizontal zehatza mm-tan ("Pertsonalizatua" hautatzen bada bakarrik)
+VERIFACTU_QR_POSITION_Y = Posizio bertikala (mm)
+VERIFACTU_QR_POSITION_Y_HELP = Goitik posizio bertikala. Zehaztapena: goiko marjitik gertu.
+VERIFACTU_QR_SHOW_TEXT = Testua erakutsi
+VERIFACTU_QR_SHOW_TEXT_HELP = "QR tributarioa:" testua goian eta "VeriFactu" behean. AEATen arabera derrigorrezkoa.
+VERIFACTU_QR_SHOW_TEXT_TPV = Testua TPV-n erakutsi
+VERIFACTU_QR_SHOW_TEXT_TPV_HELP = Testu azaltzailea TPV tikketetan ere erakusten du. AEATen arabera derrigorrezkoa.
+VERIFACTU_QR_TEXT_SIZE = Testu tamaina
+VERIFACTU_QR_TEXT_SIZE_HELP = Testuaren letra tamaina. Fakturaren gainerako datuen berdina edo handiagoa izan behar da.
+VERIFACTU_QR_ALL_PAGES = QR orri guztietan
+VERIFACTU_QR_ALL_PAGES_HELP = Aktibo badago, QRa orri guztietan erakusten du. Zehaztapen ofiziala: lehen orria bakarrik.
+
+# Advanced configuration
+VERIFACTU_DIRECT_CALL_ON_VALIDATE = Bidalketa automatikoa balioztatzean
+VERIFACTU_DIRECT_CALL_ON_VALIDATE_TOOLTIP = Automatikoki VeriFactu-ra bidaltzen du faktura balioztatzean. Desaktibatu datuak bidali aurretik berrikusteko.
+
+# Default values
+VERIFACTU_DEFAULT_TAX_TYPE = Lehenetsitako zerga
+VERIFACTU_DEFAULT_TAX_TYPE_HELP = Faktura berrietarako lehenetsitako zerga mota
+VERIFACTU_DEFAULT_REGIME_KEY = Lehenetsitako erregimen gakoa
+VERIFACTU_DEFAULT_REGIME_KEY_HELP = Faktura berrietarako lehenetsitako erregimen gakoa
+VERIFACTU_DEFAULT_OPERATION_QUALIFICATION = Lehenetsitako kalifikazioa
+VERIFACTU_DEFAULT_OPERATION_QUALIFICATION_HELP = Lehenetsitako eragiketa kalifikazioa (aukerakoa)
+VERIFACTU_DEFAULT_EXEMPT_OPERATION = Lehenetsitako eragiketa salbuetsia
+VERIFACTU_DEFAULT_EXEMPT_OPERATION_HELP = Lehenetsitako salbuespen mota (aukerakoa)
+
+# QR texts per AEAT specifications
+VerifactuQR = QR tributarioa:
+VerifactuQRCode = VeriFactu QR Kodea
+VerifactuQRTributario = QR tributarioa:
+VerifactuQRLegend = VeriFactu
+VerifactuQRSedeElectronica = AEAT egoitza elektronikoan egiaztagarria
+
+# Top menu
+VERIFACTU_MENU_TOOLTIP = VeriFactu moduluaren informazioa
+VERIFACTU_TIME_REMAINING = Produkzioa
+VERIFACTU_NEW_VERSION_AVAILABLE = Eguneratzea gomendatua hobekuntza eta segurtasunerako
+VERIFACTU_RESPONSIBLE_DECLARATION = Adierazpen arduratsu
+VERIFACTU_MODULE_STATUS = Moduluaren Egoera
+VERIFACTU_CURRENT_VERSION = Uneko bertsioa
+VERIFACTU_NEW_VERSION = Bertsio berria
+VERIFACTU_ACCESS_DECLARATION = Adierazpen arduratsu sartu
+
+# Existing configurations
+VERIFACTU_COMPANY_TYPE = Enpresa Mota
+VERIFACTU_COMPANY_TYPE_HELP = Enpresa mota. Sozietateak: produkzioa 2026/01/01. Autonomoak: produkzioa 2026/07/01.
+
+# Positions
+Left = Ezkerra
+Center = Zentroa
+Right = Eskuina
+Custom = Pertsonalizatua
+
+# Operation Qualification (L9)
+VERIFACTU_QUALIFICATION_S1 = Lotua subjektu pasiboaren inbertsiorik gabe
+VERIFACTU_QUALIFICATION_S2 = Lotua subjektu pasiboaren inbertsioarekin
+VERIFACTU_QUALIFICATION_N1 = Lotu gabea (7, 14 art., besteak)
+VERIFACTU_QUALIFICATION_N2 = Lotu gabea kokapenagatik
+
+# Exempt Operation (L10)
+VERIFACTU_EXEMPT_OPERATION_E1 = Salbuetsia 20 art.
+VERIFACTU_EXEMPT_OPERATION_E2 = Salbuetsia 21 art.
+VERIFACTU_EXEMPT_OPERATION_E3 = Salbuetsia 22 art.
+VERIFACTU_EXEMPT_OPERATION_E4 = Salbuetsia 23 eta 24 art.
+VERIFACTU_EXEMPT_OPERATION_E5 = Salbuetsia 25 art.
+VERIFACTU_EXEMPT_OPERATION_E6 = Salbuetsia beste arrazoiengatik
+
+# Auto help messages
+VERIFACTU_AUTO_HELP_TITLE = ℹ️ Kalkulu Automatiko Aktiboa
+VERIFACTU_AUTO_HELP_TEXT = Sistemak VeriFactu parametroak automatikoki kalkulatzen ditu. Eskuz aldatu kasu berezietarako bakarrik.
+VERIFACTU_INFERENCE_CLIENT_SPAIN = Espainia → BEZ + Erregimen Orokorra
+VERIFACTU_INFERENCE_CLIENT_CANARY = Kanariak → IGIC
+VERIFACTU_INFERENCE_CLIENT_CEUTA_MELILLA = Ceuta/Melilla → IPSI
+VERIFACTU_INFERENCE_CLIENT_EU = EB → BEZ + Erkidego barruko entrega
+VERIFACTU_INFERENCE_CLIENT_FOREIGN = Atzerria → BEZ + Esportazioa
+
+# Cancellation types
+VERIFACTU_CANCELLATION_TYPE = Baliogabetze mota
+VERIFACTU_CANCELLATION_NORMAL = Baliogabetze arrunta
+VERIFACTU_CANCELLATION_PREVIOUS_REJECTION = Aurreko bazterketarengatik
+VERIFACTU_CANCELLATION_NO_PREVIOUS_REGISTRATION = Aurreko erregistrorik gabe
+
+# Cancellation descriptions
+VERIFACTU_CANCELLATION_NORMAL_DESC = Ondo erregistratutako fakturetarako, baliogabetu behar direnak
+VERIFACTU_CANCELLATION_PREVIOUS_REJECTION_DESC = VeriFactu-k aurretik baztertutako fakturetarako
+VERIFACTU_CANCELLATION_NO_PREVIOUS_REGISTRATION_DESC = VeriFactu-n aurretik erregistratu gabeko fakturetarako
+
+# Cancellation type info
+VERIFACTU_INFO_CANCELLATION_NORMAL = <strong>Arrunta:</strong> Ondo erregistratutako fakturak baliogabetzen ditu.
+VERIFACTU_INFO_CANCELLATION_PREVIOUS_REJECTION = <strong>Bazterketagatik:</strong> Aurretik baztertutako fakturak baliogabetzen ditu.
+VERIFACTU_INFO_CANCELLATION_NO_PREVIOUS_REGISTRATION = <strong>Erregistrorik gabe:</strong> VeriFactu-n erregistratu gabeko fakturak baliogabetzen ditu.
+
+# Validation and configuration
+VERIFACTU_CONFIG_INCOMPLETE = VeriFactu konfigurazioa osatu gabe. Berrikusi moduluaren ezarpenak.
+VERIFACTU_SUCCESS = Eragiketa ondo osatu da
+VERIFACTU_ERROR = Errorea VeriFactu eragiketan
+VERIFACTU_ERROR_INVOICE_NOT_VALIDATED = VeriFactu bidalketak huts egin du %s fakturarako. Faktura zirriborro gisa geratzen da - arazoak konpondu eta saiatu berriro.
+VERIFACTU_BATCH_VALIDATION_FAILED = Errorea %s faktura balioztatzen: %s
+VERIFACTU_BATCH_VALIDATION_STOPPED = Sortako balioztapena errorearen ondoren gelditu da. %s faktura balidatu dira hautatutako %s-tik.
+VERIFACTU_BATCH_VALIDATION_SUCCESS = %s faktura ondo balidatu dira.
+VERIFACTU_BATCH_VALIDATION_PARTIAL = Balioztapen partziala: %s faktura balidatu dira, %s errorekin.
+VERIFACTU_EXCEPTION = VeriFactu errorea: %s
+INVALID_VERIFACTU_ACTION = Ekintza baliogabea: %s
+VERIFACTU_VALIDATION_INVOICE_NOT_VALIDATED = Faktura balioztatuta egon behar da VeriFactu-ra bidaltzeko
+VERIFACTU_VALIDATION_INVOICE_PROVISIONAL = Ezin dira faktura probisionalak bidali (erreferentzian "PROV" dutenak)
+VERIFACTU_ERROR_INVOICE_ALREADY_CANCELLED = Faktura dagoeneko baliogabetuta dago VeriFactu-n
+VERIFACTU_CANNOT_SEND_TITLE = Ezin da VeriFactu-ra bidali
+VERIFACTU_BUTTON_DISABLED = Desgaitua
+
+# Certificates and troubleshooting
+VERIFACTU_CERT_TYPE_NORMAL_DESC = 'Normala' mota: Ziurtagiri pertsonal eta enpresarialekin bateragarria (www1.aeat.es)
+VERIFACTU_CERT_TYPE_SEAL_DESC = 'Zigilu' mota: Zigilu ziurtagiri enpresarialak bakarrik (www10.aeat.es)
+VERIFACTU_CERT_TYPE_RECOMMENDATION = Zalantzarik izanez gero, erabili 'normala' - ziurtagiri guztiekin bateragarria
+VERIFACTU_TROUBLESHOOTING_XML_ERROR = "no XML document" erroreak lortzen badituzu, zure ziurtagiri pertsonala ez da 'zigilu'-rekin bateragarria. Erabili 'normala'.
+VERIFACTU_CERT_COMPATIBILITY_WARNING = ⚠️ Ziurtagiri pertsonalek (AC FNMT) arazoak izan ditzakete 'zigilu' motarekin kontsultetan
+
+# VeriFactu states
+VERIFACTU_STATE_CORRECT = Zuzena
+VERIFACTU_STATE_INCORRECT = Okerra
+VERIFACTU_STATE_CANCELLED = Baliogabetua
+VERIFACTU_STATE_ERROR = Errorea
+VERIFACTU_STATE_DUPLICATE = Bikoiztua
+VERIFACTU_STATE_NOT_SENT = Bidali gabe
+
+# Error messages
+VerifactuConnectorPrivateKeyError = ⚠️ Ezin izan da gako pribatua lortu: %s. Egiaztatu ziurtagiri konektorea.
+VERIFACTU_ERROR_DUPLICATE_REGISTRATION = Erregistro bikoiztua
+VERIFACTU_CERT_KEY_MISMATCH = Gako pribatu okerra edo pasahitz okerra
+VERIFACTU_CERTIFICATE_CONVERTED_SUCCESS = '%s' ziurtagiria PEM-ra ondo bihurtu da
+VERIFACTU_CERTIFICATE_VALIDATED_SUCCESS = '%s' ziurtagiria balioztatua (dagoeneko PEM zen)
+VERIFACTU_CERTIFICATE_ERROR = Errorea '%s' ziurtagiria prozesatzean: %s
+VERIFACTU_WARNING_OPERATION_COMPLETED = Eragiketa osatua - fakturak dagoeneko eskatutako egoera zuen
+VERIFACTU_INVOICE_CANNOT_BE_MODIFIED = %s faktura ezin da aldatu (VeriFactu murrizketa)
+VERIFACTU_INVOICE_CANNOT_BE_VALID_CIF_REQUIRED = %s faktura: Bezeroaren IFK/NAN derrigorrezkoa VeriFactu-rako
+VERIFACTU_INVOICE_CANNOT_BE_VALID_VAT_INTRA_REQUIRED = %s faktura: Erkidego barruko IFK derrigorrezkoa VeriFactu-rako
+VERIFACTU_INVOICE_CANNOT_BE_VALID_ADDRESS_REQUIRED = %s faktura: Bezeroaren helbidea derrigorrezkoa VeriFactu-rako
+VERIFACTU_INVOICE_REF_CONTAINS_SPACES = Zenbakitze maskarak zuriuneak ditu. Aldatu jarraitzeko.
+VERIFACTU_INVOICE_REF_NOT_ALPHANUMERIC = "%s" erreferentzia baliogabea. Karaktere alfanumerikoak, marrak (-), azpiko marrak (_) eta barrak (/) bakarrik.
+VERIFACTU_INVOICE_REF_TOO_LONG = "%s" erreferentzia luzeegia (%s karaktere). Gehienez 60 karaktere.
+
+VERIFACTU_INVOICE_CANNOT_EXCEED_MAX_DATE = <strong>%s</strong> faktura data ezin da <strong>%s</strong> azken data baliozkoa baino lehenagokoa izan. Data <strong>%s</strong>-ra egokitua.
+VERIFACTU_CANNOT_DELETE_EXTRA_FIELD = Ezin da eremu hau ezabatu. 'verifactu_' eremuak funtsezko dira modulu honetarako.
+THIRD_PARTY_HAS_INVOICES_NIF_NOT_MODIFIED = <strong>IFK/NAN</strong> ez da eguneratu. <strong>%s</strong>-k <strong>%s</strong> faktura ditu VeriFactu-n.
+THIRD_PARTY_HAS_INVOICES_VAT_INTRA_NOT_MODIFIED = <strong>Erkidego barruko IFK</strong> ez da eguneratu. <strong>%s</strong>-k <strong>%s</strong> faktura ditu VeriFactu-n.
+
+# Rectified Invoices
+VERIFACTU_RECTIFIED_INVOICES = Zuzendutako Fakturak
+VERIFACTU_RECTIFIED_INVOICE_ADDED = Zuzendutako faktura gehitu da
+VERIFACTU_RECTIFIED_INVOICE_ERROR = Errorea zuzendutako faktura gehitzerakoan
+VERIFACTU_ISSUER_ID_REQUIRED = Jaulkitzailearen IDa derrigorrezkoa
+VERIFACTU_SERIAL_NUMBER_REQUIRED = Serie zenbakia derrigorrezkoa
+VERIFACTU_ISSUE_DATE_REQUIRED = Espedizio data derrigorrezkoa
+VERIFACTU_ISSUE_DATE_INVALID_FORMAT = Data formatua: ee-hh-uuuu
+VERIFACTU_RECTIFIED_BASE_NEGATIVE = Oinarria ezin da negatiboa izan
+VERIFACTU_RECTIFIED_QUOTA_NEGATIVE = Kuota ezin da negatiboa izan
+VERIFACTU_SURCHARGE_NEGATIVE = Errekargua ezin da negatiboa izan
+VERIFACTU_RECTIFICATION_TYPE_R1_ERROR = R1 - Zuzenbidean oinarritutako errorea (LIVA 80 art. Bat, Bi eta Sei)
+VERIFACTU_RECTIFICATION_TYPE_R2_ART80_3 = R2 - LIVA 80.3 art.
+VERIFACTU_RECTIFICATION_TYPE_R3_ART80_4 = R3 - LIVA 80.4 art.
+VERIFACTU_RECTIFICATION_TYPE_R4_OTHER = R4 - Gainerako kasuak
+VERIFACTU_RECTIFICATION_TYPE_R5_SIMPLIFIED = R5 - Zuzentzaile sinplifikatua
+VERIFACTU_CREDIT_NOTE_PROCESSED = Abonua R1 I mota zuzentzaile gisa prozesatu da
+VERIFACTU_REPLACEMENT_INVOICE_PROCESSED = Ordezkapena R1 S mota zuzentzaile gisa prozesatu da
+VERIFACTU_MODULE_RD10072023_REQUIRED = RD10072023 modulua aktibo egon behar da
+VERIFACTU_CERTIFICATE_PRIVATE_KEY_TOOLTIP = Gako pribatua PEM formatuan. P12 fitxategiak automatikoki bihurtzen dira.
+
+#
+# Responsible Declaration
+#
+NO_VERIFACTU_ACTIVATION_KEY = Ez dago aktibazio gakorik konfiguratuta. Joan Konfigurazioa -> Moduluak -> VeriFactu.
+ERROR_VERIFACTU_CONNECTION = Konexio errorea lizentzia zerbitzariarekin. Egiaztatu zure internet konexioa.
+YES_VERIFACTU_INTEGRITY = ✓ Moduluak integritate baldintzak betetzen ditu eta lizentzia baliozkoa da.
+NO_VERIFACTU_INTEGRITY = ✗ Moduluak ez ditu baldintzak betetzen edo lizentzia ez da baliozkoa.
+
+# Top menu (additional)
+VERIFACTU_MODULE_VERSION = VeriFactu
+VERIFACTU_ACCESS_SETUP = Konfiguraziora sartu
+
+# Auto configuration by third party
+VERIFACTU_DEFAULT_THIRD_PARTY_TAX_SET = '%s'-ren lehenetsitako zerga aplikatua
+VERIFACTU_DEFAULT_THIRD_PARTY_REGIME_KEY_SET = '%s'-ren erregimen gakoa aplikatua
+VERIFACTU_DEFAULT_THIRD_PARTY_OPERATION_QUALIFICATION_SET = '%s'-ren kalifikazioa aplikatua
+VERIFACTU_DEFAULT_THIRD_PARTY_EXEMPT_OPERATION_SET = '%s'-ren eragiketa salbuetsia aplikatua
+
+# Validation confirmation
+ConfirmValidateBillVerifactu = <strong>%s</strong> faktura balioztatu?<br><br>⚠️ <strong>GARRANTZITSUA:</strong><br>• Datuak AEATren VeriFactu-ra bidaliko dira<br>• Faktura hau <strong>ezin izango duzu editatu edo ezabatu</strong> gero<br><br>📋 <strong>EGIAZTATU jarraitu aurretik:</strong><br>• Zerga, Erregimen Gakoa, Kalifikazioa eta Salbuespena<br><br>⚖️ <strong>Zu zara arduradun</strong> datu fiskal hauen egiazkotasunaz.<br>Zalantzarik izanez gero, <strong>kontsultatu zure zerga aholkulariarekin</strong>.
+
+# Environment configuration
+VERIFACTU_CURRENT_ENVIRONMENT = Uneko Ingurunea
+VerifactuCopying = Lizentzia akordioa
+VERIFACTU_INIT_LICENSE_ACCEPTED = <strong>GPL v3 LIZENTZIA</strong><br><br>Modulu hau aktibatzean, GPL v3 lizentziaren baldintzak onartzen dituzu.<br><br><strong>ZERGA ERANTZUKIZUNA:</strong><br>Zerga, Erregimen Gakoa, Kalifikazioa eta Eragiketa Salbuetsia eremuak zure enpresaren ERANTZUKIZUNA dira. Kontsultatu zure zerga aholkulariarekin zalantzarik izanez gero.
+VERIFACTU_INIT_LICENSE_ACCEPTED_SHORT = Aktibatzean GPL v3 onartzen duzu. Zerga konfigurazioa enpresaren erantzukizuna da.
+VERIFACTU_HAS_NO_INTERNET_CONNECTION = Internet konexiorik gabe. %s faktura lokalean balioztatuko da. Egin eskuzko bidalketa geroago.
+
+# Service status
+VERIFACTU_SERVICE_UNAVAILABLE = VeriFactu zerbitzua aldi baterako ez dago eskuragarri
+VERIFACTU_SERVICE_UNAVAILABLE_INFO = %s faktura lokalean balioztatua. Ezin izan da VeriFactu-ra bidali. "Zain" gisa markatua berriz saiatzeko. Errorea: %s
+VERIFACTU_SERVICE_RETRY_LATER = Zerbitzua ez dago eskuragarri. Lokalean prozesatuko da geroago berriz saiatzeko.
+VERIFACTU_SERVICE_STATUS_CHECK = VeriFactu zerbitzua egiaztatzen...
+VERIFACTU_SERVICE_AVAILABLE = ✓ Zerbitzua eskuragarri
+VERIFACTU_SERVICE_NOT_AVAILABLE = ⚠️ Zerbitzua ez dago eskuragarri
+VERIFACTU_PENDING_RETRY_INFO = Faktura zain zerbitzuaren eskuragarritasun ezagatik. Eskuragarri dagoenean berriz saia daiteke.
+
+# Invoice view
+VERIFACTU_ACTIONS_SECTION_TITLE = VeriFactu Ekintzak
+VERIFACTU_AEAT_DATA_SECTION_TITLE = AEATko Datuak
+
+# Main dashboard
+VERIFACTU_DASHBOARD_CARD_SUBTITLE_MANAGEMENT = Bidalketen Kudeaketa
+VERIFACTU_DASHBOARD_CARD_SUBTITLE_PORTAL = VeriFactu Ataria
+VERIFACTU_DASHBOARD_FEATURE_AUTO_SEND = Bidalketa automatikoa
+VERIFACTU_DASHBOARD_FEATURE_VALIDATION = Arau baliozkotzea
+VERIFACTU_DASHBOARD_FEATURE_TRACEABILITY = Trazabilitate osoa
+VERIFACTU_DASHBOARD_FEATURE_ERROR_MANAGEMENT = Errore kudeaketa
+VERIFACTU_DASHBOARD_FEATURE_CONNECTION = AEAT-era zuzeneko konexioa
+VERIFACTU_DASHBOARD_FEATURE_VERIFICATION = Denbora errealeko egiaztapena
+VERIFACTU_DASHBOARD_FEATURE_HISTORY = Kontsulten historia
+VERIFACTU_DASHBOARD_FEATURE_EXPORT = Datuen esportazioa
+VERIFACTU_DASHBOARD_ACTION_ACCESS = Sartu
+VERIFACTU_DASHBOARD_ACTION_QUERY = Kontsultatu
+PDFVerifactuDescription = VeriFactu QR kode eta AEAT datu fiskalak dituen PDF txantiloia.
+VATIntra = Erkidego barruko IFK/Atzerriko ID
+VATIntraShort = Erkidego barruko IFK/Atzerriko ID
+VATIntraVerifactu = <span class="badge badge-status1 badge-status">Erkidego barruko IFK/Atzerriko ID ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="📋 ERABILERA:<br><br><strong>Espainiakoak EZ diren bezeroak:</strong><br>• Sartu atzerriko identifikazio fiskala<br>• Hautatu Identifikazio Mota<br><br><strong>Espainiako bezeroak:</strong><br>• Erabili IFK/NAN eremua bakarrik<br>• Utzi eremu hau hutsik"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+ProfId1ESVerifactu = <span class="badge badge-status4 badge-status">IFK/NAN</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="📋 IFK/NAN:<br><br><strong>Espainiako bezeroak:</strong> ✅ DERRIGORREZKOA<br><strong>Atzerriko bezeroak:</strong> ⚪ Erabili 'Erkidego barruko IFK/Atzerriko ID'<br><br>⚠️ Ezin da aldatu VeriFactu-ra bidali ondoren."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+VerifactuRequire16orHigher = ⚠️ Dolibarr 16.0+ behar da
+
+# Certificates
+VERIFACTU_CERT_CONFIGURED = Ziurtagiria Konfiguratua
+VERIFACTU_CERT_READY = Sistema prest sinatu eta VeriFactu-ra bidaltzeko
+VERIFACTU_CERT_ERROR = Ziurtagiri Errorea
+
+# Invoice already sent
+VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Faktura dagoeneko ondo bidali da. Baja bat bakarrik bidal dezakezu baliogabetzeko.
+VERIFACTU_ALREADY_SENT_TOOLTIP = Faktura dagoeneko VeriFactu-ra bidalia
+VERIFACTU_BUTTON_VERIFY_STATUS = Egoera Egiaztatu AEATen
+
+# Pre-check before sending
+VERIFACTU_PRECHECK_SKIP_SEND = %s faktura dagoeneko badago AEATen. Ez da bidalketa gehigarririk egin.
+VERIFACTU_PRECHECK_ALREADY_EXISTS = Faktura egiaztatua - Dagoeneko bazegoen AEATen
+VERIFACTU_PRECHECK_AMOUNTS_DIFFER = %s faktura AEATen dago zenbateko desberdinekin: Dolibarr=%s, AEAT=%s. Berrikusi datuak.
+
+# Status verification
+VERIFACTU_VERIFY_NOT_FOUND_IN_AEAT = %s faktura ez da AEATen aurkitu. Normalean bidal dezakezu.
+VERIFACTU_VERIFY_NOT_FOUND_CLEARED = %s faktura ez dago AEATen. Aurreko erroreak garbituta. Bidal dezakezu.
+VERIFACTU_VERIFY_STATUS_CORRECTED = %s faktura egiaztatua. Egoera: Bidalia. Zenbatekoa: %s
+VERIFACTU_VERIFY_AMOUNTS_DIFFER = %s faktura AEATen zenbateko desberdinekin: Dolibarr=%s, AEAT=%s (aldea: %s). Berrikuspena behar du.
+VERIFACTU_VERIFY_SUCCESS_SUMMARY = Egiaztapen arrakastatsua: Zenbatekoak bat datoz (Dolibarr: %s, AEAT: %s)
