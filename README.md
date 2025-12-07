@@ -192,6 +192,7 @@ Si aparece una pantalla en blanco al ver facturas:
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
+- **Dedicado**: Dedicado a mi compañero y amigo Ildefonso González Rodríguez
 
 ## Registro de Cambios
 
