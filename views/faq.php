@@ -80,17 +80,17 @@ print '<div class="fichecenter">';
 print '<div class="fichethirdleft">';
 
 // Panel de navegación rápida
-print '<div class="div-table-responsive-no-min">';
+print '<div class="div-table-responsive-no-min" id="faq-nav-panel">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th>' . $langs->trans("VERIFACTU_FAQ_QUICK_NAV") . '</th></tr>';
-print '<tr class="oddeven"><td><a href="#guia-rapida" class="classfortooltip">' . img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#tipos-factura" class="classfortooltip">' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#tipos-impuesto" class="classfortooltip">' . img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#clave-regimen" class="classfortooltip">' . img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#calificacion" class="classfortooltip">' . img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#exenciones" class="classfortooltip">' . img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#tipos-identificacion" class="classfortooltip">' . img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="#errores-comunes" class="classfortooltip">' . img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#guia-rapida" class="faq-nav-link">' . img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#tipos-factura" class="faq-nav-link">' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#tipos-impuesto" class="faq-nav-link">' . img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#clave-regimen" class="faq-nav-link">' . img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#calificacion" class="faq-nav-link">' . img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#exenciones" class="faq-nav-link">' . img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#tipos-identificacion" class="faq-nav-link">' . img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES") . '</a></td></tr>';
+print '<tr class="oddeven"><td><a href="#errores-comunes" class="faq-nav-link">' . img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS") . '</a></td></tr>';
 print '</table>';
 print '</div>';
 
@@ -105,7 +105,7 @@ print ' <span id="search-results" class="opacitymedium"></span>';
 print '</div>';
 
 // ========== GUÍA RÁPIDA ==========
-print '<div class="div-table-responsive-no-min" id="guia-rapida">';
+print '<div class="div-table-responsive-no-min faq-section" id="guia-rapida">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE") . '</th></tr>';
 
@@ -137,7 +137,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== TIPOS DE FACTURA ==========
-print '<div class="div-table-responsive-no-min" id="tipos-factura">';
+print '<div class="div-table-responsive-no-min faq-section" id="tipos-factura">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES") . '</th></tr>';
 
@@ -163,7 +163,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== TIPOS DE IMPUESTO ==========
-print '<div class="div-table-responsive-no-min" id="tipos-impuesto">';
+print '<div class="div-table-responsive-no-min faq-section" id="tipos-impuesto">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES") . '</th></tr>';
 
@@ -185,7 +185,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== CLAVE DE RÉGIMEN ==========
-print '<div class="div-table-responsive-no-min" id="clave-regimen">';
+print '<div class="div-table-responsive-no-min faq-section" id="clave-regimen">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY") . '</th></tr>';
 
@@ -212,7 +212,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== CALIFICACIÓN DE LA OPERACIÓN ==========
-print '<div class="div-table-responsive-no-min" id="calificacion">';
+print '<div class="div-table-responsive-no-min faq-section" id="calificacion">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION") . '</th></tr>';
 
@@ -234,7 +234,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== EXENCIONES ==========
-print '<div class="div-table-responsive-no-min" id="exenciones">';
+print '<div class="div-table-responsive-no-min faq-section" id="exenciones">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS") . '</th></tr>';
 
@@ -258,7 +258,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== TIPOS DE IDENTIFICACIÓN ==========
-print '<div class="div-table-responsive-no-min" id="tipos-identificacion">';
+print '<div class="div-table-responsive-no-min faq-section" id="tipos-identificacion">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES") . '</th></tr>';
 
@@ -282,7 +282,7 @@ print '</table>';
 print '</div><br>';
 
 // ========== ERRORES COMUNES ==========
-print '<div class="div-table-responsive-no-min" id="errores-comunes">';
+print '<div class="div-table-responsive-no-min faq-section" id="errores-comunes">';
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS") . '</th></tr>';
 
@@ -322,7 +322,7 @@ print '</div>'; // fichecenter
 // JavaScript para búsqueda y navegación
 print '<style>
 /* Scroll margin for anchor targets */
-[id^="guia-"], [id^="tipos-"], [id^="clave-"], [id^="calificacion"], [id^="exenciones"], [id^="errores-"] {
+.faq-section {
 	scroll-margin-top: 80px;
 }
 /* Highlight effect for targeted section */
@@ -333,6 +333,15 @@ print '<style>
 	0% { background-color: #fff3cd; }
 	100% { background-color: transparent; }
 }
+/* Estilo hover para los enlaces de navegación */
+.faq-nav-link {
+	display: block;
+	padding: 5px 0;
+	cursor: pointer;
+}
+.faq-nav-link:hover {
+	text-decoration: underline;
+}
 </style>';
 
 print '<script>
@@ -342,77 +351,77 @@ document.addEventListener("DOMContentLoaded", function() {
 	var searchResults = document.getElementById("search-results");
 	var faqItems = document.querySelectorAll(".faq-item");
 
-	searchInput.addEventListener("input", function() {
-		var query = this.value.toLowerCase().trim();
-		var visibleCount = 0;
+	if (searchInput) {
+		searchInput.addEventListener("input", function() {
+			var query = this.value.toLowerCase().trim();
+			var visibleCount = 0;
 
-		faqItems.forEach(function(item) {
-			var text = item.textContent.toLowerCase();
-			if (query === "" || text.includes(query)) {
-				item.style.display = "";
-				visibleCount++;
+			faqItems.forEach(function(item) {
+				var text = item.textContent.toLowerCase();
+				if (query === "" || text.includes(query)) {
+					item.style.display = "";
+					visibleCount++;
+				} else {
+					item.style.display = "none";
+				}
+			});
+
+			if (query !== "") {
+				searchResults.textContent = visibleCount + " ' . $langs->trans("VERIFACTU_FAQ_RESULTS_FOUND") . '";
 			} else {
-				item.style.display = "none";
+				searchResults.textContent = "";
 			}
 		});
+	}
 
-		if (query !== "") {
-			searchResults.textContent = visibleCount + " ' . $langs->trans("VERIFACTU_FAQ_RESULTS_FOUND") . '";
-		} else {
-			searchResults.textContent = "";
+	// Función para scroll suave
+	function scrollToSection(targetId) {
+		var targetElement = document.getElementById(targetId);
+		if (targetElement) {
+			var headerOffset = 80;
+			var elementPosition = targetElement.getBoundingClientRect().top;
+			var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+			window.scrollTo({
+				top: offsetPosition,
+				behavior: "smooth"
+			});
+
+			// Añadir efecto de resaltado
+			targetElement.classList.add("faq-section-highlight");
+			setTimeout(function() {
+				targetElement.classList.remove("faq-section-highlight");
+			}, 2000);
+
+			// Actualizar URL sin recargar
+			history.pushState(null, null, "#" + targetId);
 		}
-	});
+	}
 
-	// Navegación suave a secciones
-	var navLinks = document.querySelectorAll(".fichethirdleft a[href^=\'#\']");
+	// Navegación suave a secciones - usando clase específica
+	var navLinks = document.querySelectorAll(".faq-nav-link");
+	console.log("FAQ Nav links found:", navLinks.length);
+
 	navLinks.forEach(function(link) {
 		link.addEventListener("click", function(e) {
 			e.preventDefault();
-			var targetId = this.getAttribute("href").substring(1);
-			var targetElement = document.getElementById(targetId);
-
-			if (targetElement) {
-				// Calcular posición considerando header fijo
-				var headerOffset = 80;
-				var elementPosition = targetElement.getBoundingClientRect().top;
-				var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-				window.scrollTo({
-					top: offsetPosition,
-					behavior: "smooth"
-				});
-
-				// Añadir efecto de resaltado
-				targetElement.classList.add("faq-section-highlight");
-				setTimeout(function() {
-					targetElement.classList.remove("faq-section-highlight");
-				}, 2000);
-
-				// Actualizar URL sin recargar
-				history.pushState(null, null, "#" + targetId);
+			e.stopPropagation();
+			var href = this.getAttribute("href");
+			if (href && href.charAt(0) === "#") {
+				var targetId = href.substring(1);
+				console.log("Navigating to:", targetId);
+				scrollToSection(targetId);
 			}
+			return false;
 		});
 	});
 
 	// Si hay un hash en la URL al cargar, hacer scroll
 	if (window.location.hash) {
 		var targetId = window.location.hash.substring(1);
-		var targetElement = document.getElementById(targetId);
-		if (targetElement) {
-			setTimeout(function() {
-				var headerOffset = 80;
-				var elementPosition = targetElement.getBoundingClientRect().top;
-				var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-				window.scrollTo({
-					top: offsetPosition,
-					behavior: "smooth"
-				});
-				targetElement.classList.add("faq-section-highlight");
-				setTimeout(function() {
-					targetElement.classList.remove("faq-section-highlight");
-				}, 2000);
-			}, 300);
-		}
+		setTimeout(function() {
+			scrollToSection(targetId);
+		}, 300);
 	}
 });
 </script>';
