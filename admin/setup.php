@@ -236,14 +236,14 @@ if ($basicFieldsComplete) {
 	// Hiding QR explanatory text is not allowed
 	// // Show explanatory text
 	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '1';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_HELP');
 	$item->cssClass = 'width150';
 
 	// Show POS explanatory text
 	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT_TPV');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '1';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_TPV_HELP');
 	$item->cssClass = 'width150';
@@ -256,7 +256,7 @@ if ($basicFieldsComplete) {
 
 	// Show QR on all pages
 	$item = $formSetup->newItem('VERIFACTU_QR_ALL_PAGES');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '0';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_ALL_PAGES_HELP');
 	$item->cssClass = 'width150';
