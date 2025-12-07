@@ -319,9 +319,25 @@ print '</div>';
 print '</div>'; // fichetwothirdright
 print '</div>'; // fichecenter
 
-// JavaScript para búsqueda
+// JavaScript para búsqueda y navegación
+print '<style>
+/* Scroll margin for anchor targets */
+[id^="guia-"], [id^="tipos-"], [id^="clave-"], [id^="calificacion"], [id^="exenciones"], [id^="errores-"] {
+	scroll-margin-top: 80px;
+}
+/* Highlight effect for targeted section */
+.faq-section-highlight {
+	animation: highlightFade 2s ease-out;
+}
+@keyframes highlightFade {
+	0% { background-color: #fff3cd; }
+	100% { background-color: transparent; }
+}
+</style>';
+
 print '<script>
 document.addEventListener("DOMContentLoaded", function() {
+	// Búsqueda
 	var searchInput = document.getElementById("faq-search");
 	var searchResults = document.getElementById("search-results");
 	var faqItems = document.querySelectorAll(".faq-item");
@@ -346,6 +362,58 @@ document.addEventListener("DOMContentLoaded", function() {
 			searchResults.textContent = "";
 		}
 	});
+
+	// Navegación suave a secciones
+	var navLinks = document.querySelectorAll(".fichethirdleft a[href^=\'#\']");
+	navLinks.forEach(function(link) {
+		link.addEventListener("click", function(e) {
+			e.preventDefault();
+			var targetId = this.getAttribute("href").substring(1);
+			var targetElement = document.getElementById(targetId);
+
+			if (targetElement) {
+				// Calcular posición considerando header fijo
+				var headerOffset = 80;
+				var elementPosition = targetElement.getBoundingClientRect().top;
+				var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+				window.scrollTo({
+					top: offsetPosition,
+					behavior: "smooth"
+				});
+
+				// Añadir efecto de resaltado
+				targetElement.classList.add("faq-section-highlight");
+				setTimeout(function() {
+					targetElement.classList.remove("faq-section-highlight");
+				}, 2000);
+
+				// Actualizar URL sin recargar
+				history.pushState(null, null, "#" + targetId);
+			}
+		});
+	});
+
+	// Si hay un hash en la URL al cargar, hacer scroll
+	if (window.location.hash) {
+		var targetId = window.location.hash.substring(1);
+		var targetElement = document.getElementById(targetId);
+		if (targetElement) {
+			setTimeout(function() {
+				var headerOffset = 80;
+				var elementPosition = targetElement.getBoundingClientRect().top;
+				var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+				window.scrollTo({
+					top: offsetPosition,
+					behavior: "smooth"
+				});
+				targetElement.classList.add("faq-section-highlight");
+				setTimeout(function() {
+					targetElement.classList.remove("faq-section-highlight");
+				}, 2000);
+			}, 300);
+		}
+	}
 });
 </script>';
 
