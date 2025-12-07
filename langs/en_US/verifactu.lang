@@ -147,8 +147,12 @@ verifactu_INVOICE_TYPE = Invoice type
 verifactu_INVOICE_TYPE_TOOLTIP = Invoice type for VeriFactu
 verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">VeriFactu Data</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Invoice status in VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">TAX FIELDS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANT: Tax, Regime Key, Classification and Exempt Operation are company responsibility. Consult your tax advisor if in doubt."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR1 = <span class="badge badge-status1 badge-status">VeriFactu Data</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Invoice status in VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR2 = <span class="badge badge-status1 badge-status">TAX FIELDS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANT: Tax, Regime Key, Classification and Exempt Operation are company responsibility. Consult your tax advisor if in doubt."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_CSV_INVOICE = CSV Code
+verifactu_INVOICE_CSV = CSV Code
 verifactu_CSV_INVOICE_TOOLTIP = AEAT verification code. If missing, invoice hasn't been sent.
+verifactu_INVOICE_CSVTooltip = AEAT verification code. If missing, invoice hasn't been sent.
 verifactu_INVOICE_ID = VeriFactu ID
 verifactu_INVOICE_ID_TOOLTIP = Invoice identifier in VeriFactu
 verifactu_INVOICE_DATE = Issue date
@@ -159,6 +163,8 @@ verifactu_LAST_MODIFICATION_DATE = Last modification
 verifactu_LAST_MODIFICATION_DATE_TOOLTIP = Last modification date in VeriFactu
 verifactu_FINGERPRINT = Digital fingerprint
 verifactu_FINGERPRINT_TOOLTIP = SHA-256 fingerprint of the invoice
+verifactu_HASH = Digital fingerprint
+verifactu_HASHTooltip = SHA-256 fingerprint of the invoice
 verifactu_GENERATION_DATETIME = Fingerprint date/time
 verifactu_GENERATION_DATETIME_TOOLTIP = Fingerprint generation date and time (ISO 8601)
 verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Simplified invoice customer
@@ -237,6 +243,10 @@ verifactu_TAX_TYPE = Tax
 verifactu_TAX_TYPE_TOOLTIP = Applicable tax type. Defaults to VAT. Required for invoice typology.
 verifactu_REGIME_KEY = Regime Key
 verifactu_REGIME_KEY_TOOLTIP = Special regime key. Only for VAT or IGIC, not for IPSI or OTHERS.
+verifactu_TAX_REGIME = Regime Key
+verifactu_TAX_REGIMETooltip = Special regime key. Only for VAT or IGIC, not for IPSI or OTHERS.
+verifactu_PAYLOAD = XML Data
+verifactu_PAYLOADTooltip = XML data sent to VeriFactu
 verifactu_INCIDENT = Incident
 verifactu_INCIDENT_TOOLTIP = Indicates technical incident (no electricity, no internet, system failure). Defaults to "N".
 verifactu_ID_TYPE = Identification Type
@@ -311,6 +321,8 @@ VERIFACTU_DEFAULT_TAX_TYPE = Default Tax
 VERIFACTU_DEFAULT_TAX_TYPE_HELP = Default tax type for new invoices
 VERIFACTU_DEFAULT_REGIME_KEY = Default Regime Key
 VERIFACTU_DEFAULT_REGIME_KEY_HELP = Default regime key for new invoices
+VERIFACTU_DEFAULT_TAX_REGIME = Default Regime Key
+VERIFACTU_DEFAULT_TAX_REGIME_HELP = Default regime key for new invoices
 VERIFACTU_DEFAULT_OPERATION_QUALIFICATION = Default Classification
 VERIFACTU_DEFAULT_OPERATION_QUALIFICATION_HELP = Default operation classification (optional)
 VERIFACTU_DEFAULT_EXEMPT_OPERATION = Default Exempt Operation

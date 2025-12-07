@@ -147,8 +147,12 @@ verifactu_INVOICE_TYPE = Tipo de factura
 verifactu_INVOICE_TYPE_TOOLTIP = Tipo de factura para VeriFactu
 verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">Datos VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estado da factura en VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">CAMPOS FISCAIS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANTE: Imposto, Chave Réxime, Cualificación e Operación Exenta son responsabilidade da empresa. Consulte co seu asesor fiscal en caso de dúbida."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR1 = <span class="badge badge-status1 badge-status">Datos VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estado da factura en VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR2 = <span class="badge badge-status1 badge-status">CAMPOS FISCAIS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANTE: Imposto, Chave Réxime, Cualificación e Operación Exenta son responsabilidade da empresa. Consulte co seu asesor fiscal en caso de dúbida."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_CSV_INVOICE = Código CSV
+verifactu_INVOICE_CSV = Código CSV
 verifactu_CSV_INVOICE_TOOLTIP = Código de verificación da AEAT. Se non existe, a factura non foi enviada.
+verifactu_INVOICE_CSVTooltip = Código de verificación da AEAT. Se non existe, a factura non foi enviada.
 verifactu_INVOICE_ID = ID en VeriFactu
 verifactu_INVOICE_ID_TOOLTIP = Identificador da factura en VeriFactu
 verifactu_INVOICE_DATE = Data de emisión
@@ -159,6 +163,8 @@ verifactu_LAST_MODIFICATION_DATE = Última modificación
 verifactu_LAST_MODIFICATION_DATE_TOOLTIP = Data de última modificación en VeriFactu
 verifactu_FINGERPRINT = Pegada dixital
 verifactu_FINGERPRINT_TOOLTIP = Pegada SHA-256 da factura
+verifactu_HASH = Pegada dixital
+verifactu_HASHTooltip = Pegada SHA-256 da factura
 verifactu_GENERATION_DATETIME = Data/hora de pegada
 verifactu_GENERATION_DATETIME_TOOLTIP = Data e hora de xeración da pegada (ISO 8601)
 verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Cliente de factura simplificada
@@ -237,6 +243,10 @@ verifactu_TAX_TYPE = Imposto
 verifactu_TAX_TYPE_TOOLTIP = Tipo de imposto aplicábel. Por defecto IVE. Necesario para a tipoloxía de factura.
 verifactu_REGIME_KEY = Chave Réxime
 verifactu_REGIME_KEY_TOOLTIP = Chave do réxime especial. Só aplicábel para IVE ou IGIC, non para IPSI ou OUTROS.
+verifactu_TAX_REGIME = Chave Réxime
+verifactu_TAX_REGIMETooltip = Chave do réxime especial. Só aplicábel para IVE ou IGIC, non para IPSI ou OUTROS.
+verifactu_PAYLOAD = Datos XML
+verifactu_PAYLOADTooltip = Datos XML enviados a VeriFactu
 verifactu_INCIDENT = Incidencia
 verifactu_INCIDENT_TOOLTIP = Indica se houbo incidencia técnica (sen electricidade, sen internet, fallo do sistema). Por defecto "N".
 verifactu_ID_TYPE = Tipo de Identificación
@@ -311,6 +321,8 @@ VERIFACTU_DEFAULT_TAX_TYPE = Imposto por defecto
 VERIFACTU_DEFAULT_TAX_TYPE_HELP = Tipo de imposto por defecto para novas facturas
 VERIFACTU_DEFAULT_REGIME_KEY = Chave Réxime por defecto
 VERIFACTU_DEFAULT_REGIME_KEY_HELP = Chave de réxime por defecto para novas facturas
+VERIFACTU_DEFAULT_TAX_REGIME = Chave Réxime por defecto
+VERIFACTU_DEFAULT_TAX_REGIME_HELP = Chave de réxime por defecto para novas facturas
 VERIFACTU_DEFAULT_OPERATION_QUALIFICATION = Cualificación por defecto
 VERIFACTU_DEFAULT_OPERATION_QUALIFICATION_HELP = Cualificación de operación por defecto (opcional)
 VERIFACTU_DEFAULT_EXEMPT_OPERATION = Operación exenta por defecto
