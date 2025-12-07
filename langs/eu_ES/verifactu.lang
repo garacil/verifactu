@@ -147,8 +147,12 @@ verifactu_INVOICE_TYPE = Faktura mota
 verifactu_INVOICE_TYPE_TOOLTIP = VeriFactu-rako faktura mota
 verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">VeriFactu Datuak</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Fakturaren egoera VeriFactu-n"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">EREMU FISKALAK ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ GARRANTZITSUA: Zerga, Erregimen Gakoa, Kalifikazioa eta Eragiketa Salbuetsiak enpresaren erantzukizuna dira. Kontsultatu zure zerga aholkulariarekin zalantzarik izanez gero."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR1 = <span class="badge badge-status1 badge-status">VeriFactu Datuak</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Fakturaren egoera VeriFactu-n"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR2 = <span class="badge badge-status1 badge-status">EREMU FISKALAK ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ GARRANTZITSUA: Zerga, Erregimen Gakoa, Kalifikazioa eta Eragiketa Salbuetsiak enpresaren erantzukizuna dira. Kontsultatu zure zerga aholkulariarekin zalantzarik izanez gero."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_CSV_INVOICE = CSV Kodea
+verifactu_INVOICE_CSV = CSV Kodea
 verifactu_CSV_INVOICE_TOOLTIP = AEATren egiaztapen kodea. Ez badago, faktura ez da bidali.
+verifactu_INVOICE_CSVTooltip = AEATren egiaztapen kodea. Ez badago, faktura ez da bidali.
 verifactu_INVOICE_ID = ID VeriFactu-n
 verifactu_INVOICE_ID_TOOLTIP = Fakturaren identifikatzailea VeriFactu-n
 verifactu_INVOICE_DATE = Jaulkipen data
@@ -159,6 +163,8 @@ verifactu_LAST_MODIFICATION_DATE = Azken aldaketa
 verifactu_LAST_MODIFICATION_DATE_TOOLTIP = VeriFactu-n azken aldaketaren data
 verifactu_FINGERPRINT = Hatz-marka digitala
 verifactu_FINGERPRINT_TOOLTIP = Fakturaren SHA-256 hatz-marka
+verifactu_HASH = Hatz-marka digitala
+verifactu_HASHTooltip = Fakturaren SHA-256 hatz-marka
 verifactu_GENERATION_DATETIME = Hatz-markaren data/ordua
 verifactu_GENERATION_DATETIME_TOOLTIP = Hatz-markaren sorrera data eta ordua (ISO 8601)
 verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Faktura sinplifikatuaren bezeroa
@@ -237,6 +243,10 @@ verifactu_TAX_TYPE = Zerga
 verifactu_TAX_TYPE_TOOLTIP = Aplikagarri den zerga mota. Lehenespenez BEZ. Faktura tipologiarako beharrezkoa.
 verifactu_REGIME_KEY = Erregimen Gakoa
 verifactu_REGIME_KEY_TOOLTIP = Erregimen bereziko gakoa. BEZ edo IGIC-rako bakarrik aplikagarria, ez IPSI edo BESTEetarako.
+verifactu_TAX_REGIME = Erregimen Gakoa
+verifactu_TAX_REGIMETooltip = Erregimen bereziko gakoa. BEZ edo IGIC-rako bakarrik aplikagarria, ez IPSI edo BESTEetarako.
+verifactu_PAYLOAD = XML Datuak
+verifactu_PAYLOADTooltip = VeriFactu-ra bidalitako XML datuak
 verifactu_INCIDENT = Intzidentzia
 verifactu_INCIDENT_TOOLTIP = Intzidentzia teknikorik (argirik gabe, internetik gabe, sistemaren hutsa) egon den adierazten du. Lehenespenez "N".
 verifactu_ID_TYPE = Identifikazio Mota

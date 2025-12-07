@@ -147,8 +147,12 @@ verifactu_INVOICE_TYPE = Tipus de factura
 verifactu_INVOICE_TYPE_TOOLTIP = Tipus de factura per a VeriFactu
 verifactu_START_SEPARATOR1 = <span class="badge badge-status1 badge-status">Dades VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estat de la factura a VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_START_SEPARATOR2 = <span class="badge badge-status1 badge-status">CAMPS FISCALS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANT: Impost, Clau Règim, Qualificació i Operació Exempta són responsabilitat de l'empresa. Consulteu amb el vostre assessor fiscal en cas de dubte."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR1 = <span class="badge badge-status1 badge-status">Dades VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estat de la factura a VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_SECTION_SEPARATOR2 = <span class="badge badge-status1 badge-status">CAMPS FISCALS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANT: Impost, Clau Règim, Qualificació i Operació Exempta són responsabilitat de l'empresa. Consulteu amb el vostre assessor fiscal en cas de dubte."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
 verifactu_CSV_INVOICE = Codi CSV
+verifactu_INVOICE_CSV = Codi CSV
 verifactu_CSV_INVOICE_TOOLTIP = Codi de verificació d'AEAT. Si no existeix, la factura no ha estat enviada.
+verifactu_INVOICE_CSVTooltip = Codi de verificació d'AEAT. Si no existeix, la factura no ha estat enviada.
 verifactu_INVOICE_ID = ID a VeriFactu
 verifactu_INVOICE_ID_TOOLTIP = Identificador de la factura a VeriFactu
 verifactu_INVOICE_DATE = Data d'emissió
@@ -159,6 +163,8 @@ verifactu_LAST_MODIFICATION_DATE = Última modificació
 verifactu_LAST_MODIFICATION_DATE_TOOLTIP = Data d'última modificació a VeriFactu
 verifactu_FINGERPRINT = Empremta digital
 verifactu_FINGERPRINT_TOOLTIP = Empremta SHA-256 de la factura
+verifactu_HASH = Empremta digital
+verifactu_HASHTooltip = Empremta SHA-256 de la factura
 verifactu_GENERATION_DATETIME = Data/hora d'empremta
 verifactu_GENERATION_DATETIME_TOOLTIP = Data i hora de generació de l'empremta (ISO 8601)
 verifactu_THIRD_PARTY_SIMPLIFIED_INVOICE = Client de factura simplificada
@@ -237,6 +243,10 @@ verifactu_TAX_TYPE = Impost
 verifactu_TAX_TYPE_TOOLTIP = Tipus d'impost aplicable. Per defecte IVA. Necessari per a la tipologia de factura.
 verifactu_REGIME_KEY = Clau Règim
 verifactu_REGIME_KEY_TOOLTIP = Clau del règim especial. Només aplicable per a IVA o IGIC, no per a IPSI o ALTRES.
+verifactu_TAX_REGIME = Clau Règim
+verifactu_TAX_REGIMETooltip = Clau del règim especial. Només aplicable per a IVA o IGIC, no per a IPSI o ALTRES.
+verifactu_PAYLOAD = Dades XML
+verifactu_PAYLOADTooltip = Dades XML enviades a VeriFactu
 verifactu_INCIDENT = Incidència
 verifactu_INCIDENT_TOOLTIP = Indica si hi ha hagut incidència tècnica (sense electricitat, sense internet, fallada del sistema). Per defecte "N".
 verifactu_ID_TYPE = Tipus d'Identificació
