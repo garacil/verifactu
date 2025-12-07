@@ -3,7 +3,6 @@
 // Required Dolibarr includes
 dol_include_once('/compta/facture/class/facture.class.php');
 dol_include_once('/verifactu/lib/verifactu.lib.php');
-dol_include_once('/verifactu/lib/functions/funciones.utilidades.php');
 
 /**
  *		Class to manage utility methods
