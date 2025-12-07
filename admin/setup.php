@@ -92,6 +92,20 @@ $type = 'myobject';
 $error = 0;
 $setupnotempty = 0;
 
+// Initialize YesNo constants with default values if they don't exist
+// This ensures checkboxes work correctly from the first time
+$yesNoDefaults = array(
+	'VERIFACTU_QR_SHOW_TEXT' => '1',
+	'VERIFACTU_QR_SHOW_TEXT_TPV' => '1',
+	'VERIFACTU_QR_ALL_PAGES' => '0'
+);
+foreach ($yesNoDefaults as $constName => $defaultValue) {
+	if (!isset($conf->global->$constName)) {
+		dolibarr_set_const($db, $constName, $defaultValue, 'chaine', 0, '', $conf->entity);
+		$conf->global->$constName = $defaultValue;
+	}
+}
+
 // Set this to 1 to use the factory to manage constants. Warning, the generated module will be compatible with version v15+ only
 $useFormSetup = 1;
 
@@ -354,6 +368,25 @@ $dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
 // For retrocompatibility Dolibarr < 15.0
 if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'update' && !empty($user->admin)) {
 	$formSetup->saveConfFromPost();
+}
+
+// Fix for YesNo checkboxes: when unchecked, they don't send any POST value
+// We need to explicitly set them to '0' if not present in POST
+if ($action == 'update' && !empty($user->admin)) {
+	$yesNoFields = array(
+		'VERIFACTU_QR_SHOW_TEXT',
+		'VERIFACTU_QR_SHOW_TEXT_TPV',
+		'VERIFACTU_QR_ALL_PAGES'
+	);
+	foreach ($yesNoFields as $fieldName) {
+		// FormSetup uses 'const' prefix for POST keys
+		$postKey = 'const' . $fieldName;
+		// If the field is not in POST (unchecked checkbox), set it to '0'
+		if (!isset($_POST[$postKey]) && !GETPOSTISSET($postKey)) {
+			// Ensure the constant exists with value '0'
+			dolibarr_set_const($db, $fieldName, '0', 'chaine', 0, '', $conf->entity);
+		}
+	}
 }
 
 include DOL_DOCUMENT_ROOT . '/core/actions_setmoduleoptions.inc.php';
