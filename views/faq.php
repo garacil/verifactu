@@ -55,7 +55,6 @@ if (!$res) {
 
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions.lib.php';
-require_once DOL_DOCUMENT_ROOT . '/core/class/html.formadmin.class.php';
 
 // Load translation files
 $langs->loadLangs(array("admin", "other", "verifactu@verifactu"));
@@ -76,71 +75,50 @@ llxHeader('', $title, $help_url);
 
 print load_fiche_titre($langs->trans("VERIFACTU_FAQ_TITLE"), '', 'verifactu@verifactu');
 
-print '<div class="fichecenter">';
-print '<div class="fichethirdleft">';
+// CSS para acordeón
+print '<style>
+.faq-accordion { margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.faq-header { background: #f5f5f5; padding: 12px 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.faq-header:hover { background: #e8e8e8; }
+.faq-header .faq-icon { transition: transform 0.3s; }
+.faq-header.active .faq-icon { transform: rotate(180deg); }
+.faq-content { display: none; padding: 15px; border-top: 1px solid #ddd; }
+.faq-content.show { display: block; }
+.faq-item-row { padding: 10px 0; border-bottom: 1px solid #eee; }
+.faq-item-row:last-child { border-bottom: none; }
+.faq-code { display: inline-block; min-width: 40px; padding: 2px 8px; margin-right: 10px; border-radius: 3px; text-align: center; font-weight: bold; color: white; }
+.faq-code-f { background: #28a745; }
+.faq-code-r { background: #dc3545; }
+.faq-code-tax { background: #007bff; }
+.faq-code-reg { background: #6f42c1; }
+.faq-code-qual { background: #fd7e14; }
+.faq-code-ex { background: #20c997; }
+.faq-code-id { background: #6c757d; }
+</style>';
 
-// Panel de navegación rápida
-print '<div class="div-table-responsive-no-min" id="faq-nav-panel">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th>' . $langs->trans("VERIFACTU_FAQ_QUICK_NAV") . '</th></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'guia-rapida\');" class="faq-nav-link">' . img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'tipos-factura\');" class="faq-nav-link">' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'tipos-impuesto\');" class="faq-nav-link">' . img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'clave-regimen\');" class="faq-nav-link">' . img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'calificacion\');" class="faq-nav-link">' . img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'exenciones\');" class="faq-nav-link">' . img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'tipos-identificacion\');" class="faq-nav-link">' . img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES") . '</a></td></tr>';
-print '<tr class="oddeven"><td><a href="javascript:void(0);" onclick="faqScrollTo(\'errores-comunes\');" class="faq-nav-link">' . img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS") . '</a></td></tr>';
-print '</table>';
-print '</div>';
-
-print '</div>'; // fichethirdleft
-
-print '<div class="fichetwothirdright">';
-
-// Barra de búsqueda
-print '<div class="info" style="margin-bottom: 20px;">';
-print '<input type="text" id="faq-search" class="flat minwidth300" placeholder="' . $langs->trans("VERIFACTU_FAQ_SEARCH_PLACEHOLDER") . '" style="padding: 8px;">';
-print ' <span id="search-results" class="opacitymedium"></span>';
-print '</div>';
+print '<div class="fichecenter"><div class="fichehalfleft" style="width: 100%;">';
 
 // ========== GUÍA RÁPIDA ==========
-print '<div class="div-table-responsive-no-min faq-section" id="guia-rapida">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE") . '</th></tr>';
-
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_WHAT_IS") . '</strong><br>';
-print $langs->trans("VERIFACTU_FAQ_WHAT_IS_DESC");
-print '</td></tr>';
-
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<div class="warning">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG") . '</strong><br>';
-print $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG_DESC");
-print '</div>';
-print '</td></tr>';
-
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_INITIAL_CONFIG") . '</strong><br>';
-print '<ul>';
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content show">';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_WHAT_IS") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_WHAT_IS_DESC") . '</div>';
+print '<div class="faq-item-row warning" style="padding:10px;"><strong>' . $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG_DESC") . '</div>';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_INITIAL_CONFIG") . '</strong><ul>';
 print '<li>' . $langs->trans("VERIFACTU_FAQ_STEP1") . '</li>';
 print '<li>' . $langs->trans("VERIFACTU_FAQ_STEP2") . '</li>';
 print '<li>' . $langs->trans("VERIFACTU_FAQ_STEP3") . '</li>';
-print '</ul>';
-print '</td></tr>';
-
-print '</table>';
-print '</div><br>';
+print '</ul></div>';
+print '</div></div>';
 
 // ========== TIPOS DE FACTURA ==========
-print '<div class="div-table-responsive-no-min faq-section" id="tipos-factura">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $invoiceTypes = array(
 	'F1' => array('title' => 'Factura (art. 6 o 7.2 o 7.3 del RD 1619/2012)', 'desc' => 'VERIFACTU_FAQ_F1_DESC'),
 	'F2' => array('title' => 'Factura Simplificada (art. 6.1.d RD 1619/2012)', 'desc' => 'VERIFACTU_FAQ_F2_DESC'),
@@ -151,44 +129,35 @@ $invoiceTypes = array(
 	'R4' => array('title' => 'Factura Rectificativa (Resto de casos)', 'desc' => 'VERIFACTU_FAQ_R4_DESC'),
 	'R5' => array('title' => 'Factura Rectificativa en simplificadas', 'desc' => 'VERIFACTU_FAQ_R5_DESC'),
 );
-
 foreach ($invoiceTypes as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-primary">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	$codeClass = (substr($code, 0, 1) == 'F') ? 'faq-code-f' : 'faq-code-r';
+	print '<div class="faq-item-row"><span class="faq-code ' . $codeClass . '">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== TIPOS DE IMPUESTO ==========
-print '<div class="div-table-responsive-no-min faq-section" id="tipos-impuesto">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $taxTypes = array(
 	'01' => array('title' => 'IVA - Impuesto sobre el Valor Añadido', 'desc' => 'VERIFACTU_FAQ_TAX_01_DESC'),
 	'02' => array('title' => 'IPSI - Ceuta y Melilla', 'desc' => 'VERIFACTU_FAQ_TAX_02_DESC'),
 	'03' => array('title' => 'IGIC - Canarias', 'desc' => 'VERIFACTU_FAQ_TAX_03_DESC'),
 	'05' => array('title' => 'Otros impuestos', 'desc' => 'VERIFACTU_FAQ_TAX_05_DESC'),
 );
-
 foreach ($taxTypes as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-status4">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	print '<div class="faq-item-row"><span class="faq-code faq-code-tax">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== CLAVE DE RÉGIMEN ==========
-print '<div class="div-table-responsive-no-min faq-section" id="clave-regimen">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $regimeKeys = array(
 	'01' => array('title' => 'Operación de Régimen General', 'desc' => 'VERIFACTU_FAQ_REGIME_01_DESC'),
 	'02' => array('title' => 'Exportación', 'desc' => 'VERIFACTU_FAQ_REGIME_02_DESC'),
@@ -200,44 +169,34 @@ $regimeKeys = array(
 	'19' => array('title' => 'REAGYP', 'desc' => 'VERIFACTU_FAQ_REGIME_19_DESC'),
 	'20' => array('title' => 'Régimen simplificado', 'desc' => 'VERIFACTU_FAQ_REGIME_20_DESC'),
 );
-
 foreach ($regimeKeys as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-status1">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	print '<div class="faq-item-row"><span class="faq-code faq-code-reg">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== CALIFICACIÓN DE LA OPERACIÓN ==========
-print '<div class="div-table-responsive-no-min faq-section" id="calificacion">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $qualifications = array(
 	'S1' => array('title' => 'Sujeta y No Exenta - Sin inversión', 'desc' => 'VERIFACTU_FAQ_S1_DESC'),
 	'S2' => array('title' => 'Sujeta y No Exenta - Con inversión', 'desc' => 'VERIFACTU_FAQ_S2_DESC'),
 	'N1' => array('title' => 'No sujeta (art. 7, 14)', 'desc' => 'VERIFACTU_FAQ_N1_DESC'),
 	'N2' => array('title' => 'No sujeta (localización)', 'desc' => 'VERIFACTU_FAQ_N2_DESC'),
 );
-
 foreach ($qualifications as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-status5">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	print '<div class="faq-item-row"><span class="faq-code faq-code-qual">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== EXENCIONES ==========
-print '<div class="div-table-responsive-no-min faq-section" id="exenciones">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $exemptions = array(
 	'E1' => array('title' => 'Exenta por Artículo 20', 'desc' => 'VERIFACTU_FAQ_E1_DESC'),
 	'E2' => array('title' => 'Exenta por Artículo 21', 'desc' => 'VERIFACTU_FAQ_E2_DESC'),
@@ -246,22 +205,17 @@ $exemptions = array(
 	'E5' => array('title' => 'Exenta por Artículo 25', 'desc' => 'VERIFACTU_FAQ_E5_DESC'),
 	'E6' => array('title' => 'Exenta por otros motivos', 'desc' => 'VERIFACTU_FAQ_E6_DESC'),
 );
-
 foreach ($exemptions as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-status6">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	print '<div class="faq-item-row"><span class="faq-code faq-code-ex">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== TIPOS DE IDENTIFICACIÓN ==========
-print '<div class="div-table-responsive-no-min faq-section" id="tipos-identificacion">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES") . '</th></tr>';
-
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
 $idTypes = array(
 	'02' => array('title' => 'NIF-IVA', 'desc' => 'VERIFACTU_FAQ_ID_02_DESC'),
 	'03' => array('title' => 'Pasaporte', 'desc' => 'VERIFACTU_FAQ_ID_03_DESC'),
@@ -270,132 +224,42 @@ $idTypes = array(
 	'06' => array('title' => 'Otro documento probatorio', 'desc' => 'VERIFACTU_FAQ_ID_06_DESC'),
 	'07' => array('title' => 'No censado', 'desc' => 'VERIFACTU_FAQ_ID_07_DESC'),
 );
-
 foreach ($idTypes as $code => $data) {
-	print '<tr class="oddeven faq-item">';
-	print '<td class="nowrap" style="width: 80px;"><span class="badge badge-status8">' . $code . '</span></td>';
-	print '<td><strong>' . $data['title'] . '</strong><br><span class="opacitymedium">' . $langs->trans($data['desc']) . '</span></td>';
-	print '</tr>';
+	print '<div class="faq-item-row"><span class="faq-code faq-code-id">' . $code . '</span><strong>' . $data['title'] . '</strong><br><span class="opacitymedium" style="margin-left:50px;display:block;">' . $langs->trans($data['desc']) . '</span></div>';
 }
-
-print '</table>';
-print '</div><br>';
+print '</div></div>';
 
 // ========== ERRORES COMUNES ==========
-print '<div class="div-table-responsive-no-min faq-section" id="errores-comunes">';
-print '<table class="noborder centpercent">';
-print '<tr class="liste_titre"><th colspan="2">' . img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS") . '</th></tr>';
+print '<div class="faq-accordion">';
+print '<div class="faq-header" onclick="toggleFaq(this)">';
+print img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS");
+print '<span class="faq-icon">▼</span></div>';
+print '<div class="faq-content">';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_UK") . '</strong><br><div class="warning" style="margin-top:5px;padding:8px;">' . $langs->trans("VERIFACTU_FAQ_ERROR_UK_DESC") . '</div></div>';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_NIF") . '</strong><br><div class="info" style="margin-top:5px;padding:8px;">' . $langs->trans("VERIFACTU_FAQ_ERROR_NIF_DESC") . '</div></div>';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_RESEND") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_RESEND_DESC") . '</div>';
+print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_CODES") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_ERROR_CODES_DESC");
+print '<br><a href="https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/errores.properties" target="_blank" class="button small" style="margin-top:8px;">';
+print img_picto('', 'globe', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ERROR_CODES_LINK") . '</a></div>';
+print '</div></div>';
 
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_UK") . '</strong><br>';
-print '<div class="warning">' . $langs->trans("VERIFACTU_FAQ_ERROR_UK_DESC") . '</div>';
-print '</td></tr>';
+print '</div></div>'; // fichecenter
 
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_NIF") . '</strong><br>';
-print '<div class="info">' . $langs->trans("VERIFACTU_FAQ_ERROR_NIF_DESC") . '</div>';
-print '</td></tr>';
-
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_RESEND") . '</strong><br>';
-print $langs->trans("VERIFACTU_FAQ_RESEND_DESC");
-print '</td></tr>';
-
-print '<tr class="oddeven faq-item">';
-print '<td colspan="2">';
-print '<strong>' . $langs->trans("VERIFACTU_FAQ_ERROR_CODES") . '</strong><br>';
-print $langs->trans("VERIFACTU_FAQ_ERROR_CODES_DESC");
-print '<br><a href="https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/errores.properties" target="_blank" class="button small">';
-print img_picto('', 'globe', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ERROR_CODES_LINK");
-print '</a>';
-print '</td></tr>';
-
-print '</table>';
-print '</div>';
-
-print '</div>'; // fichetwothirdright
-print '</div>'; // fichecenter
-
-// JavaScript para búsqueda y navegación
-print '<style>
-/* Scroll margin for anchor targets */
-.faq-section {
-	scroll-margin-top: 80px;
-}
-/* Highlight effect for targeted section */
-.faq-section-highlight {
-	animation: highlightFade 2s ease-out;
-}
-@keyframes highlightFade {
-	0% { background-color: #fff3cd; }
-	100% { background-color: transparent; }
-}
-/* Estilo hover para los enlaces de navegación */
-.faq-nav-link {
-	display: block;
-	padding: 5px 0;
-	cursor: pointer;
-}
-.faq-nav-link:hover {
-	text-decoration: underline;
-}
-</style>';
-
-// Función global de scroll (debe estar antes del DOMContentLoaded)
+// JavaScript simple para acordeón
 print '<script>
-// Función global para navegación
-function faqScrollTo(targetId) {
-	var el = document.getElementById(targetId);
-	if (el) {
-		el.scrollIntoView({ behavior: "smooth", block: "start" });
-		// Añadir efecto de resaltado
-		el.classList.add("faq-section-highlight");
-		setTimeout(function() {
-			el.classList.remove("faq-section-highlight");
-		}, 2000);
+function toggleFaq(header) {
+	var content = header.nextElementSibling;
+	var isOpen = content.classList.contains("show");
+
+	// Toggle actual
+	if (isOpen) {
+		content.classList.remove("show");
+		header.classList.remove("active");
+	} else {
+		content.classList.add("show");
+		header.classList.add("active");
 	}
 }
-
-document.addEventListener("DOMContentLoaded", function() {
-	// Búsqueda
-	var searchInput = document.getElementById("faq-search");
-	var searchResults = document.getElementById("search-results");
-	var faqItems = document.querySelectorAll(".faq-item");
-
-	if (searchInput) {
-		searchInput.addEventListener("input", function() {
-			var query = this.value.toLowerCase().trim();
-			var visibleCount = 0;
-
-			faqItems.forEach(function(item) {
-				var text = item.textContent.toLowerCase();
-				if (query === "" || text.includes(query)) {
-					item.style.display = "";
-					visibleCount++;
-				} else {
-					item.style.display = "none";
-				}
-			});
-
-			if (query !== "") {
-				searchResults.textContent = visibleCount + " ' . $langs->trans("VERIFACTU_FAQ_RESULTS_FOUND") . '";
-			} else {
-				searchResults.textContent = "";
-			}
-		});
-	}
-
-	// Si hay un hash en la URL al cargar, hacer scroll
-	if (window.location.hash) {
-		var targetId = window.location.hash.substring(1);
-		setTimeout(function() {
-			faqScrollTo(targetId);
-		}, 300);
-	}
-});
 </script>';
 
 llxFooter();
