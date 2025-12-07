@@ -550,3 +550,95 @@ VERIFACTU_VERIFY_NOT_FOUND_CLEARED = Factura %s no existe en AEAT. Errores anter
 VERIFACTU_VERIFY_STATUS_CORRECTED = Factura %s verificada. Estado: Enviada. Importe: %s
 VERIFACTU_VERIFY_AMOUNTS_DIFFER = Factura %s en AEAT con importes diferentes: Dolibarr=%s, AEAT=%s (diferencia: %s). Requiere revisión.
 VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verificación exitosa: Importes coinciden (Dolibarr: %s, AEAT: %s)
+
+# Help / FAQ Menu
+VERIFACTU_HELP_MENU = Ayuda
+VERIFACTU_HELP_MENU_HELP = Guía de ayuda y preguntas frecuentes sobre VeriFactu
+
+# FAQ Page
+VERIFACTU_FAQ_TITLE = Guía de Ayuda VeriFactu
+VERIFACTU_FAQ_QUICK_NAV = Navegación Rápida
+VERIFACTU_FAQ_QUICK_GUIDE = Guía Rápida
+VERIFACTU_FAQ_INVOICE_TYPES = Tipos de Factura
+VERIFACTU_FAQ_TAX_TYPES = Tipos de Impuesto
+VERIFACTU_FAQ_REGIME_KEY = Clave de Régimen
+VERIFACTU_FAQ_QUALIFICATION = Calificación de Operación
+VERIFACTU_FAQ_EXEMPTIONS = Exenciones
+VERIFACTU_FAQ_ID_TYPES = Tipos de Identificación
+VERIFACTU_FAQ_COMMON_ERRORS = Errores Comunes
+VERIFACTU_FAQ_SEARCH_PLACEHOLDER = Buscar en la ayuda...
+VERIFACTU_FAQ_RESULTS_FOUND = resultados encontrados
+
+# FAQ - What is VeriFactu
+VERIFACTU_FAQ_WHAT_IS = ¿Qué es VeriFactu?
+VERIFACTU_FAQ_WHAT_IS_DESC = VeriFactu es un sistema de la Agencia Tributaria que permite verificar la integridad y autenticidad de las facturas. Este módulo integra Dolibarr con el sistema VeriFactu para cumplir con las obligaciones fiscales españolas.
+
+# FAQ - Important Configuration
+VERIFACTU_FAQ_IMPORTANT_CONFIG = Configuración Manual Obligatoria
+VERIFACTU_FAQ_IMPORTANT_CONFIG_DESC = Este módulo NO incluye inferencia automática de parámetros fiscales. Todos los campos (Tipo de Impuesto, Clave Régimen, Calificación, Operación Exenta) deben configurarse manualmente. Consulte con su asesor fiscal.
+
+# FAQ - Initial Config Steps
+VERIFACTU_FAQ_INITIAL_CONFIG = Configuración Inicial
+VERIFACTU_FAQ_STEP1 = Activar el módulo VeriFactu desde Configuración → Módulos
+VERIFACTU_FAQ_STEP2 = Obtener y configurar la licencia del módulo
+VERIFACTU_FAQ_STEP3 = Configurar el certificado digital de firma
+
+# FAQ - Invoice Types
+VERIFACTU_FAQ_F1_DESC = Factura completa estándar para operaciones B2B. Incluye todos los datos obligatorios.
+VERIFACTU_FAQ_F2_DESC = Factura simplificada para ventas al consumidor final. Máximo 400€ IVA incluido.
+VERIFACTU_FAQ_F3_DESC = Factura completa que sustituye a una simplificada ya declarada.
+VERIFACTU_FAQ_R1_DESC = Rectificativa por error en base imponible o cuota tributaria (Art. 80.1, 80.2, 80.6 LIVA).
+VERIFACTU_FAQ_R2_DESC = Rectificativa por modificación de condiciones de la operación (Art. 80.3).
+VERIFACTU_FAQ_R3_DESC = Rectificativa por operaciones anuladas o no realizadas (Art. 80.4).
+VERIFACTU_FAQ_R4_DESC = Rectificativa para otros casos no contemplados en R1, R2 o R3.
+VERIFACTU_FAQ_R5_DESC = Rectificativa específica para facturas simplificadas (F2).
+
+# FAQ - Tax Types
+VERIFACTU_FAQ_TAX_01_DESC = Territorio peninsular y Baleares. Tipos: 21% (general), 10% (reducido), 4% (superreducido).
+VERIFACTU_FAQ_TAX_02_DESC = Ceuta y Melilla. Tipos más bajos por régimen fiscal especial.
+VERIFACTU_FAQ_TAX_03_DESC = Islas Canarias. Tipos: 7% (general), 3% (reducido), 13.5% (incrementado).
+VERIFACTU_FAQ_TAX_05_DESC = Impuestos especiales no contemplados en las categorías anteriores.
+
+# FAQ - Regime Keys
+VERIFACTU_FAQ_REGIME_01_DESC = Régimen estándar para la mayoría de operaciones comerciales.
+VERIFACTU_FAQ_REGIME_02_DESC = Ventas fuera del territorio español. Exento de IVA con documentación aduanera.
+VERIFACTU_FAQ_REGIME_03_DESC = Comercio de segunda mano, arte y antigüedades. IVA solo sobre el margen.
+VERIFACTU_FAQ_REGIME_04_DESC = Operaciones con oro de inversión. Exento en determinadas condiciones.
+VERIFACTU_FAQ_REGIME_05_DESC = Servicios de agencias de viajes. IVA sobre el margen del servicio.
+VERIFACTU_FAQ_REGIME_07_DESC = El IVA se devenga al cobrar, no al facturar. Mejora el flujo de caja.
+VERIFACTU_FAQ_REGIME_18_DESC = Régimen para comercio minorista con recargo adicional al IVA.
+VERIFACTU_FAQ_REGIME_19_DESC = Régimen Especial de Agricultura, Ganadería y Pesca.
+VERIFACTU_FAQ_REGIME_20_DESC = Estimación objetiva de rendimientos para pequeños empresarios.
+
+# FAQ - Qualifications
+VERIFACTU_FAQ_S1_DESC = El vendedor cobra y declara el IVA. Caso más común en comercio.
+VERIFACTU_FAQ_S2_DESC = El comprador paga el IVA (inversión del sujeto pasivo). Común en construcción.
+VERIFACTU_FAQ_N1_DESC = Operación no sujeta por su naturaleza según art. 7 y 14 LIVA.
+VERIFACTU_FAQ_N2_DESC = Operación no sujeta por reglas de localización del servicio.
+
+# FAQ - Exemptions
+VERIFACTU_FAQ_E1_DESC = Servicios médicos, sanitarios, educativos y sociales (Art. 20 LIVA).
+VERIFACTU_FAQ_E2_DESC = Servicios financieros, seguros y operaciones bancarias (Art. 21 LIVA).
+VERIFACTU_FAQ_E3_DESC = Entregas intracomunitarias de bienes (Art. 22 LIVA).
+VERIFACTU_FAQ_E4_DESC = Exportaciones a terceros países (Art. 23 y 24 LIVA).
+VERIFACTU_FAQ_E5_DESC = Servicios específicos exentos (Art. 25 LIVA).
+VERIFACTU_FAQ_E6_DESC = Otras exenciones contempladas en la normativa fiscal.
+
+# FAQ - ID Types
+VERIFACTU_FAQ_ID_02_DESC = NIF español o número de IVA intracomunitario. Uso más frecuente (95% de operaciones).
+VERIFACTU_FAQ_ID_03_DESC = Para clientes extranjeros sin residencia fiscal en España.
+VERIFACTU_FAQ_ID_04_DESC = DNI o documento de identidad oficial de otro país.
+VERIFACTU_FAQ_ID_05_DESC = Certificado de autoridades fiscales del país de residencia.
+VERIFACTU_FAQ_ID_06_DESC = Documentos alternativos cuando no aplican las categorías anteriores.
+VERIFACTU_FAQ_ID_07_DESC = Cliente sin ningún documento de identificación válido. Uso muy restringido.
+
+# FAQ - Common Errors
+VERIFACTU_FAQ_ERROR_UK = Error: Cliente de Reino Unido con CIF Intracomunitario
+VERIFACTU_FAQ_ERROR_UK_DESC = Reino Unido ya no es intracomunitario desde 2021. Cambie el tipo de identificación a "Otro tipo de Documento Oficial".
+VERIFACTU_FAQ_ERROR_NIF = Error: Cliente sin NIF válido
+VERIFACTU_FAQ_ERROR_NIF_DESC = Incluso para particulares, VeriFactu requiere un documento de identificación válido. Configure el DNI/NIE del cliente.
+VERIFACTU_FAQ_RESEND = ¿Cómo reenviar una factura con errores?
+VERIFACTU_FAQ_RESEND_DESC = 1) Corrija la configuración del cliente. 2) Abra la factura. 3) Vaya a la pestaña VeriFactu. 4) Pulse "Enviar".
+VERIFACTU_FAQ_ERROR_CODES = Códigos de Error de la AEAT
+VERIFACTU_FAQ_ERROR_CODES_DESC = Los códigos de error son oficiales de la Agencia Tributaria.
+VERIFACTU_FAQ_ERROR_CODES_LINK = Ver listado oficial de errores AEAT
