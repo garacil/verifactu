@@ -165,6 +165,7 @@ class ActionsVerifactu
 				}
 			}
 		}
+		return 0;
 	}
 
 	public function dolGetButtonAction($parameters, &$object, &$action, $hookmanager)
@@ -221,6 +222,7 @@ class ActionsVerifactu
 				}
 			}
 		}
+		return 0;
 	}
 
 
@@ -260,6 +262,7 @@ class ActionsVerifactu
 	public function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
 	{
 		// Empty function - help functionality removed
+		return 0;
 	}
 
 
@@ -633,7 +636,9 @@ class ActionsVerifactu
 				}
 			}
 		} catch (\Throwable $th) {
+			dol_syslog(get_class($this) . '::moreHtmlStatus error: ' . $th->getMessage(), LOG_ERR);
 		}
+		return 0;
 	}
 
 	public function formDolBanner(&$parameters, &$object, &$action, $hookmanager)
@@ -663,6 +668,7 @@ class ActionsVerifactu
 			// Handle exception
 			dol_syslog(get_class($this) . '::formDolBanner error: ' . $th->getMessage(), LOG_ERR);
 		}
+		return 0;
 	}
 
 	public function printCommonFooter(&$parameters, &$object, &$action, $hookmanager)
@@ -673,6 +679,7 @@ class ActionsVerifactu
 			// Disable select with id forcedate
 			echo '<script>document.getElementById("forcedate").disabled = true;</script>';
 		}
+		return 0;
 	}
 
 	public function TakeposReceipt(&$parameters, &$object, &$action, $hookmanager)
@@ -1089,6 +1096,7 @@ class ActionsVerifactu
 		if ($object->fetch_optionals() && $object->array_options['options_verifactu_factura_tipo'] == Sietekas\Verifactu\VerifactuInvoice::TYPE_SIMPLIFIED) {
 			$langs->tab_translate["PdfInvoiceTitle"] = $langs->trans("verifactu_FACTURA_Simplificada"); // Translation ID for "Simplified Invoice"
 		}
+		return 0;
 	}
 
 }

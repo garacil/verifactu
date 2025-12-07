@@ -30,7 +30,6 @@
 
 require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 dol_include_once('/verifactu/lib/verifactu.lib.php');
-dol_include_once('/verifactu/lib/functions/funciones.utilidades.php');
 
 /**
  *  Class of triggers for Verifactu module
