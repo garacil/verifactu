@@ -550,3 +550,95 @@ VERIFACTU_VERIFY_NOT_FOUND_CLEARED = Invoice %s doesn't exist in AEAT. Previous 
 VERIFACTU_VERIFY_STATUS_CORRECTED = Invoice %s verified. Status: Sent. Amount: %s
 VERIFACTU_VERIFY_AMOUNTS_DIFFER = Invoice %s in AEAT with different amounts: Dolibarr=%s, AEAT=%s (difference: %s). Review required.
 VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verification successful: Amounts match (Dolibarr: %s, AEAT: %s)
+
+# Help / FAQ Menu
+VERIFACTU_HELP_MENU = Help
+VERIFACTU_HELP_MENU_HELP = Help guide and frequently asked questions about VeriFactu
+
+# FAQ Page
+VERIFACTU_FAQ_TITLE = VeriFactu Help Guide
+VERIFACTU_FAQ_QUICK_NAV = Quick Navigation
+VERIFACTU_FAQ_QUICK_GUIDE = Quick Guide
+VERIFACTU_FAQ_INVOICE_TYPES = Invoice Types
+VERIFACTU_FAQ_TAX_TYPES = Tax Types
+VERIFACTU_FAQ_REGIME_KEY = Regime Key
+VERIFACTU_FAQ_QUALIFICATION = Operation Qualification
+VERIFACTU_FAQ_EXEMPTIONS = Exemptions
+VERIFACTU_FAQ_ID_TYPES = Identification Types
+VERIFACTU_FAQ_COMMON_ERRORS = Common Errors
+VERIFACTU_FAQ_SEARCH_PLACEHOLDER = Search help...
+VERIFACTU_FAQ_RESULTS_FOUND = results found
+
+# FAQ - What is VeriFactu
+VERIFACTU_FAQ_WHAT_IS = What is VeriFactu?
+VERIFACTU_FAQ_WHAT_IS_DESC = VeriFactu is a Spanish Tax Agency system that verifies invoice integrity and authenticity. This module integrates Dolibarr with VeriFactu to comply with Spanish tax obligations.
+
+# FAQ - Important Configuration
+VERIFACTU_FAQ_IMPORTANT_CONFIG = Mandatory Manual Configuration
+VERIFACTU_FAQ_IMPORTANT_CONFIG_DESC = This module does NOT include automatic inference of tax parameters. All fields (Tax Type, Regime Key, Qualification, Exempt Operation) must be configured manually. Consult your tax advisor.
+
+# FAQ - Initial Config Steps
+VERIFACTU_FAQ_INITIAL_CONFIG = Initial Configuration
+VERIFACTU_FAQ_STEP1 = Activate VeriFactu module from Setup → Modules
+VERIFACTU_FAQ_STEP2 = Obtain and configure the module license
+VERIFACTU_FAQ_STEP3 = Configure the digital signing certificate
+
+# FAQ - Invoice Types
+VERIFACTU_FAQ_F1_DESC = Standard complete invoice for B2B operations. Includes all mandatory data.
+VERIFACTU_FAQ_F2_DESC = Simplified invoice for consumer sales. Maximum €400 including VAT.
+VERIFACTU_FAQ_F3_DESC = Complete invoice replacing a previously declared simplified one.
+VERIFACTU_FAQ_R1_DESC = Corrective for tax base or quota errors (Art. 80.1, 80.2, 80.6 LIVA).
+VERIFACTU_FAQ_R2_DESC = Corrective for modification of operation conditions (Art. 80.3).
+VERIFACTU_FAQ_R3_DESC = Corrective for cancelled or unrealized operations (Art. 80.4).
+VERIFACTU_FAQ_R4_DESC = Corrective for other cases not covered by R1, R2 or R3.
+VERIFACTU_FAQ_R5_DESC = Corrective specifically for simplified invoices (F2).
+
+# FAQ - Tax Types
+VERIFACTU_FAQ_TAX_01_DESC = Mainland Spain and Balearic Islands. Rates: 21% (standard), 10% (reduced), 4% (super-reduced).
+VERIFACTU_FAQ_TAX_02_DESC = Ceuta and Melilla. Lower rates due to special tax regime.
+VERIFACTU_FAQ_TAX_03_DESC = Canary Islands. Rates: 7% (standard), 3% (reduced), 13.5% (increased).
+VERIFACTU_FAQ_TAX_05_DESC = Special taxes not covered by other categories.
+
+# FAQ - Regime Keys
+VERIFACTU_FAQ_REGIME_01_DESC = Standard regime for most commercial operations.
+VERIFACTU_FAQ_REGIME_02_DESC = Sales outside Spanish territory. VAT exempt with customs documentation.
+VERIFACTU_FAQ_REGIME_03_DESC = Second-hand goods, art and antiques trade. VAT only on margin.
+VERIFACTU_FAQ_REGIME_04_DESC = Investment gold operations. Exempt under certain conditions.
+VERIFACTU_FAQ_REGIME_05_DESC = Travel agency services. VAT on service margin.
+VERIFACTU_FAQ_REGIME_07_DESC = VAT accrues on collection, not invoicing. Improves cash flow.
+VERIFACTU_FAQ_REGIME_18_DESC = Regime for retail trade with surcharge added to VAT.
+VERIFACTU_FAQ_REGIME_19_DESC = Special Regime for Agriculture, Livestock and Fishing.
+VERIFACTU_FAQ_REGIME_20_DESC = Objective estimation of income for small businesses.
+
+# FAQ - Qualifications
+VERIFACTU_FAQ_S1_DESC = Seller collects and declares VAT. Most common case in commerce.
+VERIFACTU_FAQ_S2_DESC = Buyer pays VAT (reverse charge). Common in construction.
+VERIFACTU_FAQ_N1_DESC = Operation not subject by nature per art. 7 and 14 LIVA.
+VERIFACTU_FAQ_N2_DESC = Operation not subject due to service location rules.
+
+# FAQ - Exemptions
+VERIFACTU_FAQ_E1_DESC = Medical, health, educational and social services (Art. 20 LIVA).
+VERIFACTU_FAQ_E2_DESC = Financial services, insurance and banking operations (Art. 21 LIVA).
+VERIFACTU_FAQ_E3_DESC = Intra-community supplies of goods (Art. 22 LIVA).
+VERIFACTU_FAQ_E4_DESC = Exports to third countries (Art. 23 and 24 LIVA).
+VERIFACTU_FAQ_E5_DESC = Specific exempt services (Art. 25 LIVA).
+VERIFACTU_FAQ_E6_DESC = Other exemptions covered by tax regulations.
+
+# FAQ - ID Types
+VERIFACTU_FAQ_ID_02_DESC = Spanish NIF or intra-community VAT number. Most frequent use (95% of operations).
+VERIFACTU_FAQ_ID_03_DESC = For foreign customers without tax residence in Spain.
+VERIFACTU_FAQ_ID_04_DESC = ID or official identity document from another country.
+VERIFACTU_FAQ_ID_05_DESC = Certificate from tax authorities of country of residence.
+VERIFACTU_FAQ_ID_06_DESC = Alternative documents when other categories don't apply.
+VERIFACTU_FAQ_ID_07_DESC = Customer without any valid identification document. Very restricted use.
+
+# FAQ - Common Errors
+VERIFACTU_FAQ_ERROR_UK = Error: UK Customer with Intra-community VAT
+VERIFACTU_FAQ_ERROR_UK_DESC = UK is no longer intra-community since 2021. Change ID type to "Other Official Document".
+VERIFACTU_FAQ_ERROR_NIF = Error: Customer without valid NIF
+VERIFACTU_FAQ_ERROR_NIF_DESC = Even for individuals, VeriFactu requires a valid identification document. Configure the customer's DNI/NIE.
+VERIFACTU_FAQ_RESEND = How to resend an invoice with errors?
+VERIFACTU_FAQ_RESEND_DESC = 1) Fix customer configuration. 2) Open the invoice. 3) Go to VeriFactu tab. 4) Click "Send".
+VERIFACTU_FAQ_ERROR_CODES = AEAT Error Codes
+VERIFACTU_FAQ_ERROR_CODES_DESC = Error codes are official from the Spanish Tax Agency.
+VERIFACTU_FAQ_ERROR_CODES_LINK = View official AEAT error list
