@@ -92,20 +92,6 @@ $type = 'myobject';
 $error = 0;
 $setupnotempty = 0;
 
-// Initialize YesNo constants with default values if they don't exist
-// This ensures checkboxes work correctly from the first time
-$yesNoDefaults = array(
-	'VERIFACTU_QR_SHOW_TEXT' => '1',
-	'VERIFACTU_QR_SHOW_TEXT_TPV' => '1',
-	'VERIFACTU_QR_ALL_PAGES' => '0'
-);
-foreach ($yesNoDefaults as $constName => $defaultValue) {
-	if (!isset($conf->global->$constName)) {
-		dolibarr_set_const($db, $constName, $defaultValue, 'chaine', 0, '', $conf->entity);
-		$conf->global->$constName = $defaultValue;
-	}
-}
-
 // Set this to 1 to use the factory to manage constants. Warning, the generated module will be compatible with version v15+ only
 $useFormSetup = 1;
 
@@ -250,14 +236,14 @@ if ($basicFieldsComplete) {
 	// Hiding QR explanatory text is not allowed
 	// // Show explanatory text
 	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '1';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_HELP');
 	$item->cssClass = 'width150';
 
 	// Show POS explanatory text
 	$item = $formSetup->newItem('VERIFACTU_QR_SHOW_TEXT_TPV');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '1';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_SHOW_TEXT_TPV_HELP');
 	$item->cssClass = 'width150';
@@ -270,7 +256,7 @@ if ($basicFieldsComplete) {
 
 	// Show QR on all pages
 	$item = $formSetup->newItem('VERIFACTU_QR_ALL_PAGES');
-	$item->setAsYesNo();
+	$item->setAsSelect(array('0' => $langs->trans('No'), '1' => $langs->trans('Yes')));
 	$item->defaultFieldValue = '0';
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_ALL_PAGES_HELP');
 	$item->cssClass = 'width150';
@@ -371,25 +357,6 @@ if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'upda
 }
 
 include DOL_DOCUMENT_ROOT . '/core/actions_setmoduleoptions.inc.php';
-
-// Fix for YesNo checkboxes: when unchecked, they don't send any POST value
-// We need to explicitly set them to '0' AFTER actions_setmoduleoptions.inc.php runs
-// because that file may overwrite with default values
-if ($action == 'update' && !empty($user->admin)) {
-	$yesNoFields = array(
-		'VERIFACTU_QR_SHOW_TEXT',
-		'VERIFACTU_QR_SHOW_TEXT_TPV',
-		'VERIFACTU_QR_ALL_PAGES'
-	);
-	foreach ($yesNoFields as $fieldName) {
-		// FormSetup uses 'const' prefix for POST keys
-		$postKey = 'const' . $fieldName;
-		// If the field is not in POST (unchecked checkbox), set it to '0'
-		if (!isset($_POST[$postKey]) && !GETPOSTISSET($postKey)) {
-			dolibarr_set_const($db, $fieldName, '0', 'chaine', 0, '', $conf->entity);
-		}
-	}
-}
 
 if ($action == 'updateMask') {
 	$maskconst = GETPOST('maskconst', 'alpha');
