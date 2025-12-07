@@ -83,7 +83,6 @@ print '<style>
 .faq-header .faq-icon { transition: transform 0.3s; }
 .faq-header.active .faq-icon { transform: rotate(180deg); }
 .faq-content { display: none; padding: 15px; border-top: 1px solid #ddd; }
-.faq-content.show { display: block; }
 .faq-item-row { padding: 10px 0; border-bottom: 1px solid #eee; }
 .faq-item-row:last-child { border-bottom: none; }
 .faq-code { display: inline-block; min-width: 40px; padding: 2px 8px; margin-right: 10px; border-radius: 3px; text-align: center; font-weight: bold; color: white; }
@@ -100,10 +99,10 @@ print '<div class="fichecenter"><div class="fichehalfleft" style="width: 100%;">
 
 // ========== GUÍA RÁPIDA ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header active">';
 print img_picto('', 'setup', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUICK_GUIDE");
 print '<span class="faq-icon">▼</span></div>';
-print '<div class="faq-content show">';
+print '<div class="faq-content" style="display:block;">';
 print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_WHAT_IS") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_WHAT_IS_DESC") . '</div>';
 print '<div class="faq-item-row warning" style="padding:10px;"><strong>' . $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG") . '</strong><br>' . $langs->trans("VERIFACTU_FAQ_IMPORTANT_CONFIG_DESC") . '</div>';
 print '<div class="faq-item-row"><strong>' . $langs->trans("VERIFACTU_FAQ_INITIAL_CONFIG") . '</strong><ul>';
@@ -115,7 +114,7 @@ print '</div></div>';
 
 // ========== TIPOS DE FACTURA ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'bill', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_INVOICE_TYPES");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -137,7 +136,7 @@ print '</div></div>';
 
 // ========== TIPOS DE IMPUESTO ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'payment', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_TAX_TYPES");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -154,7 +153,7 @@ print '</div></div>';
 
 // ========== CLAVE DE RÉGIMEN ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'category', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_REGIME_KEY");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -176,7 +175,7 @@ print '</div></div>';
 
 // ========== CALIFICACIÓN DE LA OPERACIÓN ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'bookmark', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_QUALIFICATION");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -193,7 +192,7 @@ print '</div></div>';
 
 // ========== EXENCIONES ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'generic', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_EXEMPTIONS");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -212,7 +211,7 @@ print '</div></div>';
 
 // ========== TIPOS DE IDENTIFICACIÓN ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'user', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_ID_TYPES");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -231,7 +230,7 @@ print '</div></div>';
 
 // ========== ERRORES COMUNES ==========
 print '<div class="faq-accordion">';
-print '<div class="faq-header" onclick="toggleFaq(this)">';
+print '<div class="faq-header">';
 print img_picto('', 'warning', 'class="pictofixedwidth"') . $langs->trans("VERIFACTU_FAQ_COMMON_ERRORS");
 print '<span class="faq-icon">▼</span></div>';
 print '<div class="faq-content">';
@@ -245,21 +244,15 @@ print '</div></div>';
 
 print '</div></div>'; // fichecenter
 
-// JavaScript simple para acordeón
-print '<script>
-function toggleFaq(header) {
-	var content = header.nextElementSibling;
-	var isOpen = content.classList.contains("show");
-
-	// Toggle actual
-	if (isOpen) {
-		content.classList.remove("show");
-		header.classList.remove("active");
-	} else {
-		content.classList.add("show");
-		header.classList.add("active");
-	}
-}
+// JavaScript con jQuery (ya cargado en Dolibarr)
+print '<script type="text/javascript">
+jQuery(document).ready(function($) {
+	$(".faq-header").on("click", function() {
+		var content = $(this).next(".faq-content");
+		content.slideToggle(200);
+		$(this).toggleClass("active");
+	});
+});
 </script>';
 
 llxFooter();
