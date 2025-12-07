@@ -370,8 +370,11 @@ if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'upda
 	$formSetup->saveConfFromPost();
 }
 
+include DOL_DOCUMENT_ROOT . '/core/actions_setmoduleoptions.inc.php';
+
 // Fix for YesNo checkboxes: when unchecked, they don't send any POST value
-// We need to explicitly set them to '0' if not present in POST
+// We need to explicitly set them to '0' AFTER actions_setmoduleoptions.inc.php runs
+// because that file may overwrite with default values
 if ($action == 'update' && !empty($user->admin)) {
 	$yesNoFields = array(
 		'VERIFACTU_QR_SHOW_TEXT',
@@ -383,13 +386,10 @@ if ($action == 'update' && !empty($user->admin)) {
 		$postKey = 'const' . $fieldName;
 		// If the field is not in POST (unchecked checkbox), set it to '0'
 		if (!isset($_POST[$postKey]) && !GETPOSTISSET($postKey)) {
-			// Ensure the constant exists with value '0'
 			dolibarr_set_const($db, $fieldName, '0', 'chaine', 0, '', $conf->entity);
 		}
 	}
 }
-
-include DOL_DOCUMENT_ROOT . '/core/actions_setmoduleoptions.inc.php';
 
 if ($action == 'updateMask') {
 	$maskconst = GETPOST('maskconst', 'alpha');
