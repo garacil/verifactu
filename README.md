@@ -10,7 +10,7 @@ Este proyecto tiene su origen en la parte de código abierto **verifactu** desar
 
 El desarrollo de este fork surgió por las siguientes necesidades:
 
-1. **Facturación con VeriFactu sin dependencias problemáticas**: Se necesitaba poder facturar cumpliendo con los requisitos de VeriFactu sin tener que utilizar el módulo RD10072023 del mismo proveedor, el cual crea una dependencia que obliga a ser instalado para que VeriFactu acepte ser activado para funcionar.
+1. **Facturación con VeriFactu sin dependencias problemáticas**: Se necesitaba poder facturar cumpliendo con los requisitos de VeriFactu sin tener que utilizar el módulo RD10072023 del mismo proveedor, el cual crea una dependencia que obliga a ser instalado para que VeriFactu acepte ser activado aun no existiendo ninguna dependencia real para hacerlo.
 
 2. **Privacidad y control de datos**: Se detectó que el módulo original RD10072023, se envía información sensible al proveedor del módulo **sin conocimiento ni consentimiento explícito del usuario**. Esta práctica plantea serias preocupaciones sobre la privacidad de los datos empresariales y fiscales.
 
