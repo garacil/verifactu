@@ -14,6 +14,10 @@
  * Copyright (C) 2017      Josep Lluís Amador    <joseplluis@lliuretic.cat>
  * Copyright (C) 2018      Charlene Benke        <charlie@patas-monkey.com>
  * Copyright (C) 2019-2021 Alexandre Spangaro    <aspangaro@open-dsi.fr>
+ * Copyright (C) 2025 Alberto SuperAdmin <aluquerivasdev@gmail.com>
+ * Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
+ *
+ * Based on original code from verifactu module by Alberto SuperAdmin (easysoft.es)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

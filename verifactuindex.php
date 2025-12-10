@@ -3,6 +3,10 @@
  * Copyright (C) 2004-2015 Laurent Destailleur  <eldy@users.sourceforge.net>
  * Copyright (C) 2005-2012 Regis Houssin        <regis.houssin@inodbox.com>
  * Copyright (C) 2015      Jean-François Ferry	<jfefe@aternatik.fr>
+ * Copyright (C) 2025 Alberto SuperAdmin <aluquerivasdev@gmail.com>
+ * Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
+ *
+ * Based on original code from verifactu module by Alberto SuperAdmin (easysoft.es)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

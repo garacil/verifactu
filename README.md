@@ -2,6 +2,52 @@
 
 Módulo de Dolibarr para la integración con el sistema VeriFactu de la Agencia Tributaria Española (AEAT).
 
+## Historia del Proyecto
+
+Este proyecto tiene su origen en la parte de código abierto **verifactu** desarrollado originalmente por **Alberto SuperAdmin (Alberto Luque Rivas)** de **easysoft.es** y distribuido bajo licencia **GPL v3**.
+
+### Motivación
+
+El desarrollo de este fork surgió por las siguientes necesidades:
+
+1. **Facturación con VeriFactu sin dependencias problemáticas**: Se necesitaba poder facturar cumpliendo con los requisitos de VeriFactu sin tener que utilizar el módulo RD10072023 del mismo proveedor, el cual crea una dependencia que obliga a ser instalado para que VeriFactu acepte ser activado para funcionar.
+
+2. **Privacidad y control de datos**: Se detectó que el módulo original RD10072023, se envía información sensible al proveedor del módulo **sin conocimiento ni consentimiento explícito del usuario**. Esta práctica plantea serias preocupaciones sobre la privacidad de los datos empresariales y fiscales.
+
+3. **Independencia del proveedor**: Se buscaba una solución que no requiriera sistemas de licenciamiento externos ni validaciones remotas que comprometan la autonomía del usuario.
+
+### Desarrollo
+
+Este módulo fue desarrollado partiendo de la **parte de código abierto** del módulo adquirido, el cual estaba licenciado bajo **GPL v3 (GNU General Public License versión 3)**. Sobre esta base:
+
+- Se reorganizó y modularizó el código para mejorar su mantenibilidad
+- Se eliminaron las dependencias de sistemas externos de licenciamiento
+- Se tradujo la documentación y comentarios al inglés
+- Se creó una nueva librería interna (Sietekas\Verifactu)
+- Se eliminaron las funcionalidades que enviaban datos a servidores externos sin consentimiento al no precisar usar más el módulo RD10072023
+
+### Nota sobre la Licencia GPL y el Código Propietario
+
+Durante el análisis del código original de `verifactu_easysoft`, se detectó que **existen archivos sin header de licencia** dentro del proyecto que contienen código funcional integrado con el resto del código GPL:
+
+- `lib/functions/funciones.utilidades.php`
+- `lib/functions/funciones.certificados.php`
+- `lib/functions/funciones.conectorCertificados.php`
+
+**Sospechamos que esto podría constituir una violación de la licencia GPL**, ya que:
+
+1. La **GPL v3 no permite mezclar código propietario con código GPL** en un mismo proyecto que se distribuye como una unidad. A diferencia de licencias permisivas como MIT o BSD, la GPL tiene un efecto "copyleft" que requiere que todo el trabajo derivado mantenga la misma licencia.
+
+2. Según la GPL v3, sección 5: *"You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy."*
+
+3. Si el proveedor original pretende que estos archivos sin header sean código propietario mientras el resto del proyecto es GPL, estaría **violando los términos de la GPL** que él mismo eligió para el proyecto.
+
+4. Alternativamente, si es simplemente un descuido y esos archivos también son GPL (solo falta el header), entonces no hay problema legal, pero sí una mala práctica de documentación.
+
+**Este fork mantiene todo el código bajo GPL v3**, respetando la licencia original y los derechos de los autores originales, añadiendo la atribución correspondiente en todos los archivos.
+
+---
+
 ## Descripción
 
 VeriFactu es el sistema de verificación de facturas de la AEAT que permite:
