@@ -412,6 +412,21 @@ class modVerifactu extends DolibarrModules
 			'user' => 0,
 		);
 
+                // Setup
+                $this->menu[$r++] = array(
+                        'fk_menu' => 'fk_mainmenu=verifactu',
+                        'type' => 'left',
+                        'titre' => 'VERIFACTU_SETUP',
+                        'mainmenu' => 'verifactu',
+                        'leftmenu' => 'verifactu_documentation',
+                        'url' => '/verifactu/admin/setup.php',
+                        'langs' => 'verifactu@OpenVerifactu',
+                        'position' => 1000 + $r,
+                        'enabled' => '$conf->verifactu->enabled',
+                        'perms' => '$user->rights->verifactu->manage || $user->admin',
+                        'target' => '',
+                        'user' => 0,
+                );
 
 		/* END MODULEBUILDER TOPMENU */
 		/* BEGIN MODULEBUILDER LEFTMENU VERIFACTU
