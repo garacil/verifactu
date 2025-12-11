@@ -49,6 +49,8 @@ VERIFACTU_CERTIFICATE_TOOLTIP = Certificado de firma electrónica para VeriFactu
 VERIFACTU_CERTIFICATE_PASSWORD = Contraseña del certificado
 VERIFACTU_CERTIFICATE_PRIVATE_KEY = Clave privada
 VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = Si el servidor solo proporciona certificado público, pegue aquí la clave privada. El sistema añade las etiquetas PEM automáticamente si faltan.
+VERIFACTU_CERTIFICATE_KEY = Clave del certificado
+VERIFACTU_CERTIFICATE_KEY_HELP = Contraseña o clave del certificado digital para la firma electrónica.
 VERIFACTU_LOCAL_USE_CERTIFICATE = Usar certificado local
 VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = Si está activo, usa un certificado local (.pfx, .p12 o .pem). Si no, combine la clave privada con el certificado del servidor de licencias.
 sendInvoicesWithErrorsCronName = VeriFactu - Reenvío de facturas con errores de conexión
@@ -558,6 +560,10 @@ VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verificación exitosa: Importes coinciden (Do
 # Help / FAQ Menu
 VERIFACTU_HELP_MENU = Ayuda
 VERIFACTU_HELP_MENU_HELP = Guía de ayuda y preguntas frecuentes sobre VeriFactu
+
+# Setup Menu
+VERIFACTU_SETUP = Configuración
+VERIFACTU_SETUP_MENU_HELP = Configuración del módulo VeriFactu
 
 # FAQ Page
 VERIFACTU_FAQ_TITLE = Guía de Ayuda VeriFactu

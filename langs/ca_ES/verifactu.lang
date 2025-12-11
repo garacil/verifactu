@@ -49,6 +49,8 @@ VERIFACTU_CERTIFICATE_TOOLTIP = Certificat de signatura electrònica per a VeriF
 VERIFACTU_CERTIFICATE_PASSWORD = Contrasenya del certificat
 VERIFACTU_CERTIFICATE_PRIVATE_KEY = Clau privada
 VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = Si el servidor només proporciona certificat públic, enganxeu aquí la clau privada. El sistema afegeix les etiquetes PEM automàticament si falten.
+VERIFACTU_CERTIFICATE_KEY = Clau del certificat
+VERIFACTU_CERTIFICATE_KEY_HELP = Contrasenya o clau del certificat digital per a la signatura electrònica.
 VERIFACTU_LOCAL_USE_CERTIFICATE = Usar certificat local
 VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = Si està actiu, usa un certificat local (.pfx, .p12 o .pem). Si no, combineu la clau privada amb el certificat del servidor de llicències.
 sendInvoicesWithErrorsCronName = VeriFactu - Reenviament de factures amb errors de connexió
@@ -554,3 +556,11 @@ VERIFACTU_VERIFY_NOT_FOUND_CLEARED = Factura %s no existeix a AEAT. Errors anter
 VERIFACTU_VERIFY_STATUS_CORRECTED = Factura %s verificada. Estat: Enviada. Import: %s
 VERIFACTU_VERIFY_AMOUNTS_DIFFER = Factura %s a AEAT amb imports diferents: Dolibarr=%s, AEAT=%s (diferència: %s). Requereix revisió.
 VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verificació exitosa: Imports coincideixen (Dolibarr: %s, AEAT: %s)
+
+# Help / FAQ Menu
+VERIFACTU_HELP_MENU = Ajuda
+VERIFACTU_HELP_MENU_HELP = Guia d'ajuda i preguntes freqüents sobre VeriFactu
+
+# Setup Menu
+VERIFACTU_SETUP = Configuració
+VERIFACTU_SETUP_MENU_HELP = Configuració del mòdul VeriFactu
