@@ -49,6 +49,8 @@ VERIFACTU_CERTIFICATE_TOOLTIP = Digital signature certificate for VeriFactu. PEM
 VERIFACTU_CERTIFICATE_PASSWORD = Certificate Password
 VERIFACTU_CERTIFICATE_PRIVATE_KEY = Private Key
 VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = If the server only provides a public certificate, paste your private key here. The system adds PEM tags automatically if missing.
+VERIFACTU_CERTIFICATE_KEY = Certificate Key
+VERIFACTU_CERTIFICATE_KEY_HELP = Password or key for the digital certificate used for electronic signature.
 VERIFACTU_LOCAL_USE_CERTIFICATE = Use Local Certificate
 VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = If enabled, uses a local certificate (.pfx, .p12 or .pem). Otherwise, combine the private key with the license server certificate.
 sendInvoicesWithErrorsCronName = VeriFactu - Resend invoices with connection errors
@@ -558,6 +560,10 @@ VERIFACTU_VERIFY_SUCCESS_SUMMARY = Verification successful: Amounts match (Dolib
 # Help / FAQ Menu
 VERIFACTU_HELP_MENU = Help
 VERIFACTU_HELP_MENU_HELP = Help guide and frequently asked questions about VeriFactu
+
+# Setup Menu
+VERIFACTU_SETUP = Setup
+VERIFACTU_SETUP_MENU_HELP = VeriFactu module configuration
 
 # FAQ Page
 VERIFACTU_FAQ_TITLE = VeriFactu Help Guide

@@ -49,6 +49,8 @@ VERIFACTU_CERTIFICATE_TOOLTIP = VeriFactu-rako sinadura elektronikoko ziurtagiri
 VERIFACTU_CERTIFICATE_PASSWORD = Ziurtagiriaren pasahitza
 VERIFACTU_CERTIFICATE_PRIVATE_KEY = Gako pribatua
 VERIFACTU_CERTIFICATE_PRIVATE_KEY_HELP = Zerbitzariak ziurtagiri publikoa bakarrik ematen badu, itsatsi hemen gako pribatua. Sistemak PEM etiketak automatikoki gehitzen ditu falta badira.
+VERIFACTU_CERTIFICATE_KEY = Ziurtagiriaren gakoa
+VERIFACTU_CERTIFICATE_KEY_HELP = Sinadura elektronikorako ziurtagiri digitalaren pasahitza edo gakoa.
 VERIFACTU_LOCAL_USE_CERTIFICATE = Ziurtagiri lokala erabili
 VERIFACTU_LOCAL_USE_CERTIFICATE_HELP = Aktibo badago, ziurtagiri lokala erabiltzen du (.pfx, .p12 edo .pem). Bestela, gako pribatua lizentzia zerbitzariaren ziurtagiriarekin konbinatzen du.
 sendInvoicesWithErrorsCronName = VeriFactu - Konexio erroreekin fakturen birbidaltzea
@@ -554,3 +556,11 @@ VERIFACTU_VERIFY_NOT_FOUND_CLEARED = %s faktura ez dago AEATen. Aurreko erroreak
 VERIFACTU_VERIFY_STATUS_CORRECTED = %s faktura egiaztatua. Egoera: Bidalia. Zenbatekoa: %s
 VERIFACTU_VERIFY_AMOUNTS_DIFFER = %s faktura AEATen zenbateko desberdinekin: Dolibarr=%s, AEAT=%s (aldea: %s). Berrikuspena behar du.
 VERIFACTU_VERIFY_SUCCESS_SUMMARY = Egiaztapen arrakastatsua: Zenbatekoak bat datoz (Dolibarr: %s, AEAT: %s)
+
+# Help / FAQ Menu
+VERIFACTU_HELP_MENU = Laguntza
+VERIFACTU_HELP_MENU_HELP = VeriFactu-ri buruzko laguntza gida eta maiz egiten diren galderak
+
+# Setup Menu
+VERIFACTU_SETUP = Konfigurazioa
+VERIFACTU_SETUP_MENU_HELP = VeriFactu moduluaren konfigurazioa
