@@ -288,6 +288,10 @@ FILTER_INVOICE_SERIAL_NUMBER = Serial number
 FILTER_BILLING_YEAR = Fiscal year
 FILTER_NIF = Tax ID
 FILTER_NAME = Name
+FILTER_NOM = Name
+FILTER_EJERCICIO_FACTURACION = Billing year
+FILTER_PERIODO_FACTURACION = Billing period
+FILTER_NUMERO_SERIE_FACTURA = Invoice serial no.
 NO_RECORDS_FOUNDS = No results
 SOAP_EXTENSION_NOT_INSTALLED = SOAP extension not installed. Install it and restart the web server.
 

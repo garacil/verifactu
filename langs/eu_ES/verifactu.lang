@@ -288,6 +288,10 @@ FILTER_INVOICE_SERIAL_NUMBER = Serie zenbakia
 FILTER_BILLING_YEAR = Ekitaldia
 FILTER_NIF = IFK
 FILTER_NAME = Izena
+FILTER_NOM = Izena
+FILTER_EJERCICIO_FACTURACION = Fakturazioa ekitaldia
+FILTER_PERIODO_FACTURACION = Fakturazio aldia
+FILTER_NUMERO_SERIE_FACTURA = Faktura serie zk.
 NO_RECORDS_FOUNDS = Emaitzarik gabe
 SOAP_EXTENSION_NOT_INSTALLED = SOAP hedapena ez dago instalatuta. Instalatu eta berrabiarazi web zerbitzaria.
 
