@@ -288,6 +288,10 @@ FILTER_INVOICE_SERIAL_NUMBER = Número serie
 FILTER_BILLING_YEAR = Exercicio
 FILTER_NIF = NIF
 FILTER_NAME = Nome
+FILTER_NOM = Nome
+FILTER_EJERCICIO_FACTURACION = Exercicio facturación
+FILTER_PERIODO_FACTURACION = Período facturación
+FILTER_NUMERO_SERIE_FACTURA = Nº serie factura
 NO_RECORDS_FOUNDS = Sen resultados
 SOAP_EXTENSION_NOT_INSTALLED = A extensión SOAP non está instalada. Instálea e reinicie o servidor web.
 
