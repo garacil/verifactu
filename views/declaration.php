@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2025 7kas Servicios de Internet SL
+/* Copyright (C) 2025 Germán Luis Aracil Boned <garacilb@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,17 @@ if (!$res) {
 // Load translation files required by the page
 $langs->loadLangs(array("verifactu@verifactu"));
 
+// Load configuration file
+$confFile = dol_buildpath('/verifactu/conf/declaracion_responsable.conf.php', 0);
+if (file_exists($confFile)) {
+	require_once $confFile;
+	$declaracion = obtenerDeclaracionResponsable(true);
+	$erroresConfig = validarDeclaracionResponsable();
+} else {
+	$declaracion = null;
+	$erroresConfig = array('El fichero de configuración no existe');
+}
+
 // Security check
 $socid = GETPOST('socid', 'int');
 if (isset($user->socid) && $user->socid > 0) {
@@ -68,6 +79,19 @@ llxHeader("", $langs->trans("VERIFACTU_DECLARATION_MENU"));
 print load_fiche_titre($langs->trans("VERIFACTU_DECLARATION_MENU"), '', 'bill');
 
 print '<div class="fichecenter">';
+
+// Show configuration errors if any
+if (!empty($erroresConfig)) {
+	print '<div class="warning">';
+	print '<strong>Advertencia:</strong> La configuración de la declaración responsable está incompleta:<br>';
+	print '<ul>';
+	foreach ($erroresConfig as $error) {
+		print '<li>' . htmlspecialchars($error) . '</li>';
+	}
+	print '</ul>';
+	print '<p>Por favor, complete el fichero <code>conf/declaracion_responsable.conf.php</code></p>';
+	print '</div>';
+}
 ?>
 
 <style>
@@ -114,7 +138,7 @@ print '<div class="fichecenter">';
 	text-align: justify;
 }
 
-.empresa-info {
+.info-section {
 	background: #f8f9fa;
 	border-radius: 12px;
 	padding: 30px;
@@ -122,25 +146,49 @@ print '<div class="fichecenter">';
 	border-left: 4px solid #1a73e8;
 }
 
-.empresa-info h3 {
+.info-section.sistema {
+	border-left-color: #34a853;
+}
+
+.info-section.tecnico {
+	border-left-color: #ea4335;
+}
+
+.info-section.integridad {
+	border-left-color: #fbbc04;
+}
+
+.info-section h3 {
 	color: #1a73e8;
 	font-size: 20px;
 	margin: 0 0 20px 0;
 	font-weight: 600;
 }
 
-.empresa-datos {
+.info-section.sistema h3 {
+	color: #34a853;
+}
+
+.info-section.tecnico h3 {
+	color: #ea4335;
+}
+
+.info-section.integridad h3 {
+	color: #b06000;
+}
+
+.info-datos {
 	display: grid;
 	gap: 15px;
 }
 
-.empresa-dato {
+.info-dato {
 	display: flex;
 	align-items: flex-start;
 	gap: 12px;
 }
 
-.empresa-dato .icono {
+.info-dato .icono {
 	width: 24px;
 	height: 24px;
 	background: #1a73e8;
@@ -154,11 +202,24 @@ print '<div class="fichecenter">';
 	margin-top: 2px;
 }
 
-.empresa-dato .contenido {
+.info-section.sistema .info-dato .icono {
+	background: #34a853;
+}
+
+.info-section.tecnico .info-dato .icono {
+	background: #ea4335;
+}
+
+.info-section.integridad .info-dato .icono {
+	background: #fbbc04;
+	color: #333;
+}
+
+.info-dato .contenido {
 	flex: 1;
 }
 
-.empresa-dato .etiqueta {
+.info-dato .etiqueta {
 	font-size: 12px;
 	color: #5f6368;
 	text-transform: uppercase;
@@ -166,10 +227,19 @@ print '<div class="fichecenter">';
 	margin-bottom: 2px;
 }
 
-.empresa-dato .valor {
+.info-dato .valor {
 	font-size: 16px;
 	color: #202124;
 	font-weight: 500;
+}
+
+.info-dato .valor.hash {
+	font-family: monospace;
+	font-size: 12px;
+	word-break: break-all;
+	background: #e8eaed;
+	padding: 8px;
+	border-radius: 4px;
 }
 
 .declaracion-legal {
@@ -187,11 +257,42 @@ print '<div class="fichecenter">';
 	line-height: 1.6;
 }
 
+.requisitos-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+	margin-top: 15px;
+}
+
+.requisito-badge {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: #e8f5e9;
+	padding: 8px 12px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: #2e7d32;
+}
+
+.requisito-badge .check {
+	color: #2e7d32;
+	font-weight: bold;
+}
+
 .declaracion-footer {
 	margin-top: 40px;
 	padding-top: 30px;
 	border-top: 2px solid #e8eaed;
 	text-align: center;
+}
+
+.normativa-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+	margin-bottom: 20px;
 }
 
 .normativa-badge {
@@ -200,25 +301,29 @@ print '<div class="fichecenter">';
 	gap: 8px;
 	background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
 	color: white;
-	padding: 12px 24px;
+	padding: 10px 20px;
 	border-radius: 30px;
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 500;
 }
 
 .normativa-badge::before {
-	content: '✓';
+	content: '\2713';
 	font-weight: bold;
 }
 
-.btn-imprimir {
+.btn-actions {
+	display: flex;
+	gap: 15px;
+	justify-content: center;
+	margin-top: 30px;
+}
+
+.btn-action {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
-	margin-top: 30px;
 	padding: 12px 28px;
-	background: linear-gradient(135deg, #5f6368 0%, #3c4043 100%);
-	color: white;
 	border: none;
 	border-radius: 8px;
 	font-size: 14px;
@@ -226,16 +331,46 @@ print '<div class="fichecenter">';
 	cursor: pointer;
 	transition: all 0.3s ease;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	text-decoration: none;
 }
 
-.btn-imprimir:hover {
+.btn-action.print {
+	background: linear-gradient(135deg, #5f6368 0%, #3c4043 100%);
+	color: white;
+}
+
+.btn-action.print:hover {
 	background: linear-gradient(135deg, #3c4043 0%, #202124 100%);
 	transform: translateY(-2px);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.btn-imprimir .btn-icon {
+.btn-action.json {
+	background: linear-gradient(135deg, #34a853 0%, #2e7d32 100%);
+	color: white;
+}
+
+.btn-action.json:hover {
+	background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+	transform: translateY(-2px);
+}
+
+.btn-action .btn-icon {
 	font-size: 18px;
+}
+
+.suscripcion-info {
+	background: #fff3e0;
+	border-radius: 8px;
+	padding: 20px;
+	margin-top: 20px;
+	border: 1px solid #ffe0b2;
+}
+
+.suscripcion-info h4 {
+	color: #e65100;
+	margin: 0 0 15px 0;
+	font-size: 16px;
 }
 
 @media print {
@@ -253,8 +388,14 @@ print '<div class="fichecenter">';
 		box-shadow: none;
 		border: none;
 	}
-	.btn-imprimir {
+	.btn-actions {
 		display: none;
+	}
+}
+
+@media (max-width: 768px) {
+	.requisitos-grid {
+		grid-template-columns: repeat(2, 1fr);
 	}
 }
 </style>
@@ -262,70 +403,243 @@ print '<div class="fichecenter">';
 <div class="declaracion-container">
 	<div class="declaracion-header">
 		<h2>Declaraci&oacute;n Responsable</h2>
-		<div class="subtitulo">Sistema VeriFactu - Cumplimiento RD 1007/2023</div>
+		<div class="subtitulo">Sistema VeriFactu - Cumplimiento Normativo</div>
 	</div>
 
 	<div class="declaracion-body">
 		<p class="declaracion-intro">
-			En cumplimiento con el Real Decreto 1007/2023, de 5 de diciembre, y la Orden HAC/1177/2024,
-			por el que se establece el sistema VeriFactu para la verificaci&oacute;n de facturas,
-			la siguiente entidad act&uacute;a como desarrollador y proveedor del presente m&oacute;dulo
-			de facturaci&oacute;n electr&oacute;nica:
+			<?php echo htmlspecialchars($declaracion['cumplimiento']['declaracion'] ?? ''); ?>
 		</p>
 
-		<div class="empresa-info">
-			<h3>Datos del Desarrollador</h3>
-			<div class="empresa-datos">
-				<div class="empresa-dato">
+		<!-- Datos del Productor -->
+		<div class="info-section productor">
+			<h3>Datos del Productor</h3>
+			<div class="info-datos">
+				<div class="info-dato">
 					<div class="icono">&#x1F3E2;</div>
 					<div class="contenido">
 						<div class="etiqueta">Raz&oacute;n Social</div>
-						<div class="valor">7kas Servicios de Internet SL</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['productor']['razon_social'] ?? 'No configurado'); ?></div>
 					</div>
 				</div>
-				<div class="empresa-dato">
+				<div class="info-dato">
+					<div class="icono">&#x1F4CB;</div>
+					<div class="contenido">
+						<div class="etiqueta">NIF</div>
+						<div class="valor"><?php
+							$nif = $declaracion['productor']['nif'] ?? '';
+							if (empty($nif) && !empty($declaracion['productor']['nif_extranjero']['numero'])) {
+								$nif = $declaracion['productor']['nif_extranjero']['numero'] . ' (' . $declaracion['productor']['nif_extranjero']['pais_emision'] . ')';
+							}
+							echo htmlspecialchars($nif ?: 'No configurado');
+						?></div>
+					</div>
+				</div>
+				<div class="info-dato">
 					<div class="icono">&#x1F4CD;</div>
 					<div class="contenido">
 						<div class="etiqueta">Direcci&oacute;n</div>
-						<div class="valor">Calle Columbretes, 38<br>12560 Benicasim (Castell&oacute;n)</div>
+						<div class="valor"><?php
+							$dir = $declaracion['productor']['direccion'] ?? array();
+							$direccion = array_filter(array(
+								trim(($dir['tipo_via'] ?? '') . ' ' . ($dir['nombre_via'] ?? '') . ' ' . ($dir['numero'] ?? '')),
+								trim(($dir['piso'] ?? '') . ' ' . ($dir['puerta'] ?? '')),
+								$dir['codigo_postal'] ?? '',
+								$dir['localidad'] ?? '',
+								$dir['provincia'] ?? '',
+							));
+							echo htmlspecialchars(implode(', ', $direccion) ?: 'No configurado');
+						?></div>
 					</div>
 				</div>
-				<div class="empresa-dato">
+				<div class="info-dato">
 					<div class="icono">&#x2709;</div>
 					<div class="contenido">
 						<div class="etiqueta">Email de Contacto</div>
-						<div class="valor">soporte@7kas.com</div>
-					</div>
-				</div>
-				<div class="empresa-dato">
-					<div class="icono">&#x1F4CB;</div>
-					<div class="contenido">
-						<div class="etiqueta">CIF</div>
-						<div class="valor">B98515273</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['productor']['contacto']['email'] ?? 'No configurado'); ?></div>
 					</div>
 				</div>
 			</div>
 		</div>
 
+		<!-- Datos del Sistema -->
+		<div class="info-section sistema">
+			<h3>Datos del Sistema Inform&aacute;tico</h3>
+			<div class="info-datos">
+				<div class="info-dato">
+					<div class="icono">&#x1F4BB;</div>
+					<div class="contenido">
+						<div class="etiqueta">Nombre del Sistema</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['sistema']['nombre'] ?? ''); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F511;</div>
+					<div class="contenido">
+						<div class="etiqueta">IdSistemaInform&aacute;tico</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['sistema']['id_sistema_informatico'] ?? ''); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F4C8;</div>
+					<div class="contenido">
+						<div class="etiqueta">Versi&oacute;n</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['sistema']['version'] ?? ''); ?> (<?php echo htmlspecialchars($declaracion['sistema']['fecha_version'] ?? ''); ?>)</div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F512;</div>
+					<div class="contenido">
+						<div class="etiqueta">N&uacute;mero de Instalaci&oacute;n</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['sistema']['numero_instalacion'] ?? ''); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F4DD;</div>
+					<div class="contenido">
+						<div class="etiqueta">Licencia</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['sistema']['tipo_licencia'] ?? ''); ?></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Especificaciones Técnicas -->
+		<div class="info-section tecnico">
+			<h3>Especificaciones T&eacute;cnicas</h3>
+			<div class="info-datos">
+				<div class="info-dato">
+					<div class="icono">&#x2699;</div>
+					<div class="contenido">
+						<div class="etiqueta">Modalidad de Funcionamiento</div>
+						<div class="valor"><?php
+							$modalidad = $declaracion['especificaciones_tecnicas']['modalidad_funcionamiento'] ?? '';
+							echo $modalidad === 'verifactu' ? 'VERI*FACTU (envío inmediato a AEAT)' : 'NO VERI*FACTU';
+						?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F58A;</div>
+					<div class="contenido">
+						<div class="etiqueta">Tipo de Firma Electr&oacute;nica</div>
+						<div class="valor"><?php
+							$firma = $declaracion['especificaciones_tecnicas']['tipo_firma'] ?? array();
+							echo htmlspecialchars(($firma['formato'] ?? '') . ' ' . ($firma['tipo'] ?? '') . ' con certificado cualificado');
+						?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F510;</div>
+					<div class="contenido">
+						<div class="etiqueta">Algoritmo de Huella</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['especificaciones_tecnicas']['algoritmo_huella'] ?? 'SHA-256'); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F465;</div>
+					<div class="contenido">
+						<div class="etiqueta">Caracter&iacute;sticas</div>
+						<div class="valor"><?php
+							$caracteristicas = array();
+							if ($declaracion['especificaciones_tecnicas']['multiusuario'] ?? false) $caracteristicas[] = 'Multi-usuario';
+							if ($declaracion['especificaciones_tecnicas']['multiempresa'] ?? false) $caracteristicas[] = 'Multi-empresa';
+							echo htmlspecialchars(implode(', ', $caracteristicas) ?: 'Estándar');
+						?></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Hash de Integridad -->
+		<div class="info-section integridad">
+			<h3>Integridad del Sistema</h3>
+			<div class="info-datos">
+				<div class="info-dato">
+					<div class="icono">&#x1F50F;</div>
+					<div class="contenido">
+						<div class="etiqueta">Hash del M&oacute;dulo (<?php echo htmlspecialchars($declaracion['integridad']['algoritmo'] ?? 'SHA-256'); ?>)</div>
+						<div class="valor hash"><?php echo htmlspecialchars($declaracion['integridad']['hash_modulo'] ?? 'No calculado'); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="icono">&#x1F4C5;</div>
+					<div class="contenido">
+						<div class="etiqueta">Fecha de C&aacute;lculo</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['integridad']['fecha_calculo'] ?? 'No disponible'); ?></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Requisitos Cumplidos -->
 		<div class="declaracion-legal">
-			<p>
-				<strong>Declaraci&oacute;n de conformidad:</strong> Este m&oacute;dulo ha sido desarrollado
-				conforme a las especificaciones t&eacute;cnicas establecidas por la Agencia Estatal de
-				Administraci&oacute;n Tributaria (AEAT) para sistemas de emisi&oacute;n de facturas verificables,
-				garantizando la integridad, autenticidad e inalterabilidad de los registros de facturaci&oacute;n.
-			</p>
+			<p><strong>Requisitos t&eacute;cnicos cumplidos seg&uacute;n Art. 8 RD 1007/2023:</strong></p>
+			<div class="requisitos-grid">
+				<?php
+				$requisitos = array(
+					'integridad' => 'Integridad',
+					'conservacion' => 'Conservación',
+					'accesibilidad' => 'Accesibilidad',
+					'legibilidad' => 'Legibilidad',
+					'trazabilidad' => 'Trazabilidad',
+					'inalterabilidad' => 'Inalterabilidad',
+				);
+				foreach ($requisitos as $key => $label) {
+					$cumplido = $declaracion['cumplimiento']['requisitos_cumplidos'][$key] ?? false;
+					if ($cumplido) {
+						echo '<div class="requisito-badge"><span class="check">&#x2713;</span> ' . $label . '</div>';
+					}
+				}
+				?>
+			</div>
+		</div>
+
+		<!-- Suscripción -->
+		<div class="suscripcion-info">
+			<h4>Suscripci&oacute;n de la Declaraci&oacute;n</h4>
+			<div class="info-datos">
+				<div class="info-dato">
+					<div class="contenido">
+						<div class="etiqueta">Fecha</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['suscripcion']['fecha'] ?? ''); ?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="contenido">
+						<div class="etiqueta">Lugar</div>
+						<div class="valor"><?php
+							$lugar = $declaracion['suscripcion']['lugar'] ?? array();
+							echo htmlspecialchars(($lugar['localidad'] ?? '') . ', ' . ($lugar['pais'] ?? 'España'));
+						?></div>
+					</div>
+				</div>
+				<div class="info-dato">
+					<div class="contenido">
+						<div class="etiqueta">Firmante</div>
+						<div class="valor"><?php echo htmlspecialchars($declaracion['suscripcion']['firmante']['nombre'] ?? ''); ?></div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
 	<div class="declaracion-footer">
-		<div class="normativa-badge">
-			Conforme al RD 1007/2023 y Orden HAC/1177/2024
+		<div class="normativa-badges">
+			<span class="normativa-badge">RD 1007/2023</span>
+			<span class="normativa-badge">Orden HAC/1177/2024</span>
+			<span class="normativa-badge">Art. 29.2.j) LGT</span>
 		</div>
-		<br>
-		<button class="btn-imprimir" onclick="window.print()">
-			<span class="btn-icon">&#x1F5A8;</span>
-			Imprimir Declaraci&oacute;n
-		</button>
+
+		<div class="btn-actions">
+			<button class="btn-action print" onclick="window.print()">
+				<span class="btn-icon">&#x1F5A8;</span>
+				Imprimir Declaraci&oacute;n
+			</button>
+			<a class="btn-action json" href="<?php echo dol_buildpath('/verifactu/views/declaration_json.php', 1); ?>" target="_blank">
+				<span class="btn-icon">&#x1F4BE;</span>
+				Exportar JSON
+			</a>
+		</div>
 	</div>
 </div>
 
