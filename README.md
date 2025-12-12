@@ -162,6 +162,53 @@ El código QR se genera automáticamente al enviar la factura y se muestra en:
 - Gallego (gl_ES)
 - Inglés (en_US)
 
+## Declaración Responsable
+
+El módulo incluye un sistema completo de **Declaración Responsable** conforme a la normativa española vigente:
+
+- **RD 1007/2023** - Reglamento VeriFactu
+- **RD 254/2025** - Modificaciones y plazos
+- **Orden HAC/1177/2024** - Especificaciones técnicas
+- **Art. 29.2.j) Ley 58/2003** - Ley General Tributaria
+
+### Fichero de Configuración
+
+La configuración se encuentra en `conf/declaracion_responsable.conf.php` e incluye:
+
+| Sección | Contenido |
+|---------|-----------|
+| **Datos del Productor** | NIF, razón social, dirección, contacto |
+| **Datos del Sistema** | Nombre, IdSistemaInformatico, versión |
+| **Componentes** | Software y hardware requerido |
+| **Especificaciones Técnicas** | Tipo de firma (XAdES), algoritmo hash (SHA-256) |
+| **Integridad** | Hash del módulo calculado dinámicamente |
+| **Cumplimiento** | Declaración según Art. 29.2.j) LGT |
+| **Suscripción** | Fecha, lugar y firmante |
+
+### Funciones Disponibles
+
+```php
+// Obtener configuración completa con hash calculado
+$declaracion = obtenerDeclaracionResponsable(true);
+
+// Validar campos obligatorios
+$errores = validarDeclaracionResponsable();
+
+// Calcular hash SHA-256 del módulo
+$hash = calcularHashModuloVerifactu();
+
+// Exportar en formato JSON
+$json = exportarDeclaracionJSON();
+```
+
+### Visualización
+
+La declaración responsable está disponible en:
+- **Menú:** VeriFactu > Declaración Responsable
+- **Exportación JSON:** `/verifactu/views/declaration_json.php`
+
+Para más detalles, consultar `docs/declaracion_responsable.md`.
+
 ## Estructura del Módulo
 
 ```
@@ -174,11 +221,15 @@ verifactu/
 │   ├── actions_verifactu.class.php  # Hooks y acciones
 │   ├── api_verifactu.class.php      # API REST
 │   └── verifactu.utils.php          # Utilidades
+├── conf/                   # Configuración
+│   └── declaracion_responsable.conf.php  # Declaración responsable
 ├── core/
 │   ├── modules/            # Descriptor del módulo
 │   └── triggers/           # Triggers automáticos
 │       ├── interface_900_modVerifactu_BillRestrictions.class.php
 │       └── interface_999_modVerifactu_VerifactuTriggers.class.php
+├── docs/                   # Documentación
+│   └── declaracion_responsable.md  # Doc. declaración responsable
 ├── lib/
 │   ├── newfenix/           # Librería OpenAEAT Billing
 │   │   ├── src/            # Clases principales
@@ -194,6 +245,9 @@ verifactu/
 │   ├── list.facture.php    # Listado de facturas
 │   ├── query.facture.php   # Consulta AEAT
 │   ├── tabVERIFACTU.facture.php  # Pestaña VeriFactu
+│   ├── declaration.php     # Declaración responsable
+│   ├── declaration_json.php  # Export JSON declaración
+│   ├── faq.php             # Ayuda y FAQ
 │   ├── pos.facture.php     # Ticket TPV
 │   └── documentation.php   # Documentación
 ├── langs/                  # Archivos de idioma
@@ -241,6 +295,23 @@ Si aparece una pantalla en blanco al ver facturas:
 - **Dedicado**: Dedicado a mi compañero y amigo Ildefonso González Rodríguez
 
 ## Registro de Cambios
+
+### v1.0.2 (2025-12-12)
+
+#### Nuevas Funcionalidades
+- **Declaración Responsable configurable**: Añadido fichero de configuración `conf/declaracion_responsable.conf.php` que cumple con la normativa española (RD 1007/2023, Orden HAC/1177/2024):
+  - Datos del productor (NIF, dirección, contacto)
+  - Datos del sistema informático (IdSistemaInformatico, versión)
+  - Especificaciones técnicas (firma XAdES, hash SHA-256)
+  - Hash de integridad del módulo calculado dinámicamente
+  - Declaración de cumplimiento con referencias legales
+- **Exportación JSON**: Nuevo endpoint `/views/declaration_json.php` para exportar la declaración responsable en formato JSON
+- **Documentación**: Añadido `docs/declaracion_responsable.md` con guía completa de configuración
+
+#### Mejoras
+- Actualizada la página de Declaración Responsable para usar datos del fichero de configuración
+- Validación automática de campos obligatorios con mensajes de advertencia
+- Visualización del hash de integridad del módulo en la declaración
 
 ### v1.0.1 (2025-12-06)
 
