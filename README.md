@@ -234,7 +234,7 @@ Si aparece una pantalla en blanco al ver facturas:
 
 ## Información del Módulo
 
-- **Versión**: 1.4.2
+- **Versión**: 1.0.2
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
