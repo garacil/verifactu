@@ -1,323 +1,323 @@
-# VeriFactu - Módulo para Dolibarr
+# VeriFactu - Module for Dolibarr
 
-Módulo de Dolibarr para la integración con el sistema VeriFactu de la Agencia Tributaria Española (AEAT).
+Dolibarr module for integration with the VeriFactu system of the Spanish Tax Agency (AEAT).
 
-## Historia del Proyecto
+## Project History
 
-Este proyecto tiene su origen en la parte de código abierto **verifactu** desarrollado originalmente por **Alberto SuperAdmin (Alberto Luque Rivas)** de **easysoft.es** y distribuido bajo licencia **GPL v3**.
+This project originates from the open source **verifactu** code originally developed by **Alberto SuperAdmin (Alberto Luque Rivas)** from **easysoft.es** and distributed under the **GPL v3** license.
 
-### Motivación
+### Motivation
 
-El desarrollo de este fork surgió por las siguientes necesidades:
+The development of this fork arose from the following needs:
 
-1. **Facturación con VeriFactu sin dependencias problemáticas**: Se necesitaba poder facturar cumpliendo con los requisitos de VeriFactu sin tener que utilizar el módulo RD10072023 del mismo proveedor, el cual crea una dependencia que obliga a ser instalado para que VeriFactu acepte ser activado aun no existiendo ninguna dependencia real para hacerlo.
+1. **VeriFactu invoicing without problematic dependencies**: It was necessary to be able to invoice in compliance with VeriFactu requirements without having to use the RD10072023 module from the same provider, which creates a dependency that forces it to be installed for VeriFactu to accept activation even though there is no real dependency to do so.
 
-2. **Privacidad y control de datos**: Se detectó que los módulos originales RD10072023 y Verifactu (ver ficheros rd10072023.md y easysoft_controlLicencia.lib.php.md), envían información sensible al proveedor del módulo **sin conocimiento ni consentimiento explícito del usuario**. Esta práctica plantea serias preocupaciones sobre la privacidad de los datos empresariales y fiscales.
+2. **Privacy and data control**: It was detected that the original RD10072023 and Verifactu modules (see files rd10072023.md and easysoft_controlLicencia.lib.php.md), send sensitive information to the module provider **without the user's knowledge or explicit consent**. This practice raises serious concerns about the privacy of business and tax data.
 
-3. **Independencia del proveedor**: Se buscaba una solución que no requiriera sistemas de licenciamiento externos ni validaciones remotas que comprometan la autonomía del usuario.
+3. **Provider independence**: A solution was sought that did not require external licensing systems or remote validations that compromise user autonomy.
 
-### Desarrollo
+### Development
 
-Este módulo fue desarrollado partiendo de la **parte de código abierto** del módulo adquirido, el cual estaba licenciado bajo **GPL v3 (GNU General Public License versión 3)**. Sobre esta base:
+This module was developed from the **open source part** of the purchased module, which was licensed under **GPL v3 (GNU General Public License version 3)**. On this basis:
 
-- Se reorganizó y modularizó el código para mejorar su mantenibilidad
-- Se eliminaron las dependencias de sistemas externos de licenciamiento
-- Se tradujo la documentación y comentarios al inglés
-- Se creó una nueva librería interna (Sietekas\Verifactu)
-- Se eliminaron las funcionalidades que enviaban datos a servidores externos sin consentimiento al no precisar usar más el módulo RD10072023
+- The code was reorganized and modularized to improve maintainability
+- Dependencies on external licensing systems were removed
+- Documentation and comments were translated to English
+- A new internal library was created (Sietekas\Verifactu)
+- Functionalities that sent data to external servers without consent were removed as the RD10072023 module is no longer needed
 
-### Nota sobre la Licencia GPL y el Código Propietario
+### Note on GPL License and Proprietary Code
 
-Durante el análisis del código original de `verifactu_easysoft`, se detectó que **existen archivos sin header de licencia** dentro del proyecto que contienen código funcional integrado con el resto del código GPL:
+During the analysis of the original `verifactu_easysoft` code, it was detected that **there are files without license headers** within the project that contain functional code integrated with the rest of the GPL code:
 
 - `lib/functions/funciones.utilidades.php`
 - `lib/functions/funciones.certificados.php`
 - `lib/functions/funciones.conectorCertificados.php`
 
-**Sospechamos que esto podría constituir una violación de la licencia GPL**, ya que:
+**We suspect this could constitute a violation of the GPL license**, since:
 
-1. La **GPL v3 no permite mezclar código propietario con código GPL** en un mismo proyecto que se distribuye como una unidad. A diferencia de licencias permisivas como MIT o BSD, la GPL tiene un efecto "copyleft" que requiere que todo el trabajo derivado mantenga la misma licencia.
+1. **GPL v3 does not allow mixing proprietary code with GPL code** in the same project distributed as a unit. Unlike permissive licenses like MIT or BSD, the GPL has a "copyleft" effect that requires all derivative work to maintain the same license.
 
-2. Según la GPL v3, sección 5: *"You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy."*
+2. According to GPL v3, section 5: *"You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy."*
 
-3. Si el proveedor original pretende que estos archivos sin header sean código propietario mientras el resto del proyecto es GPL, estaría **violando los términos de la GPL** que él mismo eligió para el proyecto.
+3. If the original provider intends these files without headers to be proprietary code while the rest of the project is GPL, they would be **violating the terms of the GPL** they themselves chose for the project.
 
-4. Alternativamente, si es simplemente un descuido y esos archivos también son GPL (solo falta el header), entonces no hay problema legal, pero sí una mala práctica de documentación.
+4. Alternatively, if it is simply an oversight and those files are also GPL (just missing the header), then there is no legal problem, but it is poor documentation practice.
 
-**Este fork mantiene todo el código bajo GPL v3**, respetando la licencia original y los derechos de los autores originales, añadiendo la atribución correspondiente en todos los archivos.
+**This fork maintains all code under GPL v3**, respecting the original license and the rights of the original authors, adding the corresponding attribution in all files.
 
 ---
 
-## Descripción
+## Description
 
-VeriFactu es el sistema de verificación de facturas de la AEAT que permite:
+VeriFactu is the AEAT invoice verification system that allows:
 
-- Envío automático de facturas a la AEAT
-- Generación de códigos QR de verificación
-- Encadenamiento criptográfico de facturas (SHA-256)
-- Consulta del estado de facturas enviadas
-- Anulación de facturas
-- Gestión de facturas rectificativas
+- Automatic sending of invoices to AEAT
+- Generation of verification QR codes
+- Cryptographic chaining of invoices (SHA-256)
+- Query of sent invoice status
+- Invoice cancellation
+- Management of corrective invoices
 
-## Requisitos
+## Requirements
 
-- Dolibarr 13.0 o superior
-- PHP 7.4 o superior
-- Extensión PHP SOAP habilitada
-- Extensión PHP OpenSSL habilitada
-- Extensión PHP GD habilitada (para QR)
-- Certificado digital válido (FNMT o equivalente)
+- Dolibarr 13.0 or higher
+- PHP 7.4 or higher
+- PHP SOAP extension enabled
+- PHP OpenSSL extension enabled
+- PHP GD extension enabled (for QR)
+- Valid digital certificate (FNMT or equivalent)
 
-## Instalación
+## Installation
 
-1. Copiar la carpeta `verifactu` en el directorio `htdocs/custom/` de Dolibarr
-2. Acceder a **Configuración > Módulos** en Dolibarr
-3. Buscar "VeriFactu" en la lista de módulos
-4. Activar el módulo
+1. Copy the `verifactu` folder to Dolibarr's `htdocs/custom/` directory
+2. Go to **Setup > Modules** in Dolibarr
+3. Search for "VeriFactu" in the module list
+4. Activate the module
 
-## Configuración
+## Configuration
 
-### 1. Configuración General
+### 1. General Configuration
 
-Acceder a **Configuración > Módulos > VeriFactu > Configuración**
+Go to **Setup > Modules > VeriFactu > Configuration**
 
-- **Entorno**: Seleccionar Pruebas o Producción
-- **NIF Emisor**: NIF de la empresa emisora
-- **Nombre/Razón Social**: Nombre de la empresa
+- **Environment**: Select Test or Production
+- **Issuer NIF**: Company's tax ID number
+- **Name/Company Name**: Company name
 
-### 2. Certificado Digital
+### 2. Digital Certificate
 
-Acceder a **Configuración > Módulos > VeriFactu > Certificados**
+Go to **Setup > Modules > VeriFactu > Certificates**
 
-1. Subir el certificado en formato PFX/P12
-2. Introducir la contraseña del certificado
-3. Verificar que el certificado es válido
+1. Upload the certificate in PFX/P12 format
+2. Enter the certificate password
+3. Verify that the certificate is valid
 
-El certificado debe ser:
-- Certificado de persona jurídica (empresa)
-- Emitido por una CA reconocida (FNMT, etc.)
-- Vigente y no revocado
+The certificate must be:
+- Legal entity certificate (company)
+- Issued by a recognized CA (FNMT, etc.)
+- Valid and not revoked
 
-### 3. Sistema Informático
+### 3. IT System
 
-Configurar los datos del sistema de facturación:
+Configure the invoicing system data:
 
-- **NIF Desarrollador**: NIF del desarrollador del software
-- **Nombre Sistema**: Nombre del sistema de facturación
-- **ID Sistema**: Identificador único del sistema
-- **Versión**: Versión del software
+- **Developer NIF**: Software developer's tax ID
+- **System Name**: Name of the invoicing system
+- **System ID**: Unique system identifier
+- **Version**: Software version
 
-## Uso
+## Usage
 
-### Envío de Facturas
+### Sending Invoices
 
-1. Crear una factura en Dolibarr
-2. Validar la factura
-3. En la pestaña "VeriFactu" de la factura:
-   - Click en "Enviar a AEAT"
-   - Verificar el estado de la respuesta
+1. Create an invoice in Dolibarr
+2. Validate the invoice
+3. In the "VeriFactu" tab of the invoice:
+   - Click on "Send to AEAT"
+   - Verify the response status
 
-### Consulta de Facturas
+### Invoice Query
 
-1. Acceder a **Facturación > VeriFactu > Consulta AEAT**
-2. Seleccionar los filtros de búsqueda:
-   - Período de imputación (año/mes)
-   - Rango de fechas
-   - Contraparte (NIF del cliente)
-3. Click en "Consultar"
+1. Go to **Invoicing > VeriFactu > AEAT Query**
+2. Select the search filters:
+   - Imputation period (year/month)
+   - Date range
+   - Counterparty (customer's NIF)
+3. Click "Query"
 
-### Anulación de Facturas
+### Invoice Cancellation
 
-1. Acceder a la factura enviada
-2. En la pestaña "VeriFactu":
-   - Click en "Anular en AEAT"
-   - Seleccionar el tipo de anulación
-   - Confirmar la operación
+1. Access the sent invoice
+2. In the "VeriFactu" tab:
+   - Click on "Cancel in AEAT"
+   - Select the cancellation type
+   - Confirm the operation
 
-### Código QR
+### QR Code
 
-El código QR se genera automáticamente al enviar la factura y se muestra en:
-- La vista de la factura
-- El PDF de la factura (si está configurado)
-- El ticket del TPV (si está habilitado)
+The QR code is automatically generated when sending the invoice and is displayed in:
+- The invoice view
+- The invoice PDF (if configured)
+- The POS receipt (if enabled)
 
-## Tipos de Factura Soportados
+## Supported Invoice Types
 
-| Código | Descripción |
-|--------|-------------|
-| F1 | Factura completa |
-| F2 | Factura simplificada |
-| F3 | Factura sustitutiva de simplificadas |
-| R1 | Rectificativa (error fundado en derecho) |
-| R2 | Rectificativa (Art. 80.3) |
-| R3 | Rectificativa (Art. 80.4) |
-| R4 | Rectificativa (resto) |
-| R5 | Rectificativa en factura simplificada |
+| Code | Description |
+|------|-------------|
+| F1 | Full invoice |
+| F2 | Simplified invoice |
+| F3 | Substitute invoice for simplified ones |
+| R1 | Corrective (error based on law) |
+| R2 | Corrective (Art. 80.3) |
+| R3 | Corrective (Art. 80.4) |
+| R4 | Corrective (other) |
+| R5 | Corrective in simplified invoice |
 
-## Idiomas Soportados
+## Supported Languages
 
-- Español (es_ES)
-- Catalán (ca_ES)
-- Euskera (eu_ES)
-- Gallego (gl_ES)
-- Inglés (en_US)
+- Spanish (es_ES)
+- Catalan (ca_ES)
+- Basque (eu_ES)
+- Galician (gl_ES)
+- English (en_US)
 
-## Declaración Responsable
+## Responsible Declaration
 
-El módulo incluye un sistema completo de **Declaración Responsable** conforme a la normativa española vigente:
+The module includes a complete **Responsible Declaration** system in compliance with current Spanish regulations:
 
-- **RD 1007/2023** - Reglamento VeriFactu
-- **RD 254/2025** - Modificaciones y plazos
-- **Orden HAC/1177/2024** - Especificaciones técnicas
-- **Art. 29.2.j) Ley 58/2003** - Ley General Tributaria
+- **RD 1007/2023** - VeriFactu Regulation
+- **RD 254/2025** - Modifications and deadlines
+- **Order HAC/1177/2024** - Technical specifications
+- **Art. 29.2.j) Law 58/2003** - General Tax Law
 
-### Fichero de Configuración
+### Configuration File
 
-La configuración se encuentra en `conf/declaracion_responsable.conf.php` e incluye:
+The configuration is located in `conf/declaracion_responsable.conf.php` and includes:
 
-| Sección | Contenido |
-|---------|-----------|
-| **Datos del Productor** | NIF, razón social, dirección, contacto |
-| **Datos del Sistema** | Nombre, IdSistemaInformatico, versión |
-| **Componentes** | Software y hardware requerido |
-| **Especificaciones Técnicas** | Tipo de firma (XAdES), algoritmo hash (SHA-256) |
-| **Integridad** | Hash del módulo calculado dinámicamente |
-| **Cumplimiento** | Declaración según Art. 29.2.j) LGT |
-| **Suscripción** | Fecha, lugar y firmante |
+| Section | Content |
+|---------|---------|
+| **Producer Data** | NIF, company name, address, contact |
+| **System Data** | Name, IdSistemaInformatico, version |
+| **Components** | Required software and hardware |
+| **Technical Specifications** | Signature type (XAdES), hash algorithm (SHA-256) |
+| **Integrity** | Dynamically calculated module hash |
+| **Compliance** | Declaration according to Art. 29.2.j) LGT |
+| **Subscription** | Date, place and signatory |
 
-### Funciones Disponibles
+### Available Functions
 
 ```php
-// Obtener configuración completa con hash calculado
-$declaracion = obtenerDeclaracionResponsable(true);
+// Get complete configuration with calculated hash
+$declaration = obtenerDeclaracionResponsable(true);
 
-// Validar campos obligatorios
-$errores = validarDeclaracionResponsable();
+// Validate required fields
+$errors = validarDeclaracionResponsable();
 
-// Calcular hash SHA-256 del módulo
+// Calculate SHA-256 hash of the module
 $hash = calcularHashModuloVerifactu();
 
-// Exportar en formato JSON
+// Export in JSON format
 $json = exportarDeclaracionJSON();
 ```
 
-### Visualización
+### Visualization
 
-La declaración responsable está disponible en:
-- **Menú:** VeriFactu > Declaración Responsable
-- **Exportación JSON:** `/verifactu/views/declaration_json.php`
+The responsible declaration is available at:
+- **Menu:** VeriFactu > Responsible Declaration
+- **JSON Export:** `/verifactu/views/declaration_json.php`
 
-Para más detalles, consultar `docs/declaracion_responsable.md`.
+For more details, see `docs/responsible_declaration.md`.
 
-## Estructura del Módulo
+## Module Structure
 
 ```
 verifactu/
-├── admin/                  # Páginas de administración
-│   ├── setup.php           # Configuración general
-│   ├── managecertificates.php  # Gestión de certificados
-│   └── uploadcertificates.php  # Subida de certificados
-├── class/                  # Clases PHP
-│   ├── actions_verifactu.class.php  # Hooks y acciones
-│   ├── api_verifactu.class.php      # API REST
-│   └── verifactu.utils.php          # Utilidades
-├── conf/                   # Configuración
-│   └── declaracion_responsable.conf.php  # Declaración responsable
+├── admin/                  # Administration pages
+│   ├── setup.php           # General configuration
+│   ├── managecertificates.php  # Certificate management
+│   └── uploadcertificates.php  # Certificate upload
+├── class/                  # PHP classes
+│   ├── actions_verifactu.class.php  # Hooks and actions
+│   ├── api_verifactu.class.php      # REST API
+│   └── verifactu.utils.php          # Utilities
+├── conf/                   # Configuration
+│   └── declaracion_responsable.conf.php  # Responsible declaration
 ├── core/
-│   ├── modules/            # Descriptor del módulo
-│   └── triggers/           # Triggers automáticos
+│   ├── modules/            # Module descriptor
+│   └── triggers/           # Automatic triggers
 │       ├── interface_900_modVerifactu_BillRestrictions.class.php
 │       └── interface_999_modVerifactu_VerifactuTriggers.class.php
-├── docs/                   # Documentación
-│   └── declaracion_responsable.md  # Doc. declaración responsable
+├── docs/                   # Documentation
+│   └── responsible_declaration.md  # Responsible declaration doc
 ├── lib/
-│   ├── newfenix/           # Librería OpenAEAT Billing
-│   │   ├── src/            # Clases principales
-│   │   └── vendor/         # Dependencias (QRCode)
-│   └── functions/          # Funciones del módulo
-│       ├── functions.submission.php    # Envío de facturas
-│       ├── functions.query.php         # Consultas AEAT
-│       ├── functions.cancellation.php  # Anulación
-│       ├── functions.certificates.php  # Certificados
-│       ├── functions.qr.php            # Generación QR
-│       └── functions.response.php      # Respuestas AEAT
-├── views/                  # Vistas y páginas
-│   ├── list.facture.php    # Listado de facturas
-│   ├── query.facture.php   # Consulta AEAT
-│   ├── tabVERIFACTU.facture.php  # Pestaña VeriFactu
-│   ├── declaration.php     # Declaración responsable
-│   ├── declaration_json.php  # Export JSON declaración
-│   ├── faq.php             # Ayuda y FAQ
-│   ├── pos.facture.php     # Ticket TPV
-│   └── documentation.php   # Documentación
-├── langs/                  # Archivos de idioma
-├── css/                    # Estilos CSS
+│   ├── newfenix/           # OpenAEAT Billing Library
+│   │   ├── src/            # Main classes
+│   │   └── vendor/         # Dependencies (QRCode)
+│   └── functions/          # Module functions
+│       ├── functions.submission.php    # Invoice submission
+│       ├── functions.query.php         # AEAT queries
+│       ├── functions.cancellation.php  # Cancellation
+│       ├── functions.certificates.php  # Certificates
+│       ├── functions.qr.php            # QR generation
+│       └── functions.response.php      # AEAT responses
+├── views/                  # Views and pages
+│   ├── list.facture.php    # Invoice list
+│   ├── query.facture.php   # AEAT query
+│   ├── tabVERIFACTU.facture.php  # VeriFactu tab
+│   ├── declaration.php     # Responsible declaration
+│   ├── declaration_json.php  # Declaration JSON export
+│   ├── faq.php             # Help and FAQ
+│   ├── pos.facture.php     # POS receipt
+│   └── documentation.php   # Documentation
+├── langs/                  # Language files
+├── css/                    # CSS styles
 ├── js/                     # JavaScript
-└── README.md               # Este archivo
+└── README.md               # This file
 ```
 
-## API REST
+## REST API
 
-El módulo expone una API REST para integración externa:
+The module exposes a REST API for external integration:
 
 ```
 GET  /api/index.php/verifactu/integrity
 ```
 
-## Solución de Problemas
+## Troubleshooting
 
-### Error SOAP 4118
+### SOAP Error 4118
 
-Este error indica un problema con la estructura del mensaje SOAP. Verificar:
-- El formato de las fechas (DD-MM-YYYY)
-- Los datos del emisor y destinatario
-- La configuración del certificado
+This error indicates a problem with the SOAP message structure. Check:
+- Date format (DD-MM-YYYY)
+- Issuer and recipient data
+- Certificate configuration
 
-### Error de Certificado
+### Certificate Error
 
-Si el certificado no es reconocido:
-- Verificar que el certificado no ha expirado
-- Comprobar que la contraseña es correcta
-- Asegurar que el certificado es de persona jurídica
+If the certificate is not recognized:
+- Verify that the certificate has not expired
+- Check that the password is correct
+- Ensure that the certificate is for a legal entity
 
-### Pantalla en Blanco
+### Blank Screen
 
-Si aparece una pantalla en blanco al ver facturas:
-- Revisar los logs de PHP en busca de errores
-- Verificar que todas las extensiones PHP están instaladas
+If a blank screen appears when viewing invoices:
+- Check PHP logs for errors
+- Verify that all PHP extensions are installed
 
-## Información del Módulo
+## Module Information
 
-- **Versión**: 1.0.2
-- **Autor**: Germán Luis Aracil Boned
+- **Version**: 1.0.2
+- **Author**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
-- **Licencia**: GPL-3.0-or-later
-- **Dedicado**: Dedicado a mi compañero y amigo Ildefonso González Rodríguez
+- **License**: GPL-3.0-or-later
+- **Dedicated to**: My colleague and friend Ildefonso González Rodríguez
 
-## Registro de Cambios
+## Changelog
 
 ### v1.0.2 (2025-12-12)
 
-#### Nuevas Funcionalidades
-- **Declaración Responsable configurable**: Añadido fichero de configuración `conf/declaracion_responsable.conf.php` que cumple con la normativa española (RD 1007/2023, Orden HAC/1177/2024):
-  - Datos del productor (NIF, dirección, contacto)
-  - Datos del sistema informático (IdSistemaInformatico, versión)
-  - Especificaciones técnicas (firma XAdES, hash SHA-256)
-  - Hash de integridad del módulo calculado dinámicamente
-  - Declaración de cumplimiento con referencias legales
-- **Exportación JSON**: Nuevo endpoint `/views/declaration_json.php` para exportar la declaración responsable en formato JSON
-- **Documentación**: Añadido `docs/declaracion_responsable.md` con guía completa de configuración
+#### New Features
+- **Configurable Responsible Declaration**: Added configuration file `conf/declaracion_responsable.conf.php` that complies with Spanish regulations (RD 1007/2023, Order HAC/1177/2024):
+  - Producer data (NIF, address, contact)
+  - IT system data (IdSistemaInformatico, version)
+  - Technical specifications (XAdES signature, SHA-256 hash)
+  - Dynamically calculated module integrity hash
+  - Compliance declaration with legal references
+- **JSON Export**: New endpoint `/views/declaration_json.php` to export the responsible declaration in JSON format
+- **Documentation**: Added `docs/responsible_declaration.md` with complete configuration guide
 
-#### Mejoras
-- Actualizada la página de Declaración Responsable para usar datos del fichero de configuración
-- Validación automática de campos obligatorios con mensajes de advertencia
-- Visualización del hash de integridad del módulo en la declaración
+#### Improvements
+- Updated the Responsible Declaration page to use configuration file data
+- Automatic validation of required fields with warning messages
+- Display of module integrity hash in the declaration
 
 ### v1.0.1 (2025-12-06)
 
-#### Corrección de Errores
-- **Gestión de errores en validación masiva de facturas**: Corregido el problema donde las facturas con errores de VeriFactu cancelaban todo el proceso de validación por lotes. Ahora, cuando una factura falla en el envío a VeriFactu:
-  - La factura permanece como borrador con referencia PROV en lugar de ser validada y luego revertida
-  - Las demás facturas del lote continúan procesándose normalmente
-  - Mejorado el manejo de conexiones PostgreSQL para evitar errores de "conexión ya cerrada"
-  - Los mensajes de error se muestran correctamente al usuario
+#### Bug Fixes
+- **Error handling in bulk invoice validation**: Fixed the issue where invoices with VeriFactu errors cancelled the entire batch validation process. Now, when an invoice fails to send to VeriFactu:
+  - The invoice remains as draft with PROV reference instead of being validated and then reverted
+  - Other invoices in the batch continue processing normally
+  - Improved PostgreSQL connection handling to avoid "connection already closed" errors
+  - Error messages are displayed correctly to the user
