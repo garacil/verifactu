@@ -42,14 +42,14 @@ $declaracionResponsable['productor'] = array(
      * Razón social o nombre completo del productor
      * @required Obligatorio según Art. 15.1.a) Orden HAC/1177/2024
      */
-    'razon_social' => 'Germán Luis Aracil Boned',
+    'razon_social' => '7Kas Servicios de Internet SL',
 
     /**
      * NIF español del productor
      * Si no dispone de NIF español, utilizar 'nif_extranjero'
      * @required Obligatorio según Art. 15.1.b) Orden HAC/1177/2024
      */
-    'nif' => '',  // Completar con NIF válido
+    'nif' => 'B98515273',
 
     /**
      * Identificación fiscal extranjera (si aplica)
@@ -67,13 +67,13 @@ $declaracionResponsable['productor'] = array(
      */
     'direccion' => array(
         'tipo_via' => 'Calle',
-        'nombre_via' => '',
-        'numero' => '',
+        'nombre_via' => 'Columbretes',
+        'numero' => '38',
         'piso' => '',
         'puerta' => '',
-        'codigo_postal' => '',
-        'localidad' => '',
-        'provincia' => '',
+        'codigo_postal' => '12560',
+        'localidad' => 'Benicasim',
+        'provincia' => 'Castellón',
         'pais' => 'España',
         'codigo_pais' => 'ES',
     ),
@@ -83,9 +83,9 @@ $declaracionResponsable['productor'] = array(
      * @recommended Recomendado para comunicaciones de la AEAT
      */
     'contacto' => array(
-        'email' => 'garacilb@gmail.com',
+        'email' => 'info@7kas.es',
         'telefono' => '',
-        'web' => 'https://github.com/garacil/verifactu',
+        'web' => 'https://7kas.es',
     ),
 );
 
@@ -387,15 +387,15 @@ $declaracionResponsable['suscripcion'] = array(
      * Formato: YYYY-MM-DD (ISO 8601)
      * @required Obligatorio
      */
-    'fecha' => '2025-12-12',
+    'fecha' => '2025-12-19',
 
     /**
      * Lugar de suscripción
      * @required Obligatorio (localidad y país como mínimo)
      */
     'lugar' => array(
-        'localidad' => '',
-        'provincia' => '',
+        'localidad' => 'Benicasim',
+        'provincia' => 'Castellón',
         'pais' => 'España',
         'codigo_pais' => 'ES',
     ),
@@ -406,7 +406,7 @@ $declaracionResponsable['suscripcion'] = array(
     'firmante' => array(
         'nombre' => 'Germán Luis Aracil Boned',
         'cargo' => 'Desarrollador / Productor',
-        'en_representacion_de' => '',  // Si actúa en representación de una entidad
+        'en_representacion_de' => '7Kas Servicios de Internet SL',
     ),
 );
 
@@ -430,17 +430,17 @@ $declaracionResponsable['metadata'] = array(
     /**
      * Última modificación
      */
-    'ultima_modificacion' => '2025-12-12',
+    'ultima_modificacion' => '2025-12-19',
 
     /**
      * Autor de la configuración
      */
-    'autor' => 'Germán Luis Aracil Boned',
+    'autor' => '7Kas Servicios de Internet SL',
 
     /**
      * Notas de la versión
      */
-    'notas' => 'Versión inicial del fichero de configuración para declaración responsable.',
+    'notas' => 'Configuración de declaración responsable con datos de 7Kas Servicios de Internet SL como productor.',
 );
 
 /**
