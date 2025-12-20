@@ -258,13 +258,26 @@ If a blank screen appears when viewing invoices:
 
 ## Module Information
 
-- **Version**: 1.0.2
+- **Version**: 1.0.3
 - **Author**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **License**: GPL-3.0-or-later
 - **Dedicated to**: My colleague and friend Ildefonso González Rodríguez
 
 ## Changelog
+
+### v1.0.3 (2025-12-20)
+
+#### Changes
+- **Updated mandatory VeriFactu dates**: Adjusted automatic production mode transition dates from 2026 to 2027 following the Spanish government's delay announcement:
+  - Companies: January 1, 2027 (was January 1, 2026)
+  - Self-employed: July 1, 2027 (was July 1, 2026)
+- **Simplified project documentation**: Streamlined README project history section while maintaining GPL v3 attribution to original author
+
+#### Updated Files
+- `lib/functions/functions.configuration.php` - Environment switching logic
+- `admin/setup.php` - Status display dates
+- All language files (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
 ### v1.0.2 (2025-12-12)
 
