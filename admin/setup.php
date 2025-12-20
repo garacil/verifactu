@@ -192,7 +192,7 @@ if ($basicFieldsComplete) {
 	} elseif ($currentEnvironment === 'production') {
 		$item->fieldOverride = '<span class="badge badge-status4">'.$langs->trans("Production").'</span>';
 	} else {
-		$productionDate = ($conf->global->VERIFACTU_COMPANY_TYPE === 'autonomo') ? '1 julio 2026' : '1 enero 2026';
+		$productionDate = ($conf->global->VERIFACTU_COMPANY_TYPE === 'autonomo') ? '1 julio 2027' : '1 enero 2027';
 		$item->fieldOverride = '<span class="badge badge-status1">'.$langs->trans("Test").'</span> <span class="opacitymedium">('.$langs->trans("ProductionMandatoryFrom").' '.$productionDate.')</span>';
 	}
 

@@ -43,7 +43,7 @@ VERIFACTU_ENVIRONMENT = Environment (Test/Production)
 VERIFACTU_ENVIRONMENT_INFO = Environment Information
 VERIFACTU_ENVIRONMENT_TOOLTIP = Visit <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> for more information
 VERIFACTU_FORCE_PRODUCTION = Force Production
-VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ CAUTION: Enables production environment before January 1, 2026. Invoices will be sent to the real AEAT.
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ CAUTION: Enables production environment before January 1, 2027. Invoices will be sent to the real AEAT.
 VERIFACTU_CERTIFICATE = Digital Certificate
 VERIFACTU_CERTIFICATE_TOOLTIP = Digital signature certificate for VeriFactu. PEM format required; P12/PFX formats are converted automatically.
 VERIFACTU_CERTIFICATE_PASSWORD = Certificate Password
@@ -63,7 +63,7 @@ AdvancedConfig = 🔧 Advanced Configuration
 
 # Activation messages
 VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Activation Required
-VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Spanish company detected.</strong><br><br>According to <strong>Royal Decree 1007/2023</strong> and <strong>Order HAC/1177/2024</strong>, all invoicing systems must comply with VeriFactu.<br><br><strong>📅 Deadlines:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Companies:</strong> January 1, 2026</li><li><strong>Self-employed:</strong> July 1, 2026</li></ul><br><strong>You must enable and configure this module to comply with regulations.</strong><br><br><strong>With activation key:</strong> Enter it below to access configuration.<br><br><strong>Without activation key:</strong> Contact us to obtain one.
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Spanish company detected.</strong><br><br>According to <strong>Royal Decree 1007/2023</strong> and <strong>Order HAC/1177/2024</strong>, all invoicing systems must comply with VeriFactu.<br><br><strong>📅 Deadlines:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Companies:</strong> January 1, 2027</li><li><strong>Self-employed:</strong> July 1, 2027</li></ul><br><strong>You must enable and configure this module to comply with regulations.</strong><br><br><strong>With activation key:</strong> Enter it below to access configuration.<br><br><strong>Without activation key:</strong> Contact us to obtain one.
 VERIFACTU_ACTIVATION_CONTACT_INFO = Support
 VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Activation Key
 VERIFACTU_ENTER_ACTIVATION_KEY = Enter your activation key
@@ -353,7 +353,7 @@ VERIFACTU_ACCESS_DECLARATION = Access responsible declaration
 
 # Existing configurations
 VERIFACTU_COMPANY_TYPE = Company Type
-VERIFACTU_COMPANY_TYPE_HELP = Company type. Companies: production 01/01/2026. Self-employed: production 01/07/2026.
+VERIFACTU_COMPANY_TYPE_HELP = Company type. Companies: production 01/01/2027. Self-employed: production 01/07/2027.
 
 # Positions
 Left = Left

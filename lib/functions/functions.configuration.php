@@ -27,8 +27,8 @@
 /**
  * Gets the VeriFactu environment based on current date and configuration
  *
- * Until 31/12/2025 23:59:59, 'test' environment is used
- * From 01/01/2026 00:00:00, 'production' environment is used
+ * Until 31/12/2026 23:59:59, 'test' environment is used
+ * From 01/01/2027 00:00:00, 'production' environment is used
  * If VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT is enabled, always uses 'production'
  *
  * @return string 'test' or 'production'
@@ -50,17 +50,17 @@ function getEnvironment()
 
 	// Transition date to production (peninsular time)
 	if ($conf->global->VERIFACTU_COMPANY_TYPE === 'autonomo') {
-		$transitionDate = new DateTime('2026-07-01 00:00:00', $tz);
+		$transitionDate = new DateTime('2027-07-01 00:00:00', $tz);
 	} else {
-		$transitionDate = new DateTime('2026-01-01 00:00:00', $tz);
+		$transitionDate = new DateTime('2027-01-01 00:00:00', $tz);
 	}
 
-	// If current date is before January 1, 2026 (peninsular time), use test
+	// If current date is before January 1, 2027 (peninsular time), use test
 	if ($currentDate < $transitionDate) {
 		return 'test';
 	}
 
-	// From January 1, 2026 (peninsular time), use production
+	// From January 1, 2027 (peninsular time), use production
 	return 'production';
 }
 

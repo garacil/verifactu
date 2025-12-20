@@ -43,7 +43,7 @@ VERIFACTU_ENVIRONMENT = Contorno (probas/produción)
 VERIFACTU_ENVIRONMENT_INFO = Información do contorno
 VERIFACTU_ENVIRONMENT_TOOLTIP = Visite <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> para máis información
 VERIFACTU_FORCE_PRODUCTION = Forzar produción
-VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ PRECAUCIÓN: Activa o contorno de produción antes do 1 de xaneiro de 2026. As facturas enviaranse á AEAT real.
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ PRECAUCIÓN: Activa o contorno de produción antes do 1 de xaneiro de 2027. As facturas enviaranse á AEAT real.
 VERIFACTU_CERTIFICATE = Certificado dixital
 VERIFACTU_CERTIFICATE_TOOLTIP = Certificado de sinatura electrónica para VeriFactu. Formato PEM requirido; os formatos P12/PFX convértense automaticamente.
 VERIFACTU_CERTIFICATE_PASSWORD = Contrasinal do certificado
@@ -63,7 +63,7 @@ AdvancedConfig = 🔧 Configuración Avanzada
 
 # Activation messages
 VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Activación Requirida
-VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Empresa española detectada.</strong><br><br>Segundo o <strong>RD 1007/2023</strong> e a <strong>Orde HAC/1177/2024</strong>, todos os sistemas de facturación deben cumprir VeriFactu.<br><br><strong>📅 Prazos:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sociedades:</strong> 1 de xaneiro de 2026</li><li><strong>Autónomos:</strong> 1 de xullo de 2026</li></ul><br><strong>Debe habilitar e configurar este módulo para cumprir a normativa.</strong><br><br><strong>Con chave de activación:</strong> Introdúzaa abaixo para acceder á configuración.<br><br><strong>Sen chave de activación:</strong> Contacte connosco para obtela.
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Empresa española detectada.</strong><br><br>Segundo o <strong>RD 1007/2023</strong> e a <strong>Orde HAC/1177/2024</strong>, todos os sistemas de facturación deben cumprir VeriFactu.<br><br><strong>📅 Prazos:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sociedades:</strong> 1 de xaneiro de 2027</li><li><strong>Autónomos:</strong> 1 de xullo de 2027</li></ul><br><strong>Debe habilitar e configurar este módulo para cumprir a normativa.</strong><br><br><strong>Con chave de activación:</strong> Introdúzaa abaixo para acceder á configuración.<br><br><strong>Sen chave de activación:</strong> Contacte connosco para obtela.
 VERIFACTU_ACTIVATION_CONTACT_INFO = Soporte
 VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Chave de Activación
 VERIFACTU_ENTER_ACTIVATION_KEY = Introduza a súa chave de activación
@@ -353,7 +353,7 @@ VERIFACTU_ACCESS_DECLARATION = Acceder a declaración responsábel
 
 # Existing configurations
 VERIFACTU_COMPANY_TYPE = Tipo de Empresa
-VERIFACTU_COMPANY_TYPE_HELP = Tipo de empresa. Sociedades: produción 01/01/2026. Autónomos: produción 01/07/2026.
+VERIFACTU_COMPANY_TYPE_HELP = Tipo de empresa. Sociedades: produción 01/01/2027. Autónomos: produción 01/07/2027.
 
 # Positions
 Left = Esquerda

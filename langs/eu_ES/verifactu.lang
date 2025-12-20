@@ -43,7 +43,7 @@ VERIFACTU_ENVIRONMENT = Ingurunea (probak/produkzioa)
 VERIFACTU_ENVIRONMENT_INFO = Ingurunearen informazioa
 VERIFACTU_ENVIRONMENT_TOOLTIP = Bisitatu <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> informazio gehiagorako
 VERIFACTU_FORCE_PRODUCTION = Produkzioa behartu
-VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ KONTUZ: Produkzio ingurunea aktibatzen du 2026ko urtarrilaren 1a baino lehen. Fakturak benetako AEATera bidaliko dira.
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ KONTUZ: Produkzio ingurunea aktibatzen du 2027ko urtarrilaren 1a baino lehen. Fakturak benetako AEATera bidaliko dira.
 VERIFACTU_CERTIFICATE = Ziurtagiri digitala
 VERIFACTU_CERTIFICATE_TOOLTIP = VeriFactu-rako sinadura elektronikoko ziurtagiria. PEM formatua behar da; P12/PFX formatuak automatikoki bihurtzen dira.
 VERIFACTU_CERTIFICATE_PASSWORD = Ziurtagiriaren pasahitza
@@ -63,7 +63,7 @@ AdvancedConfig = 🔧 Konfigurazio Aurreratua
 
 # Activation messages
 VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Aktibazioa Beharrezkoa
-VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Espainiako enpresa detektatua.</strong><br><br><strong>1007/2023 ED</strong> eta <strong>HAC/1177/2024 Agindua</strong>ren arabera, fakturazio sistema guztiek VeriFactu bete behar dute.<br><br><strong>📅 Epeak:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sozietateak:</strong> 2026ko urtarrilaren 1a</li><li><strong>Autonomoak:</strong> 2026ko uztailaren 1a</li></ul><br><strong>Modulu hau gaitu eta konfiguratu behar duzu araudia betetzeko.</strong><br><br><strong>Aktibazio gakorik baduzu:</strong> Sartu behean konfigurazioaren sarrera lortzeko.<br><br><strong>Aktibazio gakorik gabe:</strong> Jarri gurekin harremanetan lortzeko.
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Espainiako enpresa detektatua.</strong><br><br><strong>1007/2023 ED</strong> eta <strong>HAC/1177/2024 Agindua</strong>ren arabera, fakturazio sistema guztiek VeriFactu bete behar dute.<br><br><strong>📅 Epeak:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Sozietateak:</strong> 2027ko urtarrilaren 1a</li><li><strong>Autonomoak:</strong> 2027ko uztailaren 1a</li></ul><br><strong>Modulu hau gaitu eta konfiguratu behar duzu araudia betetzeko.</strong><br><br><strong>Aktibazio gakorik baduzu:</strong> Sartu behean konfigurazioaren sarrera lortzeko.<br><br><strong>Aktibazio gakorik gabe:</strong> Jarri gurekin harremanetan lortzeko.
 VERIFACTU_ACTIVATION_CONTACT_INFO = Laguntza
 VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Aktibazio Gakoa
 VERIFACTU_ENTER_ACTIVATION_KEY = Sartu zure aktibazio gakoa
@@ -353,7 +353,7 @@ VERIFACTU_ACCESS_DECLARATION = Adierazpen arduratsu sartu
 
 # Existing configurations
 VERIFACTU_COMPANY_TYPE = Enpresa Mota
-VERIFACTU_COMPANY_TYPE_HELP = Enpresa mota. Sozietateak: produkzioa 2026/01/01. Autonomoak: produkzioa 2026/07/01.
+VERIFACTU_COMPANY_TYPE_HELP = Enpresa mota. Sozietateak: produkzioa 2027/01/01. Autonomoak: produkzioa 2027/07/01.
 
 # Positions
 Left = Ezkerra
