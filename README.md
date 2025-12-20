@@ -6,43 +6,13 @@ Dolibarr module for integration with the VeriFactu system of the Spanish Tax Age
 
 This project originates from the open source **verifactu** code originally developed by **Alberto SuperAdmin (Alberto Luque Rivas)** from **easysoft.es** and distributed under the **GPL v3** license.
 
-### Motivation
-
-The development of this fork arose from the following needs:
-
-1. **VeriFactu invoicing without problematic dependencies**: It was necessary to be able to invoice in compliance with VeriFactu requirements without having to use the RD10072023 module from the same provider, which creates a dependency that forces it to be installed for VeriFactu to accept activation even though there is no real dependency to do so.
-
-2. **Privacy and data control**: It was detected that the original RD10072023 and Verifactu modules (see files rd10072023.md and easysoft_controlLicencia.lib.php.md), send sensitive information to the module provider **without the user's knowledge or explicit consent**. This practice raises serious concerns about the privacy of business and tax data.
-
-3. **Provider independence**: A solution was sought that did not require external licensing systems or remote validations that compromise user autonomy.
-
 ### Development
 
-This module was developed from the **open source part** of the purchased module, which was licensed under **GPL v3 (GNU General Public License version 3)**. On this basis:
+This module was developed from the original module licensed under **GPL v3 (GNU General Public License version 3)**. On this basis:
 
 - The code was reorganized and modularized to improve maintainability
-- Dependencies on external licensing systems were removed
 - Documentation and comments were translated to English
-- A new internal library was created (Sietekas\Verifactu)
-- Functionalities that sent data to external servers without consent were removed as the RD10072023 module is no longer needed
-
-### Note on GPL License and Proprietary Code
-
-During the analysis of the original `verifactu_easysoft` code, it was detected that **there are files without license headers** within the project that contain functional code integrated with the rest of the GPL code:
-
-- `lib/functions/funciones.utilidades.php`
-- `lib/functions/funciones.certificados.php`
-- `lib/functions/funciones.conectorCertificados.php`
-
-**We suspect this could constitute a violation of the GPL license**, since:
-
-1. **GPL v3 does not allow mixing proprietary code with GPL code** in the same project distributed as a unit. Unlike permissive licenses like MIT or BSD, the GPL has a "copyleft" effect that requires all derivative work to maintain the same license.
-
-2. According to GPL v3, section 5: *"You must license the entire work, as a whole, under this License to anyone who comes into possession of a copy."*
-
-3. If the original provider intends these files without headers to be proprietary code while the rest of the project is GPL, they would be **violating the terms of the GPL** they themselves chose for the project.
-
-4. Alternatively, if it is simply an oversight and those files are also GPL (just missing the header), then there is no legal problem, but it is poor documentation practice.
+- A new internal library was created (OpenAEAT\Billing)
 
 **This fork maintains all code under GPL v3**, respecting the original license and the rights of the original authors, adding the corresponding attribution in all files.
 
