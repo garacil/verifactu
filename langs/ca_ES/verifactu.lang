@@ -43,7 +43,7 @@ VERIFACTU_ENVIRONMENT = Entorn (proves/producció)
 VERIFACTU_ENVIRONMENT_INFO = Informació de l'entorn
 VERIFACTU_ENVIRONMENT_TOOLTIP = Visiteu <a target="_blank" href="https://preportal.aeat.es/">preportal.aeat.es</a> per a més informació
 VERIFACTU_FORCE_PRODUCTION = Forçar producció
-VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ PRECAUCIÓ: Activa l'entorn de producció abans de l'1 de gener de 2026. Les factures s'enviaran a l'AEAT real.
+VERIFACTU_FORCE_PRODUCTION_TOOLTIP = ⚠️ PRECAUCIÓ: Activa l'entorn de producció abans de l'1 de gener de 2027. Les factures s'enviaran a l'AEAT real.
 VERIFACTU_CERTIFICATE = Certificat digital
 VERIFACTU_CERTIFICATE_TOOLTIP = Certificat de signatura electrònica per a VeriFactu. Format PEM requerit; els formats P12/PFX es converteixen automàticament.
 VERIFACTU_CERTIFICATE_PASSWORD = Contrasenya del certificat
@@ -63,7 +63,7 @@ AdvancedConfig = 🔧 Configuració Avançada
 
 # Activation messages
 VERIFACTU_ACTIVATION_REQUIRED_TITLE = 🚀 Activació Requerida
-VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Empresa espanyola detectada.</strong><br><br>Segons el <strong>RD 1007/2023</strong> i l'<strong>Ordre HAC/1177/2024</strong>, tots els sistemes de facturació han de complir VeriFactu.<br><br><strong>📅 Terminis:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Societats:</strong> 1 de gener de 2026</li><li><strong>Autònoms:</strong> 1 de juliol de 2026</li></ul><br><strong>Heu d'habilitar i configurar aquest mòdul per complir la normativa.</strong><br><br><strong>Amb clau d'activació:</strong> Introduïu-la a sota per accedir a la configuració.<br><br><strong>Sense clau d'activació:</strong> Contacteu amb nosaltres per obtenir-la.
+VERIFACTU_ACTIVATION_REQUIRED_MESSAGE = <strong>Empresa espanyola detectada.</strong><br><br>Segons el <strong>RD 1007/2023</strong> i l'<strong>Ordre HAC/1177/2024</strong>, tots els sistemes de facturació han de complir VeriFactu.<br><br><strong>📅 Terminis:</strong><ul style="text-align: left; margin: 15px 0;"><li><strong>Societats:</strong> 1 de gener de 2027</li><li><strong>Autònoms:</strong> 1 de juliol de 2027</li></ul><br><strong>Heu d'habilitar i configurar aquest mòdul per complir la normativa.</strong><br><br><strong>Amb clau d'activació:</strong> Introduïu-la a sota per accedir a la configuració.<br><br><strong>Sense clau d'activació:</strong> Contacteu amb nosaltres per obtenir-la.
 VERIFACTU_ACTIVATION_CONTACT_INFO = Suport
 VERIFACTU_ACTIVATION_KEY_LABEL = 🔑 Clau d'Activació
 VERIFACTU_ENTER_ACTIVATION_KEY = Introduïu la vostra clau d'activació
@@ -353,7 +353,7 @@ VERIFACTU_ACCESS_DECLARATION = Accedir a declaració responsable
 
 # Existing configurations
 VERIFACTU_COMPANY_TYPE = Tipus d'Empresa
-VERIFACTU_COMPANY_TYPE_HELP = Tipus d'empresa. Societats: producció 01/01/2026. Autònoms: producció 01/07/2026.
+VERIFACTU_COMPANY_TYPE_HELP = Tipus d'empresa. Societats: producció 01/01/2027. Autònoms: producció 01/07/2027.
 
 # Positions
 Left = Esquerra
