@@ -1,6 +1,6 @@
 # VeriFactu - Module for Dolibarr
 
-Dolibarr module for integration with the VeriFactu system of the Spanish Tax Agency (AEAT).
+Dolibarr module for integration with the VeriFactu system of the Spanish Tax Agency (AEAT), in compliance with **Law 11/2021** (Anti-Fraud Law) and **Royal Decree 1007/2023** which establishes the technical requirements for invoicing systems in Spain.
 
 ## Project History
 
