@@ -281,14 +281,6 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 	$invoice->setDescription($description);
 	$invoice->setType($facture->array_options['options_verifactu_factura_tipo'] ?? VerifactuInvoice::TYPE_STANDARD);
 
-	// Set withholding tax (IRPF/Retención) if present
-	// In Dolibarr, IRPF is stored in total_localtax2 (usually as negative value)
-	if (!empty($facture->total_localtax2)) {
-		$withholdingAmount = abs(floatval($facture->total_localtax2));
-		$invoice->setWithholdingTax($withholdingAmount);
-		dol_syslog("VERIFACTU: Withholding tax (IRPF) set: " . $withholdingAmount, LOG_INFO);
-	}
-
 	// Set VeriFactu incidence flag (default 'N' - no incidence)
 	$incidence = $facture->array_options['options_verifactu_incidencia'] ?? 'N';
 	$invoice->setIncidence($incidence);

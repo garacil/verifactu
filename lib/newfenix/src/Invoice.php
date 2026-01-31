@@ -162,12 +162,6 @@ class Invoice
     ];
 
     /**
-     * Withholding tax amount (IRPF/Retención)
-     * This amount is subtracted from ImporteTotal
-     */
-    private float $withholdingTax = 0.0;
-
-    /**
      * Constructs a new invoice document.
      *
      * @param string $serial Document serial number
@@ -867,29 +861,6 @@ class Invoice
     }
 
     /**
-     * Sets withholding tax amount (IRPF/Retención).
-     * This amount will be subtracted from ImporteTotal.
-     *
-     * @param float $amount Withholding tax amount (positive value)
-     * @return self
-     */
-    public function setWithholdingTax(float $amount): self
-    {
-        $this->withholdingTax = abs($amount);
-        return $this;
-    }
-
-    /**
-     * Gets withholding tax amount.
-     *
-     * @return float
-     */
-    public function getWithholdingTax(): float
-    {
-        return $this->withholdingTax;
-    }
-
-    /**
      * Sets timestamp for hash generation.
      *
      * @param string $timestamp Timestamp or empty for current
@@ -980,7 +951,6 @@ class Invoice
 
     /**
      * Computes and updates document totals.
-     * Withholding tax (IRPF) is subtracted from ImporteTotal.
      */
     private function computeTotals(): void
     {
@@ -996,10 +966,6 @@ class Invoice
 
         $combinedTax = $totalTax + $totalSurcharge;
         $grandTotal = $totalBase + $combinedTax;
-
-        // Subtract withholding tax (IRPF/Retención) from grand total
-        // IRPF is stored as positive value, so we subtract it
-        $grandTotal -= $this->withholdingTax;
 
         $this->payload['CuotaTotal'] = number_format($combinedTax, 2, '.', '');
         $this->payload['ImporteTotal'] = number_format($grandTotal, 2, '.', '');
@@ -1024,15 +990,11 @@ class Invoice
             $totalSurcharge += (float) ($entry['CuotaRecargoEquivalencia'] ?? 0);
         }
 
-        // Calculate grand total with withholding tax subtracted
-        $grandTotal = $totalBase + $totalTax + $totalSurcharge - $this->withholdingTax;
-
         return [
             'base' => $totalBase,
             'tax' => $totalTax,
             'surcharge' => $totalSurcharge,
-            'withholding' => $this->withholdingTax,
-            'total' => $grandTotal,
+            'total' => $totalBase + $totalTax + $totalSurcharge,
         ];
     }
 
