@@ -122,6 +122,11 @@ $massaction = GETPOST('massaction', 'alpha');
 $show_files = GETPOST('show_files', 'int');
 $confirm = GETPOST('confirm', 'alpha');
 $toselect = array_unique(GETPOST('toselect', 'array'));
+// Support for verifactu_toselect (used in confirmation dialog)
+$verifactuToselect = GETPOST('verifactu_toselect', 'alpha');
+if (!empty($verifactuToselect) && empty($toselect)) {
+	$toselect = array_filter(explode(',', $verifactuToselect), function($v) { return $v !== ''; });
+}
 $contextpage = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'invoicelistverifactu';
 
 if ($contextpage == 'poslist') {
@@ -1265,9 +1270,7 @@ if ($resql) {
 	include DOL_DOCUMENT_ROOT . '/core/tpl/massactions_pre.tpl.php';
 
 	if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && count($toselect) > 0  && $confirm != 'no') {
-		// Filter out already sent invoices when action is 'Alta'
-		$filteredToselect = $toselect;
-		$skippedInvoices = array();
+		// Filter out already sent invoices when action is 'Alta' (silently skip them)
 		if (GETPOST('EXECUTEVERIFACTU') == 'Alta') {
 			$filteredToselect = array();
 			foreach ($toselect as $invoiceId) {
@@ -1275,33 +1278,21 @@ if ($resql) {
 				if ($tmpInvoice->fetch($invoiceId) > 0) {
 					$estado = $tmpInvoice->array_options['options_verifactu_estado'] ?? '';
 					// Check if already sent (status contains "Enviada" but not "No Enviada")
-					if (!empty($estado) && strpos($estado, 'Enviada') !== false && strpos($estado, 'No Enviada') === false) {
-						$skippedInvoices[] = $tmpInvoice->ref;
-					} else {
+					if (empty($estado) || strpos($estado, 'Enviada') === false || strpos($estado, 'No Enviada') !== false) {
 						$filteredToselect[] = $invoiceId;
 					}
 				}
 			}
-			// Show message about skipped invoices
-			if (count($skippedInvoices) > 0) {
-				setEventMessages($langs->trans('VERIFACTU_INVOICES_ALREADY_SENT_SKIPPED', implode(', ', $skippedInvoices)), null, 'warnings');
-			}
+			$toselect = $filteredToselect;
 		}
-		$toselect = $filteredToselect;
 
 		// Only show confirmation if there are invoices to process
-		if (count($toselect) == 0) {
-			setEventMessages($langs->trans('VERIFACTU_NO_INVOICES_TO_SEND'), null, 'warnings');
-		} else {
+		if (count($toselect) > 0) {
 			$formquestion = array(
 				array('type' => 'hidden', 'name' => 'EXECUTEVERIFACTU', 'value' => GETPOST('EXECUTEVERIFACTU')),
+				array('type' => 'hidden', 'name' => 'verifactu_toselect', 'value' => implode(',', $toselect)),
 				array('type' => 'other',  'value' => $langs->trans('NUMBER_INVOICES_SELECTED', count($toselect))),
 			);
-
-			// Add selected invoice IDs as hidden fields
-			foreach ($toselect as $id) {
-				$formquestion[] = array('type' => 'hidden', 'name' => 'toselect[]', 'value' => $id);
-			}
 
 			// If cancellation operation, add cancellation type selector
 			if (GETPOST('EXECUTEVERIFACTU') == 'Baja') {
