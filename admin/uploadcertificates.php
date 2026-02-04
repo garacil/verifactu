@@ -103,6 +103,14 @@ if (GETPOST('sendit', 'alpha')) {
 				$oldCertificado = $conf->global->VERIFACTU_CERTIFICATE ?? '';
 				dolibarr_set_const($db, 'VERIFACTU_CERTIFICATE', $filename, 'chaine', 0, '', $conf->entity);
 
+				// Delete existing PEM files to force regeneration from new certificate
+				$certBaseName = pathinfo($filename, PATHINFO_FILENAME);
+				$certificatesDir = $conf->verifactu->multidir_output[$conf->entity] . "/certificates";
+				$deletedPemFiles = deleteExistingPemFiles($certificatesDir, $certBaseName);
+				if ($deletedPemFiles > 0) {
+					dol_syslog("VERIFACTU: Deleted $deletedPemFiles old PEM files before processing new certificate: $filename", LOG_INFO);
+				}
+
 				try {
 					// Use lib function to prepare certificate
 					$certInfo = prepareCertificateForVerifactu();

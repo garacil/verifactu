@@ -154,6 +154,52 @@ $item->helpText = $langs->transnoentities('VERIFACTU_CERTIFICATE_HELP');
 $item = $formSetup->newItem('VERIFACTU_CERTIFICATE_KEY');
 $item->helpText = $langs->transnoentities('VERIFACTU_CERTIFICATE_KEY_HELP');
 
+// Certificate expiration date information (read-only)
+if (!empty($conf->global->VERIFACTU_CERTIFICATE)) {
+	$item = $formSetup->newItem('VERIFACTU_CERTIFICATE_EXPIRATION');
+
+	$certificatesDir = $conf->verifactu->multidir_output[$conf->entity] . "/certificates";
+	$certFile = $conf->global->VERIFACTU_CERTIFICATE;
+	$certPath = $certificatesDir . '/' . $certFile;
+
+	$expirationInfo = '';
+	if (file_exists($certPath)) {
+		$certContent = file_get_contents($certPath);
+		$certResource = @openssl_x509_read($certContent);
+
+		if ($certResource) {
+			$certInfo = openssl_x509_parse($certResource);
+			$validTo = isset($certInfo['validTo_time_t']) ? $certInfo['validTo_time_t'] : 0;
+			$now = time();
+
+			if ($validTo > 0) {
+				$validToDate = date('d/m/Y H:i:s', $validTo);
+				$daysRemaining = floor(($validTo - $now) / 86400);
+
+				if ($validTo < $now) {
+					// Certificate expired
+					$expirationInfo = '<span class="badge badge-status8">'.$langs->trans("CertificateExpired").'</span> '.$validToDate;
+				} elseif ($daysRemaining < 30) {
+					// Expiring soon (less than 30 days)
+					$expirationInfo = '<span class="badge badge-status1">'.$langs->trans("CertificateExpiresSoon").'</span> '.$validToDate.' ('.$daysRemaining.' '.$langs->trans("DaysRemaining").')';
+				} else {
+					// Valid
+					$expirationInfo = '<span class="badge badge-status4">'.$langs->trans("CertificateValid").'</span> '.$validToDate.' ('.$daysRemaining.' '.$langs->trans("DaysRemaining").')';
+				}
+			} else {
+				$expirationInfo = '<span class="opacitymedium">'.$langs->trans("CertificateExpirationUnreadable").'</span>';
+			}
+			openssl_x509_free($certResource);
+		} else {
+			$expirationInfo = '<span class="opacitymedium">'.$langs->trans("CertificateUnreadable").'</span>';
+		}
+	} else {
+		$expirationInfo = '<span class="badge badge-status8">'.$langs->trans("CertificateFileNotFound").'</span>';
+	}
+
+	$item->fieldOverride = $expirationInfo;
+}
+
 // Check if basic fields are complete
 $basicFieldsComplete = false;
 if (
