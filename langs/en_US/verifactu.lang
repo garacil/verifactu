@@ -540,6 +540,16 @@ VERIFACTU_CERT_CONFIGURED = Certificate Configured
 VERIFACTU_CERT_READY = System ready to sign and send to VeriFactu
 VERIFACTU_CERT_ERROR = Certificate Error
 
+# Certificate expiration
+VERIFACTU_CERTIFICATE_EXPIRATION = Certificate expiration
+CertificateExpired = Expired
+CertificateExpiresSoon = Expires soon
+CertificateValid = Valid
+DaysRemaining = days remaining
+CertificateExpirationUnreadable = Could not read expiration date
+CertificateUnreadable = Could not read certificate
+CertificateFileNotFound = Certificate file not found
+
 # Already sent invoice
 VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Invoice already sent successfully. Can only send Cancellation to void it.
 VERIFACTU_ALREADY_SENT_TOOLTIP = Invoice already sent to VeriFactu
