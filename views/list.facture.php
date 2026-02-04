@@ -1265,44 +1265,77 @@ if ($resql) {
 	include DOL_DOCUMENT_ROOT . '/core/tpl/massactions_pre.tpl.php';
 
 	if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && count($toselect) > 0  && $confirm != 'no') {
-		$formquestion = array(
-			array('type' => 'hidden', 'name' => 'EXECUTEVERIFACTU', 'value' => GETPOST('EXECUTEVERIFACTU')),
-			array('type' => 'other',  'value' => $langs->trans('NUMBER_INVOICES_SELECTED', count($toselect))),
-
-		);
-
-		// If cancellation operation, add cancellation type selector
-		if (GETPOST('EXECUTEVERIFACTU') == 'Baja') {
-			$tiposAnulacion = array(
-				'normal' => $langs->trans('VERIFACTU_ANULACION_NORMAL'),
-				'rechazo_previo' => $langs->trans('VERIFACTU_ANULACION_RECHAZO_PREVIO'),
-				'sin_registro_previo' => $langs->trans('VERIFACTU_ANULACION_SIN_REGISTRO_PREVIO')
-			);
-
-			// Add information about each cancellation type
-			$infoAnulacion = '<div style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border: 1px solid #cce7ff; border-radius: 5px;">';
-			$infoAnulacion .= '<strong>' . $langs->trans('VERIFACTU_TIPO_ANULACION') . ':</strong><br>';
-			$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_NORMAL') . '<br>';
-			$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_RECHAZO_PREVIO') . '<br>';
-			$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_SIN_REGISTRO_PREVIO');
-			$infoAnulacion .= '</div>';
-
-			$formquestion[] = array(
-				'type' => 'select',
-				'name' => 'tipo_anulacion',
-				'label' => $langs->trans('VERIFACTU_TIPO_ANULACION'),
-				'values' => $tiposAnulacion,
-				'default' => 'normal'
-			);
-
-			$formquestion[] = array(
-				'type' => 'other',
-				'value' => $infoAnulacion
-			);
+		// Filter out already sent invoices when action is 'Alta'
+		$filteredToselect = $toselect;
+		$skippedInvoices = array();
+		if (GETPOST('EXECUTEVERIFACTU') == 'Alta') {
+			$filteredToselect = array();
+			foreach ($toselect as $invoiceId) {
+				$tmpInvoice = new Facture($db);
+				if ($tmpInvoice->fetch($invoiceId) > 0) {
+					$estado = $tmpInvoice->array_options['options_verifactu_estado'] ?? '';
+					// Check if already sent (status contains "Enviada" but not "No Enviada")
+					if (!empty($estado) && strpos($estado, 'Enviada') !== false && strpos($estado, 'No Enviada') === false) {
+						$skippedInvoices[] = $tmpInvoice->ref;
+					} else {
+						$filteredToselect[] = $invoiceId;
+					}
+				}
+			}
+			// Show message about skipped invoices
+			if (count($skippedInvoices) > 0) {
+				setEventMessages($langs->trans('VERIFACTU_INVOICES_ALREADY_SENT_SKIPPED', implode(', ', $skippedInvoices)), null, 'warnings');
+			}
 		}
+		$toselect = $filteredToselect;
 
-		$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('CONFIRM_SEND_TO_AEAT_TITLE'), $langs->trans('CONFIRM_SEND_TO_AEAT_MESSAGE'), 'confirm_EXECUTEVERIFACTU', $formquestion, 'yes', 1, 250, 600);
-		print $formconfirm;
+		// Only show confirmation if there are invoices to process
+		if (count($toselect) == 0) {
+			setEventMessages($langs->trans('VERIFACTU_NO_INVOICES_TO_SEND'), null, 'warnings');
+		} else {
+			$formquestion = array(
+				array('type' => 'hidden', 'name' => 'EXECUTEVERIFACTU', 'value' => GETPOST('EXECUTEVERIFACTU')),
+				array('type' => 'other',  'value' => $langs->trans('NUMBER_INVOICES_SELECTED', count($toselect))),
+			);
+
+			// Add selected invoice IDs as hidden fields
+			foreach ($toselect as $id) {
+				$formquestion[] = array('type' => 'hidden', 'name' => 'toselect[]', 'value' => $id);
+			}
+
+			// If cancellation operation, add cancellation type selector
+			if (GETPOST('EXECUTEVERIFACTU') == 'Baja') {
+				$tiposAnulacion = array(
+					'normal' => $langs->trans('VERIFACTU_ANULACION_NORMAL'),
+					'rechazo_previo' => $langs->trans('VERIFACTU_ANULACION_RECHAZO_PREVIO'),
+					'sin_registro_previo' => $langs->trans('VERIFACTU_ANULACION_SIN_REGISTRO_PREVIO')
+				);
+
+				// Add information about each cancellation type
+				$infoAnulacion = '<div style="margin-top: 10px; padding: 10px; background-color: #f0f8ff; border: 1px solid #cce7ff; border-radius: 5px;">';
+				$infoAnulacion .= '<strong>' . $langs->trans('VERIFACTU_TIPO_ANULACION') . ':</strong><br>';
+				$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_NORMAL') . '<br>';
+				$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_RECHAZO_PREVIO') . '<br>';
+				$infoAnulacion .= '• ' . $langs->trans('VERIFACTU_INFO_ANULACION_SIN_REGISTRO_PREVIO');
+				$infoAnulacion .= '</div>';
+
+				$formquestion[] = array(
+					'type' => 'select',
+					'name' => 'tipo_anulacion',
+					'label' => $langs->trans('VERIFACTU_TIPO_ANULACION'),
+					'values' => $tiposAnulacion,
+					'default' => 'normal'
+				);
+
+				$formquestion[] = array(
+					'type' => 'other',
+					'value' => $infoAnulacion
+				);
+			}
+
+			$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('CONFIRM_SEND_TO_AEAT_TITLE'), $langs->trans('CONFIRM_SEND_TO_AEAT_MESSAGE'), 'confirm_EXECUTEVERIFACTU', $formquestion, 'yes', 1, 250, 600);
+			print $formconfirm;
+		}
 	}
 
 

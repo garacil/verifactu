@@ -552,6 +552,8 @@ CertificateFileNotFound = Certificate file not found
 
 # Already sent invoice
 VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Invoice already sent successfully. Can only send Cancellation to void it.
+VERIFACTU_INVOICES_ALREADY_SENT_SKIPPED = The following invoices are already sent and have been skipped: %s
+VERIFACTU_NO_INVOICES_TO_SEND = No invoices pending to send. All selected invoices are already sent.
 VERIFACTU_ALREADY_SENT_TOOLTIP = Invoice already sent to VeriFactu
 VERIFACTU_BUTTON_VERIFY_STATUS = Verify Status in AEAT
 

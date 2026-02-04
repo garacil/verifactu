@@ -552,6 +552,8 @@ CertificateFileNotFound = Archivo de certificado no encontrado
 
 # Invoice already sent
 VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Factura ya enviada correctamente. Solo puede enviar una Baja para anularla.
+VERIFACTU_INVOICES_ALREADY_SENT_SKIPPED = Las siguientes facturas ya están enviadas y se han omitido: %s
+VERIFACTU_NO_INVOICES_TO_SEND = No hay facturas pendientes de enviar. Todas las facturas seleccionadas ya están enviadas.
 VERIFACTU_ALREADY_SENT_TOOLTIP = Factura ya enviada a VeriFactu
 VERIFACTU_BUTTON_VERIFY_STATUS = Verificar Estado en AEAT
 
