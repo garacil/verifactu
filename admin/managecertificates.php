@@ -109,6 +109,13 @@ if ($action == 'upload_certificate') {
 				// Save PFX file to certificates directory
 				$destPath = $certDir . '/' . $originalName;
 				if (move_uploaded_file($tmpFile, $destPath)) {
+					// Delete existing PEM files to force regeneration from new certificate
+					$certBaseName = pathinfo($originalName, PATHINFO_FILENAME);
+					$deletedPemFiles = deleteExistingPemFiles($certDir, $certBaseName);
+					if ($deletedPemFiles > 0) {
+						dol_syslog("VERIFACTU: Deleted $deletedPemFiles old PEM files before processing new certificate: $originalName", LOG_INFO);
+					}
+
 					// Process certificate to validate it is correct
 					$result = extractAndSendPublicKey($destPath, $cert_password);
 					if ($result['success']) {

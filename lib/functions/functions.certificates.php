@@ -102,6 +102,42 @@ function prepararCertificadoLocal(
 }
 
 /**
+ * Deletes existing PEM files related to a P12/PFX certificate.
+ * This ensures that when a new certificate is uploaded, old PEM files are removed
+ * and the system will regenerate them from the new certificate.
+ *
+ * @param string $certificatesDir Directory where certificates are stored
+ * @param string $certBaseName Base name of the certificate (without extension)
+ * @return int Number of files deleted
+ */
+function deleteExistingPemFiles(string $certificatesDir, string $certBaseName): int
+{
+	$deletedCount = 0;
+
+	// Patterns for PEM files that might be generated from a P12/PFX
+	$pemPatterns = [
+		$certBaseName . '_bundle.pem',
+		$certBaseName . '_bundle_protegido.pem',
+		$certBaseName . '_cert.pem',
+		$certBaseName . '_key.pem',
+	];
+
+	foreach ($pemPatterns as $pemFilename) {
+		$pemPath = $certificatesDir . DIRECTORY_SEPARATOR . $pemFilename;
+		if (file_exists($pemPath)) {
+			if (@unlink($pemPath)) {
+				dol_syslog("VERIFACTU: Deleted old PEM file: $pemPath", LOG_INFO);
+				$deletedCount++;
+			} else {
+				dol_syslog("VERIFACTU: Failed to delete PEM file: $pemPath", LOG_WARNING);
+			}
+		}
+	}
+
+	return $deletedCount;
+}
+
+/**
  * Extracts the private key from a PFX/P12 certificate using external OpenSSL
  * Useful when PHP OpenSSL functions fail due to configuration issues
  *

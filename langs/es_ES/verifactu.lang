@@ -540,6 +540,16 @@ VERIFACTU_CERT_CONFIGURED = Certificado Configurado
 VERIFACTU_CERT_READY = Sistema listo para firmar y enviar a VeriFactu
 VERIFACTU_CERT_ERROR = Error de Certificado
 
+# Certificate expiration
+VERIFACTU_CERTIFICATE_EXPIRATION = Caducidad del certificado
+CertificateExpired = Caducado
+CertificateExpiresSoon = Caduca pronto
+CertificateValid = Válido
+DaysRemaining = días restantes
+CertificateExpirationUnreadable = No se pudo leer la fecha de caducidad
+CertificateUnreadable = No se pudo leer el certificado
+CertificateFileNotFound = Archivo de certificado no encontrado
+
 # Invoice already sent
 VERIFACTU_INVOICE_ALREADY_SENT_CORRECTLY = Factura ya enviada correctamente. Solo puede enviar una Baja para anularla.
 VERIFACTU_ALREADY_SENT_TOOLTIP = Factura ya enviada a VeriFactu
