@@ -96,8 +96,9 @@ use Sietekas\Verifactu\QRGenerator;
 
 /*
  * COMPATIBILITY FUNCTIONS (functions.compatibility.php):
- * - getInvoiceTotalHT($invoice)     : Gets total HT compatible with Dolibarr v13+
- * - getInvoiceTotalTVA($invoice)    : Gets total VAT compatible with Dolibarr v13+
+ * - getInvoiceTotalHT($invoice)          : Gets total HT compatible with Dolibarr v13+
+ * - getInvoiceTotalTVA($invoice)         : Gets total VAT compatible with Dolibarr v13+
+ * - getVerifactuImporteTotal($invoice)   : Gets ImporteTotal for AEAT (excludes IRPF retention)
  *
  * CONFIGURATION FUNCTIONS (functions.configuration.php):
  * - getEnvironment()                          : Gets environment (test/production)
