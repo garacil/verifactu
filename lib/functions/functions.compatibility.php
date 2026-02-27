@@ -55,3 +55,29 @@ function getInvoiceTotalTVA($invoice)
 	// Dolibarr v14+: use 'total_tva'
 	return isset($invoice->total_tva) ? $invoice->total_tva : 0;
 }
+
+/**
+ * Gets the ImporteTotal for Verifactu/AEAT contexts from a Dolibarr invoice.
+ *
+ * Verifactu's ImporteTotal = Base + IVA + Equivalence Surcharge (NO IRPF retention).
+ * Dolibarr's total_ttc includes IRPF deduction (total_localtax2 is negative),
+ * so we must add back the absolute value of localtax2 to get the AEAT-compatible total.
+ *
+ * Formula: total_ttc + abs(total_localtax2)
+ *
+ * When there is no IRPF (total_localtax2 = 0 or null), returns total_ttc unchanged.
+ * For credit notes (negative amounts), returns the result as-is (negative);
+ * callers should apply abs() if needed for AEAT submission.
+ *
+ * @param object $invoice Invoice object (Facture)
+ * @return float ImporteTotal amount compatible with Verifactu/AEAT
+ */
+function getVerifactuImporteTotal($invoice)
+{
+	$totalTtc = isset($invoice->total_ttc) ? (float) $invoice->total_ttc : 0.0;
+	$localtax2 = isset($invoice->total_localtax2) ? (float) $invoice->total_localtax2 : 0.0;
+
+	// total_localtax2 is negative for IRPF retention in Dolibarr.
+	// Adding abs() reverses the deduction, yielding: base + IVA + surcharge.
+	return $totalTtc + abs($localtax2);
+}

@@ -573,7 +573,7 @@ function compareInvoiceAmounts($facture, $aeatInvoice, $tolerance = 0.01)
  */
 function compararImportesFactura($facture, $facturaAEAT, $tolerancia = 0.01)
 {
-	$dolibarrAmount = (float) $facture->total_ttc;
+	$dolibarrAmount = getVerifactuImporteTotal($facture);
 	$aeatAmount = extraerImporteTotalAEAT($facturaAEAT);
 
 	if ($aeatAmount === null) {
@@ -637,7 +637,7 @@ function preCheckInvoiceInAEAT($facture)
 		return array(
 			'exists' => false,
 			'amounts_match' => false,
-			'importe_dolibarr' => (float) $facture->total_ttc,
+			'importe_dolibarr' => getVerifactuImporteTotal($facture),
 			'importe_aeat' => null,
 			'huella' => null
 		);

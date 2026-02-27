@@ -44,7 +44,7 @@ function getQrImage(Facture $facture, $size = 300, $margin = 0)
 		$conf->global->VERIFACTU_HOLDER_NIF,
 		$facture->ref,
 		date('d-m-Y', $facture->date),
-		($facture->total_ttc + abs($facture->total_localtax2)),
+		getVerifactuImporteTotal($facture),
 		(getEnvironment() === "test"),
 	);
 	$image = QRGenerator::generateBase64QR($url, $size, $margin);
@@ -71,7 +71,7 @@ function getQrBase64(Facture $facture, $size = 300, $margin = 0)
 		$conf->global->VERIFACTU_HOLDER_NIF,
 		$facture->ref,
 		date('d-m-Y', $facture->date),
-		$facture->total_ttc,
+		getVerifactuImporteTotal($facture),
 		(getEnvironment() === "test"),
 	);
 	return QRGenerator::generateBase64QR($url, $size, $margin);
@@ -91,7 +91,7 @@ function getQRUrl(Facture $facture)
 		$conf->global->VERIFACTU_HOLDER_NIF,
 		$facture->ref,
 		date('d-m-Y', $facture->date),
-		$facture->total_ttc,
+		getVerifactuImporteTotal($facture),
 		(getEnvironment() === "test"),
 	);
 }
