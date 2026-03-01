@@ -664,3 +664,9 @@ VERIFACTU_FAQ_RESEND_DESC = 1) Fix customer configuration. 2) Open the invoice. 
 VERIFACTU_FAQ_ERROR_CODES = AEAT Error Codes
 VERIFACTU_FAQ_ERROR_CODES_DESC = Error codes are official from the Spanish Tax Agency.
 VERIFACTU_FAQ_ERROR_CODES_LINK = View official AEAT error list
+
+# Mass validation
+VERIFACTU_MASS_VALIDATE_INFO = The VeriFactu module handles mass validation with independent transactions per invoice to prevent inconsistencies with AEAT.
+VERIFACTU_MASS_VALIDATE_PARTIAL = %s invoices validated successfully, %s had errors. Successful invoices are not affected by errors in others.
+VERIFACTU_MASS_VALIDATE_FETCH_ERROR = Could not load invoice with ID %s
+VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = Invoice %s cannot be validated from its current status

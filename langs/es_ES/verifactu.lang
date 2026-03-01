@@ -664,3 +664,9 @@ VERIFACTU_FAQ_RESEND_DESC = 1) Corrija la configuración del cliente. 2) Abra la
 VERIFACTU_FAQ_ERROR_CODES = Códigos de Error de la AEAT
 VERIFACTU_FAQ_ERROR_CODES_DESC = Los códigos de error son oficiales de la Agencia Tributaria.
 VERIFACTU_FAQ_ERROR_CODES_LINK = Ver listado oficial de errores AEAT
+
+# Mass validation
+VERIFACTU_MASS_VALIDATE_INFO = El módulo VeriFactu gestiona la validación masiva con transacciones independientes por factura para evitar inconsistencias con la AEAT.
+VERIFACTU_MASS_VALIDATE_PARTIAL = Se validaron %s facturas correctamente, %s tuvieron errores. Las facturas correctas no se ven afectadas por los errores de otras.
+VERIFACTU_MASS_VALIDATE_FETCH_ERROR = No se pudo cargar la factura con ID %s
+VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = La factura %s no puede validarse desde su estado actual

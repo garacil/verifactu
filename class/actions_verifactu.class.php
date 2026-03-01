@@ -135,7 +135,87 @@ class ActionsVerifactu
 
 		$error = 0; // Error counter
 
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
+		// =====================================================================
+		// MASS VALIDATE INTERCEPTION
+		// Dolibarr core wraps all invoices in a single transaction during mass
+		// validation. If any invoice fails (e.g. VeriFactu error), ALL invoices
+		// are rolled back - including those already sent to AEAT.
+		// We intercept this action and validate each invoice in its own
+		// independent transaction, so a failure in one does not affect the rest.
+		// =====================================================================
+		if (array_intersect(['invoicelist', 'invoicelistverifactu'], explode(':', $parameters['context']))) {
+			$massaction = GETPOST('massaction', 'alpha');
+			$confirmmassaction = GETPOST('confirmmassaction', 'alpha');
+			$toselect = GETPOST('toselect', 'array');
+
+			if ($massaction == 'validate' && !empty($confirmmassaction) && !empty($toselect) && $user->hasRight('facture', 'creer')) {
+
+				// Replicate Dolibarr's pre-check: block if stock is calculated on bill validation
+				if (isModEnabled('stock') && getDolGlobalString('STOCK_CALCULATE_ON_BILL')) {
+					$langs->load("errors");
+					setEventMessages($langs->trans('ErrorMassValidationNotAllowedWhenStockIncreaseOnAction'), null, 'errors');
+					return 1; // Block standard code, do nothing
+				}
+
+				$nbok = 0;
+				$nberrors = 0;
+				$errorDetails = array();
+
+				foreach ($toselect as $toselectid) {
+					$objecttmp = new Facture($this->db);
+					$result = $objecttmp->fetch($toselectid);
+
+					if ($result <= 0) {
+						$nberrors++;
+						$errorDetails[] = $langs->trans('VERIFACTU_MASS_VALIDATE_FETCH_ERROR', $toselectid);
+						continue;
+					}
+
+					// Individual transaction per invoice
+					$this->db->begin();
+
+					if (method_exists($objecttmp, 'validate')) {
+						$result = $objecttmp->validate($user);
+					} elseif (method_exists($objecttmp, 'setValid')) {
+						$result = $objecttmp->setValid($user);
+					} else {
+						$result = -1;
+					}
+
+					if ($result > 0) {
+						$this->db->commit();
+						$nbok++;
+					} elseif ($result == 0) {
+						// Already validated or cannot be validated from current status
+						$this->db->rollback();
+						$nberrors++;
+						$errorDetails[] = $langs->trans('VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED', $objecttmp->ref);
+					} else {
+						// Error during validation (VeriFactu failure, data error, etc.)
+						$this->db->rollback();
+						$nberrors++;
+						$errorMsg = !empty($objecttmp->error) ? $objecttmp->error : implode(', ', $objecttmp->errors);
+						$errorDetails[] = $objecttmp->ref . ': ' . $errorMsg;
+					}
+				}
+
+				// Summary messages
+				if ($nbok > 0) {
+					setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				}
+				if ($nbok > 0 && $nberrors > 0) {
+					setEventMessages($langs->trans('VERIFACTU_MASS_VALIDATE_PARTIAL', $nbok, $nberrors), null, 'warnings');
+				}
+				if (!empty($errorDetails)) {
+					setEventMessages(null, $errorDetails, 'errors');
+				}
+
+				// Info: VeriFactu handles mass validation with individual transactions
+				setEventMessages($langs->trans('VERIFACTU_MASS_VALIDATE_INFO'), null, 'mesgs');
+
+				return 1; // Block standard mass action code (single-transaction pattern)
+			}
+		}
 
 		if (array_intersect(['invoicecard'], explode(':', $parameters['context']))) {
 
