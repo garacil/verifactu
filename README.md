@@ -325,6 +325,10 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 - **Orden cronológico de fechas en validación individual**: Al validar una factura individual (PROV), la fecha se ajusta a `max(hoy, última_factura_validada)` en vez de solo a `hoy`. Si la fecha se ajustó, se muestra un aviso en el diálogo de confirmación.
 
+- **Envío masivo desde lista de facturas**: Corregido el problema por el que al confirmar el envío masivo desde la lista de facturas no se transmitían los IDs seleccionados (el diálogo `formconfirm` no soporta arrays). Se usa ahora un campo oculto `verifactu_toselect` con IDs separados por comas. Las facturas ya enviadas se filtran automáticamente.
+
+- **Archivos PEM al renovar certificado**: Al subir un nuevo certificado P12/PFX, los archivos PEM antiguos no se eliminaban, provocando que el sistema siguiera usando el certificado anterior (potencialmente expirado). Añadida función `deleteExistingPemFiles()` que limpia los PEM antes de procesar el nuevo certificado. Añadida visualización de la fecha de expiración del certificado con indicadores de color (expirado/próximo a expirar/válido).
+
 #### Nuevas Funcionalidades
 
 - **Caché local de esquemas WSDL/XSD**: Nueva clase `SchemaManager` que descarga los 7 archivos de esquema (1 WSDL + 5 XSD de AEAT + 1 XSD de W3C) localmente y reescribe las referencias `schemaLocation` para eliminar dependencias externas. Esto previene errores de rate-limiting de w3.org al procesar muchas facturas. Los esquemas se descargan automáticamente en el primer uso y pueden actualizarse desde la página de configuración.
@@ -339,7 +343,11 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 - `lib/newfenix/src/SoapClient.php` - Uso de WSDL local con fallback remoto
 - `lib/newfenix/src/Config.php` - Propiedad `localWsdlPath`
 - `lib/newfenix/src/Manager.php` - Integración `setSchemasDir()`
-- `admin/setup.php` - Sección estado de esquemas con botón de descarga
+- `admin/setup.php` - Sección estado de esquemas con botón de descarga + expiración de certificado
+- `admin/managecertificates.php` - Limpieza de PEM al subir nuevo certificado
+- `admin/uploadcertificates.php` - Limpieza de PEM al subir nuevo certificado
+- `lib/functions/functions.certificates.php` - Nueva función `deleteExistingPemFiles()`
+- `views/list.facture.php` - Corrección transmisión IDs en envío masivo
 - Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
 #### Tests
@@ -353,10 +361,12 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
   - Sociedades: 1 de enero de 2027 (antes 1 de enero de 2026)
   - Autónomos: 1 de julio de 2027 (antes 1 de julio de 2026)
 - **Documentación del proyecto simplificada**: Simplificada la sección de historia del proyecto en el README manteniendo la atribución GPL v3 al autor original
+- **Declaración responsable actualizada**: Configurados los datos del productor con la información de 7Kas Servicios de Internet SL (CIF B98515273, Benicasim, Castellón)
 
 #### Archivos Actualizados
 - `lib/functions/functions.configuration.php` - Lógica de cambio de entorno
 - `admin/setup.php` - Fechas de visualización de estado
+- `conf/declaracion_responsable.conf.php` - Datos del productor 7Kas Servicios de Internet SL
 - Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
 ### v1.0.2 (2025-12-12)
