@@ -1269,6 +1269,42 @@ if ($resql) {
 	$trackid = 'inv' . $object->id;
 	include DOL_DOCUMENT_ROOT . '/core/tpl/massactions_pre.tpl.php';
 
+	// VeriFactu: Date adjustment confirmation dialog
+	// Shown when mass validate detects invoices with dates before the last validated invoice
+	if ($action == 'verifactu_confirm_date_adjust' && !empty($hookmanager->resArray['verifactu_date_conflict'])) {
+		$conflictCount = $hookmanager->resArray['verifactu_date_conflict_count'];
+		$conflictMinDate = $hookmanager->resArray['verifactu_date_conflict_min_date'];
+		$conflictLastRef = $hookmanager->resArray['verifactu_date_conflict_last_ref'];
+		$conflictToselect = $hookmanager->resArray['verifactu_date_conflict_toselect'];
+
+		$dateFormatted = dol_print_date($conflictMinDate, 'day');
+
+		$formquestion = array(
+			array(
+				'type' => 'other',
+				'value' => '<input type="hidden" name="massaction" value="validate">'
+					. '<input type="hidden" name="confirmmassaction" value="yes">'
+					. '<input type="hidden" name="verifactu_date_confirm" value="yes">'
+					. '<input type="hidden" name="verifactu_toselect" value="' . dol_escape_htmltag($conflictToselect) . '">'
+			),
+		);
+
+		$confirmMessage = $langs->trans('VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG', $conflictCount, $dateFormatted, $conflictLastRef);
+
+		$formconfirm = $form->formconfirm(
+			$_SERVER["PHP_SELF"],
+			$langs->trans('VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE'),
+			$confirmMessage,
+			'verifactu_confirm_date_adjust',
+			$formquestion,
+			'yes',
+			1,
+			300,
+			600
+		);
+		print $formconfirm;
+	}
+
 	if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && count($toselect) > 0  && $confirm != 'no') {
 		// Filter out already sent invoices when action is 'Alta' (silently skip them)
 		if (GETPOST('EXECUTEVERIFACTU') == 'Alta') {

@@ -60,6 +60,11 @@ class Manager
     ];
 
     /**
+     * Schemas directory for local WSDL/XSD cache
+     */
+    private ?string $schemasDir = null;
+
+    /**
      * Operation audit trail
      */
     private array $auditTrail = [
@@ -113,6 +118,17 @@ class Manager
             $settings->setService($this->runtimeConfig['service']);
             $settings->setCertType($this->runtimeConfig['authMode']);
             $settings->setCertOptions($credentials);
+
+            // Use local WSDL schemas if available
+            if ($this->schemasDir !== null) {
+                $schemaManager = new SchemaManager($this->schemasDir);
+                if (!$schemaManager->schemasExist()) {
+                    $schemaManager->downloadSchemas();
+                }
+                if ($schemaManager->schemasExist()) {
+                    $settings->setLocalWsdlPath($schemaManager->getLocalWsdlPath());
+                }
+            }
 
             $this->transport = new SoapClient($settings);
         }
@@ -420,6 +436,18 @@ class Manager
     public function setSystemMetadata(array $metadata): self
     {
         $this->systemMetadata = $metadata;
+        return $this;
+    }
+
+    /**
+     * Sets the schemas directory for local WSDL/XSD caching.
+     *
+     * @param string $dir Absolute path to schemas directory
+     * @return self
+     */
+    public function setSchemasDir(string $dir): self
+    {
+        $this->schemasDir = $dir;
         return $this;
     }
 

@@ -124,14 +124,11 @@ class modVerifactu extends DolibarrModules
 			'hooks' => array(
 				'main',
 				'invoicecard',
+				'invoicelist',
+				'invoicelistverifactu',
 				'pdfgeneration',
 				'takeposfrontend',
 				'odtgeneration'
-				//   'data' => array(
-				//       'hookcontext1',
-				//       'hookcontext2',
-				//   ),
-				//   'entity' => '0',
 			),
 			// Set this to 1 if features of module are opened to external users
 			'moduleforexternal' => 0,

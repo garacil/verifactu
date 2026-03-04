@@ -192,9 +192,24 @@ class SoapClient
     private function buildTransport(string $endpoint): \SoapClient
     {
         $options = $this->assembleTransportOptions();
-        $client = new \SoapClient(self::SCHEMA_LOCATION, $options);
+        $wsdlLocation = $this->resolveWsdlLocation();
+        $client = new \SoapClient($wsdlLocation, $options);
         $client->__setLocation($endpoint);
         return $client;
+    }
+
+    /**
+     * Resolves the WSDL location: local cached file if available, remote URL otherwise.
+     *
+     * @return string WSDL path or URL
+     */
+    private function resolveWsdlLocation(): string
+    {
+        $localPath = $this->settings->getLocalWsdlPath();
+        if ($localPath !== null && file_exists($localPath)) {
+            return $localPath;
+        }
+        return self::SCHEMA_LOCATION;
     }
 
     /**
@@ -204,12 +219,18 @@ class SoapClient
      */
     private function assembleTransportOptions(): array
     {
+        // Use disk cache when local schemas are available, otherwise no cache
+        $localPath = $this->settings->getLocalWsdlPath();
+        $cachePolicy = ($localPath !== null && file_exists($localPath))
+            ? WSDL_CACHE_DISK
+            : self::TRANSPORT_SETTINGS['cache_policy'];
+
         $base = [
             'soap_version' => self::TRANSPORT_SETTINGS['version'],
             'encoding' => self::TRANSPORT_SETTINGS['encoding'],
             'trace' => self::TRANSPORT_SETTINGS['trace_enabled'],
             'exceptions' => self::TRANSPORT_SETTINGS['exception_handling'],
-            'cache_wsdl' => self::TRANSPORT_SETTINGS['cache_policy'],
+            'cache_wsdl' => $cachePolicy,
             'stream_context' => $this->createSecurityContext(),
         ];
 

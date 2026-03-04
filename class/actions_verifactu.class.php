@@ -135,7 +135,194 @@ class ActionsVerifactu
 
 		$error = 0; // Error counter
 
-		/* print_r($parameters); print_r($object); echo "action: " . $action; */
+		// =====================================================================
+		// MASS VALIDATE INTERCEPTION
+		// Dolibarr core wraps all invoices in a single transaction during mass
+		// validation. If any invoice fails (e.g. VeriFactu error), ALL invoices
+		// are rolled back - including those already sent to AEAT.
+		// We intercept this action and validate each invoice in its own
+		// independent transaction, so a failure in one does not affect the rest.
+		//
+		// Additionally, we enforce chronological date ordering:
+		// - Invoices are sorted by date ASC before processing
+		// - If any invoice has a date earlier than the last validated invoice,
+		//   the user is prompted for confirmation before adjusting dates
+		// =====================================================================
+		if (array_intersect(['invoicelist', 'invoicelistverifactu'], explode(':', $parameters['context']))) {
+			$massaction = GETPOST('massaction', 'alpha');
+			$confirmmassaction = GETPOST('confirmmassaction', 'alpha');
+			$toselect = GETPOST('toselect', 'array');
+			// Support for verifactu_toselect (used in confirmation dialog)
+			$verifactuToselect = GETPOST('verifactu_toselect', 'alpha');
+			if (!empty($verifactuToselect) && empty($toselect)) {
+				$toselect = array_filter(explode(',', $verifactuToselect), function ($v) {
+					return $v !== '';
+				});
+			}
+
+			if ($massaction == 'validate' && !empty($confirmmassaction) && !empty($toselect) && $user->hasRight('facture', 'creer')) {
+
+				// Replicate Dolibarr's pre-check: block if stock is calculated on bill validation
+				if (isModEnabled('stock') && getDolGlobalString('STOCK_CALCULATE_ON_BILL')) {
+					$langs->load("errors");
+					setEventMessages($langs->trans('ErrorMassValidationNotAllowedWhenStockIncreaseOnAction'), null, 'errors');
+					return 1; // Block standard code, do nothing
+				}
+
+				// =============================================================
+				// PHASE 1: Fetch invoices, sort by date, detect date conflicts
+				// =============================================================
+				$invoices = array();
+				$fetchErrors = array();
+
+				foreach ($toselect as $toselectid) {
+					$objecttmp = new Facture($this->db);
+					$result = $objecttmp->fetch($toselectid);
+					if ($result > 0) {
+						$invoices[] = $objecttmp;
+					} else {
+						$fetchErrors[] = $langs->trans('VERIFACTU_MASS_VALIDATE_FETCH_ERROR', $toselectid);
+					}
+				}
+
+				// Sort invoices by date ASC (menor a mayor)
+				usort($invoices, function ($a, $b) {
+					if ($a->date == $b->date) {
+						return $a->id - $b->id; // Secondary sort by ID
+					}
+					return $a->date - $b->date;
+				});
+
+				// Get last validated invoice date from VeriFactu chain
+				$lastInvoiceData = getLastInvoiceHash();
+				$lastValidatedDate = null;
+				if ($lastInvoiceData && !empty($lastInvoiceData['fecha'])) {
+					// Parse dd-mm-yyyy format
+					$parts = explode('-', $lastInvoiceData['fecha']);
+					if (count($parts) === 3) {
+						$lastValidatedDate = dol_mktime(0, 0, 0, (int) $parts[1], (int) $parts[0], (int) $parts[2]);
+					}
+				}
+
+				// Count invoices that need date adjustment
+				$needsAdjustment = 0;
+				$adjustmentMinDate = $lastValidatedDate;
+				if ($lastValidatedDate) {
+					foreach ($invoices as $inv) {
+						$invDateOnly = dol_mktime(0, 0, 0, (int) date('m', $inv->date), (int) date('d', $inv->date), (int) date('Y', $inv->date));
+						if ($invDateOnly < $lastValidatedDate) {
+							$needsAdjustment++;
+						}
+					}
+				}
+
+				// =============================================================
+				// PHASE 2: If date conflicts exist, ask for confirmation
+				// =============================================================
+				$verifactuDateConfirm = GETPOST('verifactu_date_confirm', 'alpha');
+
+				if ($needsAdjustment > 0 && empty($verifactuDateConfirm)) {
+					// Store conflict data so the view can show a confirmation dialog
+					$this->results['verifactu_date_conflict'] = true;
+					$this->results['verifactu_date_conflict_count'] = $needsAdjustment;
+					$this->results['verifactu_date_conflict_min_date'] = $adjustmentMinDate;
+					$this->results['verifactu_date_conflict_last_ref'] = $lastInvoiceData['numero'] ?? '';
+					$this->results['verifactu_date_conflict_toselect'] = implode(',', $toselect);
+
+					// Set action to trigger confirmation dialog in view
+					$action = 'verifactu_confirm_date_adjust';
+
+					if (!empty($fetchErrors)) {
+						setEventMessages(null, $fetchErrors, 'errors');
+					}
+
+					return 1; // Block standard code, wait for user confirmation
+				}
+
+				// =============================================================
+				// PHASE 3: Process validation with individual transactions
+				// Sort by date ASC, adjust dates as needed
+				// =============================================================
+				$nbok = 0;
+				$nberrors = 0;
+				$errorDetails = array();
+				$adjustedCount = 0;
+				// Rolling minimum date: starts from last validated, advances as we process
+				$rollingMinDate = $lastValidatedDate;
+
+				foreach ($fetchErrors as $fe) {
+					$nberrors++;
+					$errorDetails[] = $fe;
+				}
+
+				foreach ($invoices as $objecttmp) {
+					// Check if date adjustment is needed
+					if ($rollingMinDate) {
+						$invDateOnly = dol_mktime(0, 0, 0, (int) date('m', $objecttmp->date), (int) date('d', $objecttmp->date), (int) date('Y', $objecttmp->date));
+						if ($invDateOnly < $rollingMinDate) {
+							// Adjust invoice date to the rolling minimum date
+							$objecttmp->date = $rollingMinDate;
+							$objecttmp->setValueFrom('datef', $this->db->idate($rollingMinDate));
+							$adjustedCount++;
+						}
+					}
+
+					// Individual transaction per invoice
+					$this->db->begin();
+
+					// Force validation date = invoice date (VeriFactu requirement)
+					$conf->global->FAC_FORCE_DATE_VALIDATION = true;
+
+					if (method_exists($objecttmp, 'validate')) {
+						$result = $objecttmp->validate($user);
+					} elseif (method_exists($objecttmp, 'setValid')) {
+						$result = $objecttmp->setValid($user);
+					} else {
+						$result = -1;
+					}
+
+					if ($result > 0) {
+						$this->db->commit();
+						$nbok++;
+						// Update rolling minimum date to the max of current
+						$invDate = dol_mktime(0, 0, 0, (int) date('m', $objecttmp->date), (int) date('d', $objecttmp->date), (int) date('Y', $objecttmp->date));
+						if ($invDate > $rollingMinDate || $rollingMinDate === null) {
+							$rollingMinDate = $invDate;
+						}
+					} elseif ($result == 0) {
+						// Already validated or cannot be validated from current status
+						$this->db->rollback();
+						$nberrors++;
+						$errorDetails[] = $langs->trans('VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED', $objecttmp->ref);
+					} else {
+						// Error during validation (VeriFactu failure, data error, etc.)
+						$this->db->rollback();
+						$nberrors++;
+						$errorMsg = !empty($objecttmp->error) ? $objecttmp->error : implode(', ', $objecttmp->errors);
+						$errorDetails[] = $objecttmp->ref . ': ' . $errorMsg;
+					}
+				}
+
+				// Summary messages
+				if ($nbok > 0) {
+					setEventMessages($langs->trans("RecordsModified", $nbok), null, 'mesgs');
+				}
+				if ($adjustedCount > 0) {
+					setEventMessages($langs->trans('VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED', $adjustedCount), null, 'warnings');
+				}
+				if ($nbok > 0 && $nberrors > 0) {
+					setEventMessages($langs->trans('VERIFACTU_MASS_VALIDATE_PARTIAL', $nbok, $nberrors), null, 'warnings');
+				}
+				if (!empty($errorDetails)) {
+					setEventMessages(null, $errorDetails, 'errors');
+				}
+
+				// Info: VeriFactu handles mass validation with individual transactions
+				setEventMessages($langs->trans('VERIFACTU_MASS_VALIDATE_INFO'), null, 'mesgs');
+
+				return 1; // Block standard mass action code (single-transaction pattern)
+			}
+		}
 
 		if (array_intersect(['invoicecard'], explode(':', $parameters['context']))) {
 
@@ -143,8 +330,37 @@ class ActionsVerifactu
 			$conf->global->FAC_FORCE_DATE_VALIDATION = false;
 			if ($action == 'valid'  && strpos($object->ref, 'PROV') !== false) {
 				$conf->global->FAC_FORCE_DATE_VALIDATION = true;
-				$object->date = dol_now();
-				$object->setValueFrom('datef', $this->db->idate($object->date));
+
+				// Determine the minimum allowed date: max(today, last validated invoice date)
+				$today = dol_now();
+				$todayDateOnly = dol_mktime(0, 0, 0, (int) date('m', $today), (int) date('d', $today), (int) date('Y', $today));
+				$minAllowedDate = $todayDateOnly;
+
+				$lastInvoiceData = getLastInvoiceHash();
+				$lastValidatedDate = null;
+				if ($lastInvoiceData && !empty($lastInvoiceData['fecha'])) {
+					$parts = explode('-', $lastInvoiceData['fecha']);
+					if (count($parts) === 3) {
+						$lastValidatedDate = dol_mktime(0, 0, 0, (int) $parts[1], (int) $parts[0], (int) $parts[2]);
+						if ($lastValidatedDate > $minAllowedDate) {
+							$minAllowedDate = $lastValidatedDate;
+						}
+					}
+				}
+
+				// Track if date was adjusted for the confirmation message
+				$originalDate = $object->date;
+				$dateWasAdjusted = false;
+				$adjustedFromDate = null;
+
+				$originalDateOnly = dol_mktime(0, 0, 0, (int) date('m', $originalDate), (int) date('d', $originalDate), (int) date('Y', $originalDate));
+				if ($originalDateOnly != $minAllowedDate) {
+					$dateWasAdjusted = true;
+					$adjustedFromDate = $originalDateOnly;
+				}
+
+				$object->date = $minAllowedDate;
+				$object->setValueFrom('datef', $this->db->idate($minAllowedDate));
 			}
 
 			// Override validation confirmation translation for customer invoices
@@ -157,12 +373,20 @@ class ActionsVerifactu
 					$objectref = substr($object->ref, 1, 4);
 					if ($objectref == 'PROV') {
 						$numref = $object->getNextNumRef($object->thirdparty);
-						// $object->date=$savdate;
 					} else {
 						$numref = $object->ref;
 					}
 					$confirmTranslation = $langs->transnoentitiesnoconv("ConfirmValidateBillVerifactu", $numref);
 					if (!empty($confirmTranslation) && $confirmTranslation != "ConfirmValidateBillVerifactu") {
+						// Add date adjustment warning if applicable
+						if (!empty($dateWasAdjusted)) {
+							$confirmTranslation .= '<br><br>' . $langs->trans(
+								'VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED',
+								dol_print_date($adjustedFromDate, 'day'),
+								dol_print_date($minAllowedDate, 'day'),
+								!empty($lastInvoiceData['numero']) ? $lastInvoiceData['numero'] : ''
+							);
+						}
 						$langs->tab_translate["ConfirmValidateBill"] = $confirmTranslation;
 					}
 				}

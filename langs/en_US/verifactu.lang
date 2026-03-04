@@ -664,3 +664,21 @@ VERIFACTU_FAQ_RESEND_DESC = 1) Fix customer configuration. 2) Open the invoice. 
 VERIFACTU_FAQ_ERROR_CODES = AEAT Error Codes
 VERIFACTU_FAQ_ERROR_CODES_DESC = Error codes are official from the Spanish Tax Agency.
 VERIFACTU_FAQ_ERROR_CODES_LINK = View official AEAT error list
+
+# Mass validation
+VERIFACTU_MASS_VALIDATE_INFO = The VeriFactu module handles mass validation with independent transactions per invoice to prevent inconsistencies with AEAT.
+VERIFACTU_MASS_VALIDATE_PARTIAL = %s invoices validated successfully, %s had errors. Successful invoices are not affected by errors in others.
+VERIFACTU_MASS_VALIDATE_FETCH_ERROR = Could not load invoice with ID %s
+VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = Invoice %s cannot be validated from its current status
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE = Date adjustment required
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG = <b>%s invoice(s)</b> have a date before <b>%s</b> (last validated invoice: %s).<br><br>Dates will be automatically adjusted to the minimum necessary to comply with the chronological order required by VeriFactu.<br><br>Do you want to proceed with the validation?
+VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = Date adjusted for %s invoice(s) to comply with VeriFactu chronological order.
+VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Date adjustment:</strong> The original invoice date (<strong>%s</strong>) has been adjusted to <strong>%s</strong> to comply with VeriFactu chronological order (last validated invoice: %s).
+VERIFACTU_SCHEMAS_TITLE = WSDL/XSD Schemas
+VERIFACTU_SCHEMAS_STATUS = Schema status
+VERIFACTU_SCHEMAS_DOWNLOADED = Downloaded
+VERIFACTU_SCHEMAS_NOT_DOWNLOADED = Not downloaded
+VERIFACTU_SCHEMAS_LAST_DOWNLOAD = Last download
+VERIFACTU_SCHEMAS_DOWNLOAD_BUTTON = Download/Update schemas
+VERIFACTU_SCHEMAS_DOWNLOAD_SUCCESS = Schemas downloaded successfully (%s files)
+VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Error downloading schemas: %s

@@ -104,6 +104,7 @@ function execVERIFACTUQuery($filtroConsulta)
 			$systemConfig,
 			$certType
 		);
+		$manager->setSchemasDir($conf->verifactu->multidir_output[$conf->entity] . '/schemas');
 
 		// Build query object
 		$query = buildQueryFromFilter($filtroConsulta, $issuerNif, $issuerName);
