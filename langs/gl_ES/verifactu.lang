@@ -564,3 +564,11 @@ VERIFACTU_HELP_MENU_HELP = Guía de axuda e preguntas frecuentes sobre VeriFactu
 # Setup Menu
 VERIFACTU_SETUP = Configuración
 VERIFACTU_SETUP_MENU_HELP = Configuración do módulo VeriFactu
+VERIFACTU_SCHEMAS_TITLE = Esquemas WSDL/XSD
+VERIFACTU_SCHEMAS_STATUS = Estado de los esquemas
+VERIFACTU_SCHEMAS_DOWNLOADED = Descargados
+VERIFACTU_SCHEMAS_NOT_DOWNLOADED = No descargados
+VERIFACTU_SCHEMAS_LAST_DOWNLOAD = Última descarga
+VERIFACTU_SCHEMAS_DOWNLOAD_BUTTON = Descargar/Actualizar esquemas
+VERIFACTU_SCHEMAS_DOWNLOAD_SUCCESS = Esquemas descargados correctamente (%s archivos)
+VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Error al descargar esquemas: %s

@@ -30,6 +30,7 @@ require_once __DIR__ . '/src/SoapClient.php';
 require_once __DIR__ . '/src/Invoice.php';
 require_once __DIR__ . '/src/Cancellation.php';
 require_once __DIR__ . '/src/Query.php';
+require_once __DIR__ . '/src/SchemaManager.php';
 require_once __DIR__ . '/src/Manager.php';
 require_once __DIR__ . '/src/QRGenerator.php';
 

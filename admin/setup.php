@@ -439,6 +439,17 @@ if ($action == 'updateMask') {
 	} else {
 		setEventMessages('Error al cambiar el entorno', null, 'errors');
 	}
+} elseif ($action == 'downloadschemas') {
+	// Download/update WSDL and XSD schemas locally
+	require_once __DIR__ . '/../lib/newfenix/autoload.php';
+	$schemasDir = $conf->verifactu->multidir_output[$conf->entity] . '/schemas';
+	$schemaManager = new \OpenAEAT\Billing\SchemaManager($schemasDir);
+	$result = $schemaManager->downloadSchemas(true);
+	if ($result['success']) {
+		setEventMessages($langs->trans('VERIFACTU_SCHEMAS_DOWNLOAD_SUCCESS', $result['count']), null, 'mesgs');
+	} else {
+		setEventMessages($langs->trans('VERIFACTU_SCHEMAS_DOWNLOAD_ERROR', $result['error']), null, 'errors');
+	}
 } elseif ($action == 'specimen') {
 	$modele = GETPOST('module', 'alpha');
 	$tmpobjectkey = GETPOST('object');
@@ -589,6 +600,36 @@ if ($basicFieldsComplete) {
 } else {
 	print '<span class="badge badge-status8">'.$langs->trans("Incomplete").'</span>';
 }
+print '</td>';
+print '</tr>';
+print '</table>';
+print '</div>';
+print '<br>';
+
+// Schema status section
+require_once __DIR__ . '/../lib/newfenix/autoload.php';
+$schemasDir = $conf->verifactu->multidir_output[$conf->entity] . '/schemas';
+$schemaManager = new \OpenAEAT\Billing\SchemaManager($schemasDir);
+$schemasDownloaded = $schemaManager->schemasExist();
+$schemasMeta = $schemaManager->getDownloadMetadata();
+
+print '<div class="div-table-responsive-no-min">';
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td colspan="2">'.$langs->trans("VERIFACTU_SCHEMAS_TITLE").'</td>';
+print '</tr>';
+print '<tr class="oddeven">';
+print '<td width="50%">'.$langs->trans("VERIFACTU_SCHEMAS_STATUS").'</td>';
+print '<td>';
+if ($schemasDownloaded) {
+	print '<span class="badge badge-status4">'.$langs->trans("VERIFACTU_SCHEMAS_DOWNLOADED").'</span>';
+	if ($schemasMeta && !empty($schemasMeta['downloaded_at'])) {
+		print ' <span class="opacitymedium">('.$langs->trans("VERIFACTU_SCHEMAS_LAST_DOWNLOAD").': '.$schemasMeta['downloaded_at'].')</span>';
+	}
+} else {
+	print '<span class="badge badge-status8">'.$langs->trans("VERIFACTU_SCHEMAS_NOT_DOWNLOADED").'</span>';
+}
+print ' <a class="butAction" href="'.$_SERVER["PHP_SELF"].'?action=downloadschemas&token='.newToken().'">'.$langs->trans("VERIFACTU_SCHEMAS_DOWNLOAD_BUTTON").'</a>';
 print '</td>';
 print '</tr>';
 print '</table>';

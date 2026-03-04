@@ -170,6 +170,7 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta')
 			$systemConfig,
 			$certType
 		);
+		$manager->setSchemasDir($conf->verifactu->multidir_output[$conf->entity] . '/schemas');
 
 		$response = false;
 		switch ($actionVERIFACTU) {

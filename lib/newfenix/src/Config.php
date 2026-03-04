@@ -124,6 +124,11 @@ class Config
     private ?array $softwareIdentity = null;
 
     /**
+     * Local WSDL file path (for cached schemas)
+     */
+    private ?string $localWsdlPath = null;
+
+    /**
      * Initializes configuration with default or specified values.
      *
      * @param string $runtime Runtime environment
@@ -252,6 +257,28 @@ class Config
             'softwareId' => $identifier,
         ];
         return $this;
+    }
+
+    /**
+     * Sets the local WSDL file path for cached schemas.
+     *
+     * @param string $path Absolute path to local WSDL file
+     * @return self
+     */
+    public function setLocalWsdlPath(string $path): self
+    {
+        $this->localWsdlPath = $path;
+        return $this;
+    }
+
+    /**
+     * Returns the local WSDL file path, or null if not set.
+     *
+     * @return string|null Local WSDL path
+     */
+    public function getLocalWsdlPath(): ?string
+    {
+        return $this->localWsdlPath;
     }
 
     /**
@@ -462,6 +489,7 @@ class Config
             'options' => [],
         ];
         $this->softwareIdentity = null;
+        $this->localWsdlPath = null;
         return $this;
     }
 }
