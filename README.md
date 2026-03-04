@@ -1,306 +1,386 @@
-# VeriFactu - Module for Dolibarr
+# VeriFactu - Modulo para Dolibarr
 
-Dolibarr module for integration with the VeriFactu system of the Spanish Tax Agency (AEAT), in compliance with **Law 11/2021** (Anti-Fraud Law) and **Royal Decree 1007/2023** which establishes the technical requirements for invoicing systems in Spain.
+Modulo de Dolibarr para la integracion con el sistema VeriFactu de la Agencia Estatal de Administracion Tributaria (AEAT), en cumplimiento de la **Ley 11/2021** (Ley Antifraude) y el **Real Decreto 1007/2023** que establece los requisitos tecnicos para los sistemas de facturacion en Espana.
 
-## Project History
+## Historia del Proyecto
 
-This project originates from the open source **verifactu** code originally developed by **Alberto SuperAdmin (Alberto Luque Rivas)** from **easysoft.es** and distributed under the **GPL v3** license.
+Este proyecto tiene su origen en el codigo abierto **verifactu** desarrollado originalmente por **Alberto SuperAdmin (Alberto Luque Rivas)** de **easysoft.es** y distribuido bajo licencia **GPL v3**.
 
-### Development
+### Desarrollo
 
-This module was developed from the original module licensed under **GPL v3 (GNU General Public License version 3)**. On this basis:
+Este modulo fue desarrollado a partir del modulo original licenciado bajo **GPL v3 (GNU General Public License version 3)**. Sobre esta base:
 
-- The code was reorganized and modularized to improve maintainability
-- Documentation and comments were translated to English
-- A new internal library was created (OpenAEAT\Billing)
+- Se reorganizo y modularizo el codigo para mejorar la mantenibilidad
+- Se tradujeron la documentacion y los comentarios al ingles
+- Se creo una nueva libreria interna (OpenAEAT\Billing)
 
-**This fork maintains all code under GPL v3**, respecting the original license and the rights of the original authors, adding the corresponding attribution in all files.
+**Este fork mantiene todo el codigo bajo GPL v3**, respetando la licencia original y los derechos de los autores originales, anadiendo la atribucion correspondiente en todos los archivos.
 
 ---
 
-## Description
+## Descripcion
 
-VeriFactu is the AEAT invoice verification system that allows:
+VeriFactu es el sistema de verificacion de facturas de la AEAT que permite:
 
-- Automatic sending of invoices to AEAT
-- Generation of verification QR codes
-- Cryptographic chaining of invoices (SHA-256)
-- Query of sent invoice status
-- Invoice cancellation
-- Management of corrective invoices
+- Envio automatico de facturas a la AEAT
+- Generacion de codigos QR de verificacion
+- Encadenamiento criptografico de facturas (SHA-256)
+- Consulta del estado de facturas enviadas
+- Anulacion de facturas
+- Gestion de facturas rectificativas
 
-## Requirements
+## Requisitos
 
-- Dolibarr 13.0 or higher
-- PHP 7.4 or higher
-- PHP SOAP extension enabled
-- PHP OpenSSL extension enabled
-- PHP GD extension enabled (for QR)
-- Valid digital certificate (FNMT or equivalent)
+- Dolibarr 13.0 o superior
+- PHP 7.4 o superior
+- Extension PHP SOAP habilitada
+- Extension PHP OpenSSL habilitada
+- Extension PHP GD habilitada (para QR)
+- Certificado digital valido (FNMT o equivalente)
 
-## Installation
+## Instalacion
 
-1. Copy the `verifactu` folder to Dolibarr's `htdocs/custom/` directory
-2. Go to **Setup > Modules** in Dolibarr
-3. Search for "VeriFactu" in the module list
-4. Activate the module
+1. Copiar la carpeta `verifactu` en el directorio `htdocs/custom/` de Dolibarr
+2. Ir a **Configuracion > Modulos** en Dolibarr
+3. Buscar "VeriFactu" en la lista de modulos
+4. Activar el modulo
 
-## Configuration
+## Configuracion
 
-### 1. General Configuration
+### 1. Configuracion General
 
-Go to **Setup > Modules > VeriFactu > Configuration**
+Ir a **Configuracion > Modulos > VeriFactu > Configuracion**
 
-- **Environment**: Select Test or Production
-- **Issuer NIF**: Company's tax ID number
-- **Name/Company Name**: Company name
+- **Entorno**: Seleccionar Pruebas o Produccion
+- **NIF Emisor**: Numero de identificacion fiscal de la empresa
+- **Nombre/Razon Social**: Nombre de la empresa
 
-### 2. Digital Certificate
+### 2. Certificado Digital
 
-Go to **Setup > Modules > VeriFactu > Certificates**
+Ir a **Configuracion > Modulos > VeriFactu > Certificados**
 
-1. Upload the certificate in PFX/P12 format
-2. Enter the certificate password
-3. Verify that the certificate is valid
+1. Subir el certificado en formato PFX/P12
+2. Introducir la contrasena del certificado
+3. Verificar que el certificado es valido
 
-The certificate must be:
-- Legal entity certificate (company)
-- Issued by a recognized CA (FNMT, etc.)
-- Valid and not revoked
+El certificado debe ser:
+- Certificado de persona juridica (empresa)
+- Emitido por una CA reconocida (FNMT, etc.)
+- Valido y no revocado
 
-### 3. IT System
+### 3. Sistema Informatico
 
-Configure the invoicing system data:
+Configurar los datos del sistema de facturacion:
 
-- **Developer NIF**: Software developer's tax ID
-- **System Name**: Name of the invoicing system
-- **System ID**: Unique system identifier
-- **Version**: Software version
+- **NIF Desarrollador**: NIF del desarrollador del software
+- **Nombre del Sistema**: Nombre del sistema de facturacion
+- **ID del Sistema**: Identificador unico del sistema
+- **Version**: Version del software
 
-## Usage
+### 4. Esquemas WSDL/XSD
 
-### Sending Invoices
+El modulo descarga y cachea localmente los esquemas WSDL y XSD necesarios para la comunicacion SOAP con la AEAT. Esto evita dependencias de servidores externos (AEAT, W3C) y previene errores de rate-limiting al procesar muchas facturas seguidas.
 
-1. Create an invoice in Dolibarr
-2. Validate the invoice
-3. In the "VeriFactu" tab of the invoice:
-   - Click on "Send to AEAT"
-   - Verify the response status
+- Los esquemas se descargan automaticamente la primera vez que se envia una factura
+- En **Configuracion > Modulos > VeriFactu > Configuracion** se muestra el estado de los esquemas
+- Usar el boton **Descargar/Actualizar esquemas** para forzar la re-descarga si la AEAT actualiza los esquemas
 
-### Invoice Query
+## Uso
 
-1. Go to **Invoicing > VeriFactu > AEAT Query**
-2. Select the search filters:
-   - Imputation period (year/month)
-   - Date range
-   - Counterparty (customer's NIF)
-3. Click "Query"
+### Envio de Facturas
 
-### Invoice Cancellation
+1. Crear una factura en Dolibarr
+2. Validar la factura
+3. En la pestana "VeriFactu" de la factura:
+   - Hacer clic en "Enviar a AEAT"
+   - Verificar el estado de la respuesta
 
-1. Access the sent invoice
-2. In the "VeriFactu" tab:
-   - Click on "Cancel in AEAT"
-   - Select the cancellation type
-   - Confirm the operation
+### Validacion Masiva
 
-### QR Code
+La validacion masiva de facturas procesa cada factura en una transaccion independiente:
+- Si una factura falla, las demas continuan procesandose normalmente
+- Se detectan automaticamente conflictos de fechas con VeriFactu (orden cronologico)
+- Si hay conflictos, se muestra un dialogo de confirmacion antes de ajustar las fechas
+- Las facturas se procesan ordenadas por fecha (de menor a mayor)
 
-The QR code is automatically generated when sending the invoice and is displayed in:
-- The invoice view
-- The invoice PDF (if configured)
-- The POS receipt (if enabled)
+### Validacion Individual
 
-## Supported Invoice Types
+Al validar una factura individual (PROV), el sistema:
+- Ajusta automaticamente la fecha a `max(hoy, ultima_factura_validada)` para respetar el orden cronologico de VeriFactu
+- Muestra un aviso en el dialogo de confirmacion si la fecha fue ajustada, indicando la fecha original, la nueva fecha y la referencia de la ultima factura validada
 
-| Code | Description |
-|------|-------------|
-| F1 | Full invoice |
-| F2 | Simplified invoice |
-| F3 | Substitute invoice for simplified ones |
-| R1 | Corrective (error based on law) |
-| R2 | Corrective (Art. 80.3) |
-| R3 | Corrective (Art. 80.4) |
-| R4 | Corrective (other) |
-| R5 | Corrective in simplified invoice |
+### Consulta de Facturas
 
-## Supported Languages
+1. Ir a **Facturacion > VeriFactu > Consulta AEAT**
+2. Seleccionar los filtros de busqueda:
+   - Periodo de imputacion (ano/mes)
+   - Rango de fechas
+   - Contraparte (NIF del cliente)
+3. Hacer clic en "Consultar"
 
-- Spanish (es_ES)
+### Anulacion de Facturas
+
+1. Acceder a la factura enviada
+2. En la pestana "VeriFactu":
+   - Hacer clic en "Anular en AEAT"
+   - Seleccionar el tipo de anulacion
+   - Confirmar la operacion
+
+### Codigo QR
+
+El codigo QR se genera automaticamente al enviar la factura y se muestra en:
+- La vista de la factura
+- El PDF de la factura (si esta configurado)
+- El ticket de TPV (si esta habilitado)
+
+## Tipos de Factura Soportados
+
+| Codigo | Descripcion |
+|--------|-------------|
+| F1 | Factura completa |
+| F2 | Factura simplificada |
+| F3 | Factura sustitutiva de simplificadas |
+| R1 | Rectificativa (error fundado en derecho) |
+| R2 | Rectificativa (Art. 80.3) |
+| R3 | Rectificativa (Art. 80.4) |
+| R4 | Rectificativa (otras) |
+| R5 | Rectificativa en factura simplificada |
+
+## Idiomas Soportados
+
+- Espanol (es_ES)
 - Catalan (ca_ES)
-- Basque (eu_ES)
-- Galician (gl_ES)
-- English (en_US)
+- Euskera (eu_ES)
+- Gallego (gl_ES)
+- Ingles (en_US)
 
-## Responsible Declaration
+## Declaracion Responsable
 
-The module includes a complete **Responsible Declaration** system in compliance with current Spanish regulations:
+El modulo incluye un sistema completo de **Declaracion Responsable** en cumplimiento con la normativa espanola vigente:
 
-- **RD 1007/2023** - VeriFactu Regulation
-- **RD 254/2025** - Modifications and deadlines
-- **Order HAC/1177/2024** - Technical specifications
-- **Art. 29.2.j) Law 58/2003** - General Tax Law
+- **RD 1007/2023** - Reglamento VeriFactu
+- **RD 254/2025** - Modificaciones y plazos
+- **Orden HAC/1177/2024** - Especificaciones tecnicas
+- **Art. 29.2.j) Ley 58/2003** - Ley General Tributaria
 
-### Configuration File
+### Archivo de Configuracion
 
-The configuration is located in `conf/declaracion_responsable.conf.php` and includes:
+La configuracion se encuentra en `conf/declaracion_responsable.conf.php` e incluye:
 
-| Section | Content |
-|---------|---------|
-| **Producer Data** | NIF, company name, address, contact |
-| **System Data** | Name, IdSistemaInformatico, version |
-| **Components** | Required software and hardware |
-| **Technical Specifications** | Signature type (XAdES), hash algorithm (SHA-256) |
-| **Integrity** | Dynamically calculated module hash |
-| **Compliance** | Declaration according to Art. 29.2.j) LGT |
-| **Subscription** | Date, place and signatory |
+| Seccion | Contenido |
+|---------|-----------|
+| **Datos del Productor** | NIF, razon social, direccion, contacto |
+| **Datos del Sistema** | Nombre, IdSistemaInformatico, version |
+| **Componentes** | Software y hardware requeridos |
+| **Especificaciones Tecnicas** | Tipo de firma (XAdES), algoritmo hash (SHA-256) |
+| **Integridad** | Hash del modulo calculado dinamicamente |
+| **Cumplimiento** | Declaracion segun Art. 29.2.j) LGT |
+| **Suscripcion** | Fecha, lugar y firmante |
 
-### Available Functions
+### Funciones Disponibles
 
 ```php
-// Get complete configuration with calculated hash
-$declaration = obtenerDeclaracionResponsable(true);
+// Obtener configuracion completa con hash calculado
+$declaracion = obtenerDeclaracionResponsable(true);
 
-// Validate required fields
-$errors = validarDeclaracionResponsable();
+// Validar campos obligatorios
+$errores = validarDeclaracionResponsable();
 
-// Calculate SHA-256 hash of the module
+// Calcular hash SHA-256 del modulo
 $hash = calcularHashModuloVerifactu();
 
-// Export in JSON format
+// Exportar en formato JSON
 $json = exportarDeclaracionJSON();
 ```
 
-### Visualization
+### Visualizacion
 
-The responsible declaration is available at:
-- **Menu:** VeriFactu > Responsible Declaration
-- **JSON Export:** `/verifactu/views/declaration_json.php`
+La declaracion responsable esta disponible en:
+- **Menu:** VeriFactu > Declaracion Responsable
+- **Exportacion JSON:** `/verifactu/views/declaration_json.php`
 
-For more details, see `docs/responsible_declaration.md`.
+Para mas detalles, ver `docs/responsible_declaration.md`.
 
-## Module Structure
+## Estructura del Modulo
 
 ```
 verifactu/
-├── admin/                  # Administration pages
-│   ├── setup.php           # General configuration
-│   ├── managecertificates.php  # Certificate management
-│   └── uploadcertificates.php  # Certificate upload
-├── class/                  # PHP classes
-│   ├── actions_verifactu.class.php  # Hooks and actions
-│   ├── api_verifactu.class.php      # REST API
-│   └── verifactu.utils.php          # Utilities
-├── conf/                   # Configuration
-│   └── declaracion_responsable.conf.php  # Responsible declaration
+├── admin/                  # Paginas de administracion
+│   ├── setup.php           # Configuracion general
+│   ├── managecertificates.php  # Gestion de certificados
+│   └── uploadcertificates.php  # Subida de certificados
+├── class/                  # Clases PHP
+│   ├── actions_verifactu.class.php  # Hooks y acciones
+│   ├── api_verifactu.class.php      # API REST
+│   └── verifactu.utils.php          # Utilidades
+├── conf/                   # Configuracion
+│   └── declaracion_responsable.conf.php  # Declaracion responsable
 ├── core/
-│   ├── modules/            # Module descriptor
-│   └── triggers/           # Automatic triggers
+│   ├── modules/            # Descriptor del modulo
+│   └── triggers/           # Triggers automaticos
 │       ├── interface_900_modVerifactu_BillRestrictions.class.php
 │       └── interface_999_modVerifactu_VerifactuTriggers.class.php
-├── docs/                   # Documentation
-│   └── responsible_declaration.md  # Responsible declaration doc
+├── docs/                   # Documentacion
+│   └── responsible_declaration.md  # Doc. declaracion responsable
 ├── lib/
-│   ├── newfenix/           # OpenAEAT Billing Library
-│   │   ├── src/            # Main classes
-│   │   └── vendor/         # Dependencies (QRCode)
-│   └── functions/          # Module functions
-│       ├── functions.submission.php    # Invoice submission
-│       ├── functions.query.php         # AEAT queries
-│       ├── functions.cancellation.php  # Cancellation
-│       ├── functions.certificates.php  # Certificates
-│       ├── functions.qr.php            # QR generation
-│       └── functions.response.php      # AEAT responses
-├── views/                  # Views and pages
-│   ├── list.facture.php    # Invoice list
-│   ├── query.facture.php   # AEAT query
-│   ├── tabVERIFACTU.facture.php  # VeriFactu tab
-│   ├── declaration.php     # Responsible declaration
-│   ├── declaration_json.php  # Declaration JSON export
-│   ├── faq.php             # Help and FAQ
-│   ├── pos.facture.php     # POS receipt
-│   └── documentation.php   # Documentation
-├── langs/                  # Language files
-├── css/                    # CSS styles
+│   ├── newfenix/           # Libreria OpenAEAT Billing
+│   │   ├── src/            # Clases principales
+│   │   │   ├── SchemaManager.php  # Gestion de esquemas WSDL/XSD
+│   │   │   ├── SoapClient.php     # Transporte SOAP
+│   │   │   ├── Config.php         # Configuracion
+│   │   │   ├── Manager.php        # Orquestador
+│   │   │   ├── Invoice.php        # Modelo de factura
+│   │   │   ├── Cancellation.php   # Modelo de anulacion
+│   │   │   └── Query.php          # Modelo de consulta
+│   │   └── vendor/         # Dependencias (QRCode)
+│   └── functions/          # Funciones del modulo
+│       ├── functions.submission.php    # Envio de facturas
+│       ├── functions.query.php         # Consultas AEAT
+│       ├── functions.cancellation.php  # Anulacion
+│       ├── functions.certificates.php  # Certificados
+│       ├── functions.compatibility.php # Funciones de compatibilidad
+│       ├── functions.qr.php            # Generacion QR
+│       └── functions.response.php      # Respuestas AEAT
+├── tests/                  # Tests
+│   ├── MassValidateInterceptionTest.php  # Tests validacion masiva
+│   └── SchemaManagerTest.php             # Tests gestion de esquemas
+├── views/                  # Vistas y paginas
+│   ├── list.facture.php    # Lista de facturas
+│   ├── query.facture.php   # Consulta AEAT
+│   ├── tabVERIFACTU.facture.php  # Pestana VeriFactu
+│   ├── declaration.php     # Declaracion responsable
+│   ├── declaration_json.php  # Exportacion JSON declaracion
+│   ├── faq.php             # Ayuda y FAQ
+│   ├── pos.facture.php     # Ticket TPV
+│   └── documentation.php   # Documentacion
+├── langs/                  # Archivos de idioma
+├── css/                    # Estilos CSS
 ├── js/                     # JavaScript
-└── README.md               # This file
+└── README.md               # Este archivo
 ```
 
-## REST API
+## API REST
 
-The module exposes a REST API for external integration:
+El modulo expone una API REST para integracion externa:
 
 ```
 GET  /api/index.php/verifactu/integrity
 ```
 
-## Troubleshooting
+## Resolucion de Problemas
 
-### SOAP Error 4118
+### Error SOAP 4118
 
-This error indicates a problem with the SOAP message structure. Check:
-- Date format (DD-MM-YYYY)
-- Issuer and recipient data
-- Certificate configuration
+Este error indica un problema con la estructura del mensaje SOAP. Verificar:
+- Formato de fecha (DD-MM-AAAA)
+- Datos del emisor y destinatario
+- Configuracion del certificado
 
-### Certificate Error
+### Error SOAP por rate-limiting de W3C
 
-If the certificate is not recognized:
-- Verify that the certificate has not expired
-- Check that the password is correct
-- Ensure that the certificate is for a legal entity
+Si aparecen errores al crear el SoapClient al procesar muchas facturas seguidas, es porque PHP intenta descargar `xmldsig-core-schema.xsd` desde w3.org y este servidor aplica rate-limiting. Solucion:
+- Ir a **Configuracion > Modulos > VeriFactu > Configuracion**
+- Pulsar el boton **Descargar/Actualizar esquemas** para cachear los WSDL/XSD localmente
+- Los esquemas se descargan automaticamente en el primer uso, pero se puede forzar desde aqui
 
-### Blank Screen
+### Error de Certificado
 
-If a blank screen appears when viewing invoices:
-- Check PHP logs for errors
-- Verify that all PHP extensions are installed
+Si el certificado no es reconocido:
+- Verificar que el certificado no ha expirado
+- Comprobar que la contrasena es correcta
+- Asegurarse de que el certificado es de persona juridica
 
-## Module Information
+### Pantalla en Blanco
 
-- **Version**: 1.0.3
-- **Author**: Germán Luis Aracil Boned
+Si aparece una pantalla en blanco al ver facturas:
+- Revisar los logs de PHP en busca de errores
+- Verificar que todas las extensiones PHP estan instaladas
+
+### Facturas con Retencion IRPF
+
+El modulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la retencion IRPF:
+- `ImporteTotal` = Base Imponible + IVA + Recargo de Equivalencia (sin deducir IRPF)
+- El codigo QR refleja este importe correcto
+- Las consultas a AEAT comparan con el importe correcto
+
+## Informacion del Modulo
+
+- **Version**: 1.0.4
+- **Autor**: German Luis Aracil Boned
 - **Email**: garacilb@gmail.com
-- **License**: GPL-3.0-or-later
-- **Dedicated to**: My colleague and friend Ildefonso González Rodríguez
+- **Licencia**: GPL-3.0-or-later
+- **Dedicado a**: Mi companero y amigo Ildefonso Gonzalez Rodriguez
 
-## Changelog
+## Registro de Cambios
+
+### v1.0.4 (2026-03-04)
+
+#### Correcciones
+
+- **Retencion IRPF en VeriFactu**: Corregido el calculo de `ImporteTotal` en el codigo QR y en las consultas a AEAT. Las facturas con retencion IRPF ahora envian correctamente `ImporteTotal = Base + IVA + Recargo` sin deducir el IRPF. Creada funcion helper `getVerifactuImporteTotal()` para centralizar el calculo.
+
+- **Validacion masiva con transacciones independientes**: Reescrito completamente el sistema de validacion masiva de facturas. Cada factura se procesa en su propia transaccion de base de datos, de modo que si una falla, las demas continuan procesandose. Se intercepla la accion estandar de Dolibarr `massvalidation` con procesamiento individual por factura.
+
+- **Orden cronologico de fechas en validacion masiva**: Antes de validar masivamente, el sistema detecta si alguna factura tiene fecha anterior a la ultima factura validada en VeriFactu. Si hay conflicto, muestra un dialogo de confirmacion y ajusta las fechas automaticamente. Las facturas se procesan ordenadas por fecha ascendente y la fecha minima se va actualizando conforme se procesan.
+
+- **Orden cronologico de fechas en validacion individual**: Al validar una factura individual (PROV), la fecha se ajusta a `max(hoy, ultima_factura_validada)` en vez de solo a `hoy`. Si la fecha se ajusto, se muestra un aviso en el dialogo de confirmacion.
+
+#### Nuevas Funcionalidades
+
+- **Cache local de esquemas WSDL/XSD**: Nueva clase `SchemaManager` que descarga los 7 archivos de esquema (1 WSDL + 5 XSD de AEAT + 1 XSD de W3C) localmente y reescribe las referencias `schemaLocation` para eliminar dependencias externas. Esto previene errores de rate-limiting de w3.org al procesar muchas facturas. Los esquemas se descargan automaticamente en el primer uso y pueden actualizarse desde la pagina de configuracion.
+
+#### Archivos Modificados
+- `class/actions_verifactu.class.php` - Validacion masiva e individual con transacciones independientes y control de fechas
+- `lib/functions/functions.compatibility.php` - Nueva funcion `getVerifactuImporteTotal()`
+- `lib/functions/functions.qr.php` - Correccion importes QR con IRPF
+- `lib/functions/functions.query.php` - Correccion comparacion importes AEAT
+- `lib/functions/functions.submission.php` - Integracion SchemaManager
+- `lib/newfenix/src/SchemaManager.php` - Nueva clase gestion de esquemas
+- `lib/newfenix/src/SoapClient.php` - Uso de WSDL local con fallback remoto
+- `lib/newfenix/src/Config.php` - Propiedad `localWsdlPath`
+- `lib/newfenix/src/Manager.php` - Integracion `setSchemasDir()`
+- `admin/setup.php` - Seccion estado de esquemas con boton de descarga
+- Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
+
+#### Tests
+- `tests/MassValidateInterceptionTest.php` - 52 tests para validacion masiva, transacciones, fechas
+- `tests/SchemaManagerTest.php` - 19 tests para gestion de esquemas
 
 ### v1.0.3 (2025-12-20)
 
-#### Changes
-- **Updated mandatory VeriFactu dates**: Adjusted automatic production mode transition dates from 2026 to 2027 following the Spanish government's delay announcement:
-  - Companies: January 1, 2027 (was January 1, 2026)
-  - Self-employed: July 1, 2027 (was July 1, 2026)
-- **Simplified project documentation**: Streamlined README project history section while maintaining GPL v3 attribution to original author
+#### Cambios
+- **Fechas obligatorias VeriFactu actualizadas**: Ajustadas las fechas de transicion automatica a produccion de 2026 a 2027 segun el anuncio del Gobierno:
+  - Sociedades: 1 de enero de 2027 (antes 1 de enero de 2026)
+  - Autonomos: 1 de julio de 2027 (antes 1 de julio de 2026)
+- **Documentacion del proyecto simplificada**: Simplificada la seccion de historia del proyecto en el README manteniendo la atribucion GPL v3 al autor original
 
-#### Updated Files
-- `lib/functions/functions.configuration.php` - Environment switching logic
-- `admin/setup.php` - Status display dates
-- All language files (es_ES, en_US, ca_ES, eu_ES, gl_ES)
+#### Archivos Actualizados
+- `lib/functions/functions.configuration.php` - Logica de cambio de entorno
+- `admin/setup.php` - Fechas de visualizacion de estado
+- Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
 ### v1.0.2 (2025-12-12)
 
-#### New Features
-- **Configurable Responsible Declaration**: Added configuration file `conf/declaracion_responsable.conf.php` that complies with Spanish regulations (RD 1007/2023, Order HAC/1177/2024):
-  - Producer data (NIF, address, contact)
-  - IT system data (IdSistemaInformatico, version)
-  - Technical specifications (XAdES signature, SHA-256 hash)
-  - Dynamically calculated module integrity hash
-  - Compliance declaration with legal references
-- **JSON Export**: New endpoint `/views/declaration_json.php` to export the responsible declaration in JSON format
-- **Documentation**: Added `docs/responsible_declaration.md` with complete configuration guide
+#### Nuevas Funcionalidades
+- **Declaracion Responsable configurable**: Anadido archivo de configuracion `conf/declaracion_responsable.conf.php` que cumple con la normativa espanola (RD 1007/2023, Orden HAC/1177/2024):
+  - Datos del productor (NIF, direccion, contacto)
+  - Datos del sistema informatico (IdSistemaInformatico, version)
+  - Especificaciones tecnicas (firma XAdES, hash SHA-256)
+  - Hash de integridad del modulo calculado dinamicamente
+  - Declaracion de cumplimiento con referencias legales
+- **Exportacion JSON**: Nuevo endpoint `/views/declaration_json.php` para exportar la declaracion responsable en formato JSON
+- **Documentacion**: Anadido `docs/responsible_declaration.md` con guia de configuracion completa
 
-#### Improvements
-- Updated the Responsible Declaration page to use configuration file data
-- Automatic validation of required fields with warning messages
-- Display of module integrity hash in the declaration
+#### Mejoras
+- Actualizada la pagina de Declaracion Responsable para usar los datos del archivo de configuracion
+- Validacion automatica de campos obligatorios con mensajes de aviso
+- Visualizacion del hash de integridad del modulo en la declaracion
 
 ### v1.0.1 (2025-12-06)
 
-#### Bug Fixes
-- **Error handling in bulk invoice validation**: Fixed the issue where invoices with VeriFactu errors cancelled the entire batch validation process. Now, when an invoice fails to send to VeriFactu:
-  - The invoice remains as draft with PROV reference instead of being validated and then reverted
-  - Other invoices in the batch continue processing normally
-  - Improved PostgreSQL connection handling to avoid "connection already closed" errors
-  - Error messages are displayed correctly to the user
+#### Correcciones
+- **Gestion de errores en validacion masiva de facturas**: Corregido el problema por el que facturas con errores de VeriFactu cancelaban todo el proceso de validacion por lotes. Ahora, cuando una factura falla al enviar a VeriFactu:
+  - La factura permanece como borrador con referencia PROV en lugar de ser validada y luego revertida
+  - Las demas facturas del lote continuan procesandose normalmente
+  - Mejorada la gestion de conexiones PostgreSQL para evitar errores "connection already closed"
+  - Los mensajes de error se muestran correctamente al usuario
