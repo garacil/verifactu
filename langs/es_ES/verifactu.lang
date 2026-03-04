@@ -673,3 +673,4 @@ VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = La factura %s no puede validarse des
 VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE = Ajuste de fechas necesario
 VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG = Se han detectado <b>%s factura(s)</b> con fecha anterior al <b>%s</b> (última factura validada: %s).<br><br>Las fechas se ajustarán automáticamente al mínimo necesario para cumplir el orden cronológico requerido por VeriFactu.<br><br>¿Desea continuar con la validación?
 VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = Se ajustó la fecha de %s factura(s) para respetar el orden cronológico de VeriFactu.
+VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Ajuste de fecha:</strong> La fecha original de la factura (<strong>%s</strong>) se ha ajustado a <strong>%s</strong> para respetar el orden cronológico de VeriFactu (última factura validada: %s).

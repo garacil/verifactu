@@ -673,3 +673,4 @@ VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = Invoice %s cannot be validated from 
 VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE = Date adjustment required
 VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG = <b>%s invoice(s)</b> have a date before <b>%s</b> (last validated invoice: %s).<br><br>Dates will be automatically adjusted to the minimum necessary to comply with the chronological order required by VeriFactu.<br><br>Do you want to proceed with the validation?
 VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = Date adjusted for %s invoice(s) to comply with VeriFactu chronological order.
+VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Date adjustment:</strong> The original invoice date (<strong>%s</strong>) has been adjusted to <strong>%s</strong> to comply with VeriFactu chronological order (last validated invoice: %s).

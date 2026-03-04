@@ -330,8 +330,37 @@ class ActionsVerifactu
 			$conf->global->FAC_FORCE_DATE_VALIDATION = false;
 			if ($action == 'valid'  && strpos($object->ref, 'PROV') !== false) {
 				$conf->global->FAC_FORCE_DATE_VALIDATION = true;
-				$object->date = dol_now();
-				$object->setValueFrom('datef', $this->db->idate($object->date));
+
+				// Determine the minimum allowed date: max(today, last validated invoice date)
+				$today = dol_now();
+				$todayDateOnly = dol_mktime(0, 0, 0, (int) date('m', $today), (int) date('d', $today), (int) date('Y', $today));
+				$minAllowedDate = $todayDateOnly;
+
+				$lastInvoiceData = getLastInvoiceHash();
+				$lastValidatedDate = null;
+				if ($lastInvoiceData && !empty($lastInvoiceData['fecha'])) {
+					$parts = explode('-', $lastInvoiceData['fecha']);
+					if (count($parts) === 3) {
+						$lastValidatedDate = dol_mktime(0, 0, 0, (int) $parts[1], (int) $parts[0], (int) $parts[2]);
+						if ($lastValidatedDate > $minAllowedDate) {
+							$minAllowedDate = $lastValidatedDate;
+						}
+					}
+				}
+
+				// Track if date was adjusted for the confirmation message
+				$originalDate = $object->date;
+				$dateWasAdjusted = false;
+				$adjustedFromDate = null;
+
+				$originalDateOnly = dol_mktime(0, 0, 0, (int) date('m', $originalDate), (int) date('d', $originalDate), (int) date('Y', $originalDate));
+				if ($originalDateOnly != $minAllowedDate) {
+					$dateWasAdjusted = true;
+					$adjustedFromDate = $originalDateOnly;
+				}
+
+				$object->date = $minAllowedDate;
+				$object->setValueFrom('datef', $this->db->idate($minAllowedDate));
 			}
 
 			// Override validation confirmation translation for customer invoices
@@ -344,12 +373,20 @@ class ActionsVerifactu
 					$objectref = substr($object->ref, 1, 4);
 					if ($objectref == 'PROV') {
 						$numref = $object->getNextNumRef($object->thirdparty);
-						// $object->date=$savdate;
 					} else {
 						$numref = $object->ref;
 					}
 					$confirmTranslation = $langs->transnoentitiesnoconv("ConfirmValidateBillVerifactu", $numref);
 					if (!empty($confirmTranslation) && $confirmTranslation != "ConfirmValidateBillVerifactu") {
+						// Add date adjustment warning if applicable
+						if (!empty($dateWasAdjusted)) {
+							$confirmTranslation .= '<br><br>' . $langs->trans(
+								'VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED',
+								dol_print_date($adjustedFromDate, 'day'),
+								dol_print_date($minAllowedDate, 'day'),
+								!empty($lastInvoiceData['numero']) ? $lastInvoiceData['numero'] : ''
+							);
+						}
 						$langs->tab_translate["ConfirmValidateBill"] = $confirmTranslation;
 					}
 				}
