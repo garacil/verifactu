@@ -571,4 +571,40 @@ VERIFACTU_SCHEMAS_NOT_DOWNLOADED = No descargados
 VERIFACTU_SCHEMAS_LAST_DOWNLOAD = Última descarga
 VERIFACTU_SCHEMAS_DOWNLOAD_BUTTON = Descargar/Actualizar esquemas
 VERIFACTU_SCHEMAS_DOWNLOAD_SUCCESS = Esquemas descargados correctamente (%s archivos)
-VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Error al descargar esquemas: %s
+VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Eskemak deskargatzean errorea: %s
+
+# Legacy key aliases (old Spanish extrafield labels stored in DB from original installations)
+verifactu_INICIO_Separador1 = <span class="badge badge-status1 badge-status">VeriFactu Datuak</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Fakturaren egoera VeriFactu-n"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_INICIO_Separador2 = <span class="badge badge-status1 badge-status">EREMU FISKALAK ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ GARRANTZITSUA: Zerga, Erregimen Gakoa, Kalifikazioa eta Eragiketa Salbuetsiak enpresaren erantzukizuna dira. Kontsultatu zure zerga aholkulariarekin zalantzarik izanez gero."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_ESTADO = Egoera
+verifactu_ESTADOTooltip = Fakturaren egoera VeriFactu-n
+verifactu_CSV_Factura = CSV Kodea
+verifactu_CSV_FacturaTooltip = AEATen egiaztapen kodea. Ez badago, faktura ez da bidali.
+verifactu_ID_Factura = ID VeriFactu-n
+verifactu_ID_FacturaTooltip = Fakturaren identifikatzailea VeriFactu-n
+verifactu_FECHA_Factura = Jaulkipen data
+verifactu_FECHA_FacturaTooltip = VeriFactu-n erregistratutako jaulkipen data
+verifactu_ULTIMA_salida = Azken erantzuna
+verifactu_ULTIMA_salidaTooltip = VeriFactu-ren azken erantzuna
+verifactu_ULTIMAFECHA_Modificacion = Azken aldaketa
+verifactu_ULTIMAFECHA_ModificacionTooltip = VeriFactu-n azken aldaketa data
+verifactu_HUELLA = Hatz-marka digitala
+verifactu_HUELLATooltip = Fakturaren SHA-256 hatz-marka
+verifactu_FECHA_HORA_Generacion = Hatz-markaren data/ordua
+verifactu_FECHA_HORA_GeneracionTooltip = Hatz-markaren sorrera data eta ordua (ISO 8601)
+VERIFACTU_entorno = Ingurunea (probak/produkzioa)
+VERIFACTU_entornoTooltip = Faktura VeriFactu-ra bidali zen ingurunea
+VERIFACTU_modo = Funtzionamendu modua
+VERIFACTU_modoTooltip = VeriFactu funtzionamendu modua
+verifactu_Factura_Tipo = Faktura mota
+verifactu_Factura_TipoTooltip = VeriFactu-rako faktura mota
+verifactu_IMPUESTO = Zerga
+verifactu_IMPUESTOTooltip = Aplikagarria den zerga mota. Lehenetsita BEZ. Faktura tipologiarako beharrezkoa.
+verifactu_CLAVE_Regimen = Erregimen Gakoa
+verifactu_CLAVE_RegimenTooltip = Erregimen bereziko gakoa. BEZ edo IGIC-rako soilik, ez IPSI edo BESTEentzat.
+verifactu_CALIFICACION_Operacion = Eragiketaren Kalifikazioa
+verifactu_CALIFICACION_OperacionTooltip = Eragiketa zerga-peko/ez salbuetsi edo ez zerga-peko gakoa. S1=Alderantziketa gabe, S2=Alderantziketarekin, N1=Ez zerga-pekoa 7,14 art., N2=Ez zerga-pekoa kokapenagatik.
+verifactu_OPERACION_Exenta = Eragiketa Salbuetsia
+verifactu_OPERACION_ExentaTooltip = Salbueste mota (E1-E6) eragiketa BEZ/IGIC/IPSI-tik salbuetsita dagoenean.
+verifactu_INCIDENCIA = Intzidentzia
+verifactu_INCIDENCIATooltip = Intzidentzia teknikoa izan zen adierazten du (argindarik gabe, internetik gabe, sistemaren hutsegitea). Lehenetsita "N".
