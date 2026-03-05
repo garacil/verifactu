@@ -571,4 +571,40 @@ VERIFACTU_SCHEMAS_NOT_DOWNLOADED = No descargados
 VERIFACTU_SCHEMAS_LAST_DOWNLOAD = Última descarga
 VERIFACTU_SCHEMAS_DOWNLOAD_BUTTON = Descargar/Actualizar esquemas
 VERIFACTU_SCHEMAS_DOWNLOAD_SUCCESS = Esquemas descargados correctamente (%s archivos)
-VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Error al descargar esquemas: %s
+VERIFACTU_SCHEMAS_DOWNLOAD_ERROR = Error al descarregar esquemes: %s
+
+# Legacy key aliases (old Spanish extrafield labels stored in DB from original installations)
+verifactu_INICIO_Separador1 = <span class="badge badge-status1 badge-status">Dades VeriFactu</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="Estat de la factura a VeriFactu"><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_INICIO_Separador2 = <span class="badge badge-status1 badge-status">CAMPS FISCALS ⚠️</span><span class="classfortooltip" style="padding: 0px; padding-right: 3px !important;" title="⚠️ IMPORTANT: Impost, Clau Règim, Qualificació i Operació Exempta són responsabilitat de l'empresa. Consulteu amb el vostre assessor fiscal en cas de dubte."><span class="fas fa-info-circle em088 opacityhigh" style="vertical-align: middle; cursor: help"></span></span>
+verifactu_ESTADO = Estat
+verifactu_ESTADOTooltip = Estat de la factura a VeriFactu
+verifactu_CSV_Factura = Codi CSV
+verifactu_CSV_FacturaTooltip = Codi de verificació de l'AEAT. Si no existeix, la factura no s'ha enviat.
+verifactu_ID_Factura = ID a VeriFactu
+verifactu_ID_FacturaTooltip = Identificador de la factura a VeriFactu
+verifactu_FECHA_Factura = Data d'emissió
+verifactu_FECHA_FacturaTooltip = Data d'emissió registrada a VeriFactu
+verifactu_ULTIMA_salida = Última resposta
+verifactu_ULTIMA_salidaTooltip = Última resposta de VeriFactu
+verifactu_ULTIMAFECHA_Modificacion = Última modificació
+verifactu_ULTIMAFECHA_ModificacionTooltip = Data d'última modificació a VeriFactu
+verifactu_HUELLA = Empremta digital
+verifactu_HUELLATooltip = Empremta SHA-256 de la factura
+verifactu_FECHA_HORA_Generacion = Data/hora d'empremta
+verifactu_FECHA_HORA_GeneracionTooltip = Data i hora de generació de l'empremta (ISO 8601)
+VERIFACTU_entorno = Entorn (proves/producció)
+VERIFACTU_entornoTooltip = Entorn en el qual es va enviar la factura a VeriFactu
+VERIFACTU_modo = Mode d'operació
+VERIFACTU_modoTooltip = Mode d'operació VeriFactu
+verifactu_Factura_Tipo = Tipus de factura
+verifactu_Factura_TipoTooltip = Tipus de factura per a VeriFactu
+verifactu_IMPUESTO = Impost
+verifactu_IMPUESTOTooltip = Tipus d'impost aplicable. Per defecte IVA. Necessari per a la tipologia de factura.
+verifactu_CLAVE_Regimen = Clau Règim
+verifactu_CLAVE_RegimenTooltip = Clau del règim especial. Només aplicable per a IVA o IGIC, no per a IPSI o ALTRES.
+verifactu_CALIFICACION_Operacion = Qualificació Operació
+verifactu_CALIFICACION_OperacionTooltip = Clau d'operació subjecta/no exempta o no subjecta. S1=Sense inversió, S2=Amb inversió, N1=No subjecta art.7,14, N2=No subjecta localització.
+verifactu_OPERACION_Exenta = Operació Exempta
+verifactu_OPERACION_ExentaTooltip = Tipus d'exempció (E1-E6) quan l'operació està exempta d'IVA/IGIC/IPSI.
+verifactu_INCIDENCIA = Incidència
+verifactu_INCIDENCIATooltip = Indica si hi va haver incidència tècnica (sense electricitat, sense internet, fallada del sistema). Per defecte "N".
