@@ -608,3 +608,4 @@ verifactu_OPERACION_Exenta = Operación Exenta
 verifactu_OPERACION_ExentaTooltip = Tipo de exención (E1-E6) cando a operación está exenta de IVE/IGIC/IPSI.
 verifactu_INCIDENCIA = Incidencia
 verifactu_INCIDENCIATooltip = Indica se houbo incidencia técnica (sen electricidade, sen internet, fallo do sistema). Por defecto "N".
+VERIFACTU_AEAT_WAIT_REQUIRED=A AEAT require agardar %s segundos antes do seguinte envío VeriFactu.

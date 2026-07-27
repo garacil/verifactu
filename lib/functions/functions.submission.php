@@ -53,6 +53,11 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta')
 	$langs->load("verifactu@verifactu");
 
 	dol_syslog("VERIFACTU execVERIFACTUCall START: Invoice id=" . $facture->id . " ref=" . $facture->ref . " action=" . $actionVERIFACTU, LOG_DEBUG);
+	$waitSeconds = getAEATWaitTimeRemaining();
+	if ($waitSeconds > 0) {
+		setEventMessage($langs->trans('VERIFACTU_AEAT_WAIT_REQUIRED', $waitSeconds), 'warnings');
+		return false;
+	}
 
 	// Reload invoice values in case something was modified
 	$res = $facture->fetch($facture->id);
@@ -529,6 +534,8 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 
 		throw $e;
 	}
+
+	registerAEATWaitTime($response);
 
 	// Process VeriFactu response
 	return processInvoiceSendResponse($response, $facture, $manager, $langs, $conf);
