@@ -90,7 +90,7 @@ try {
 		// Check if invoices have already been sent to VeriFactu
 		$sql = "SELECT COUNT(*) as count FROM " . MAIN_DB_PREFIX . "facture f";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
-		$sql .= " WHERE 1=1 ";
+		$sql .= " WHERE f.entity = " . ((int) $conf->entity);
 		$sql .= " AND fe.verifactu_csv_factura IS NOT NULL AND fe.verifactu_csv_factura != ''";
 		$sql .= " AND fe.verifactu_estado IS NOT NULL AND fe.verifactu_estado != ''";
 		$sql .= " LIMIT 1";
@@ -106,7 +106,8 @@ try {
 		// Count invoices with VeriFactu errors
 		$sqlErrors = "SELECT COUNT(*) as count FROM " . MAIN_DB_PREFIX . "facture f";
 		$sqlErrors .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
-		$sqlErrors .= " WHERE fe.verifactu_error IS NOT NULL AND fe.verifactu_error != ''";
+		$sqlErrors .= " WHERE f.entity = " . ((int) $conf->entity);
+		$sqlErrors .= " AND fe.verifactu_error IS NOT NULL AND fe.verifactu_error != ''";
 		$sqlErrors .= " AND f.fk_statut > 0";
 		$sqlErrors .= " LIMIT 1";
 

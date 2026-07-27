@@ -446,7 +446,7 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 		$sql = "SELECT COUNT(*) as count FROM " . MAIN_DB_PREFIX . "facture f ";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object ";
 		$sql .= "WHERE fk_soc = " . $object->id . " AND fe.verifactu_csv_factura IS NOT NULL AND fe.verifactu_huella IS NOT NULL";
-		$sql .= "  AND f.entity IN (" . getEntity('invoice') . ")";
+		$sql .= "  AND f.entity = " . ((int) $conf->entity);
 
 		$resql = $this->db->query($sql);
 		if ($resql) {

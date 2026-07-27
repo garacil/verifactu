@@ -1174,7 +1174,7 @@ class modVerifactu extends DolibarrModules
 
 			//Default values
 			$dFalues = [
-				['type' => 'mandatory', 'entity' => 1, 'page' => 'societe/card.php', 'param' => 'country_id', 'value' => '']
+				['type' => 'mandatory', 'entity' => $conf->entity, 'page' => 'societe/card.php', 'param' => 'country_id', 'value' => '']
 
 			];
 
@@ -1194,7 +1194,9 @@ class modVerifactu extends DolibarrModules
 		// Permissions
 		$this->remove($options);
 		$badge = '<div class="center"><span class="badge badge-status8 classfortooltip badge-status" attr-status="' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '">' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '</span></div>';
-		$sql1 = "UPDATE " . MAIN_DB_PREFIX . "facture_extrafields SET verifactu_estado='$badge' WHERE verifactu_estado IS NULL";
+		$sql1 = "UPDATE " . MAIN_DB_PREFIX . "facture_extrafields SET verifactu_estado='$badge'";
+		$sql1 .= " WHERE verifactu_estado IS NULL AND fk_object IN (";
+		$sql1 .= "SELECT rowid FROM " . MAIN_DB_PREFIX . "facture WHERE entity = " . ((int) $conf->entity) . ")";
 
 		$sql = array($sql1);
 		dol_include_once('/verifactu/lib/verifactu.lib.php');

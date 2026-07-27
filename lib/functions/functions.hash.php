@@ -40,7 +40,9 @@ function getLastInvoiceHash()
 	$sql .= "DATE_FORMAT(f.datef, '%d-%m-%Y') as invoice_date"; // Format dd-mm-yyyy for Verifactu
 	$sql .= " FROM " . MAIN_DB_PREFIX . "facture f";
 	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
-	$sql .= " WHERE f.entity = " . getEntity('invoice');
+	// VeriFactu chains are specific to the active legal entity and must never
+	// include invoices shared from another entity.
+	$sql .= " WHERE f.entity = " . ((int) $conf->entity);
 	$sql .= " AND fe.verifactu_huella IS NOT NULL AND fe.verifactu_huella != '' AND fe.verifactu_entorno = '" . $db->escape($environment) . "'";
 	$sql .= " AND f.fk_statut > 0"; // Only validated invoices
 	$sql .= " ORDER BY f.rowid DESC LIMIT 1";
