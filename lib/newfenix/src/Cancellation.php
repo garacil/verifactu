@@ -197,10 +197,8 @@ class Cancellation
     private function verifyChainConfiguration(): void
     {
         $hasPreviousRecord = isset($this->registrationPayload['Encadenamiento']['RegistroAnterior']);
-        $isFirstRecord = isset($this->registrationPayload['Encadenamiento']['PrimerRegistro']);
-
-        if (!$hasPreviousRecord && !$isFirstRecord) {
-            throw new \InvalidArgumentException("Must have chain link to previous record or be marked as first in chain");
+        if (!$hasPreviousRecord) {
+            throw new \InvalidArgumentException("Cancellation records must have a chain link to the previous record");
         }
     }
 
@@ -423,8 +421,7 @@ class Cancellation
      */
     public function setAsFirstInChain(): self
     {
-        $this->registrationPayload['Encadenamiento'] = ['PrimerRegistro' => 'S'];
-        return $this;
+        throw new \LogicException('A cancellation record cannot be the first record in a VeriFactu chain.');
     }
 
     /**
