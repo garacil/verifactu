@@ -40,6 +40,11 @@ use Sietekas\Verifactu\VerifactuInvoiceCancel;
 function handleInvoiceCancellation($manager, Facture $facture, $certOptions, $issuerNif, $issuerName, $cancellationType = 'normal')
 {
 	global $langs;
+	$waitSeconds = getAEATWaitTimeRemaining();
+	if ($waitSeconds > 0) {
+		setEventMessage($langs->trans('VERIFACTU_AEAT_WAIT_REQUIRED', $waitSeconds), 'warnings');
+		return false;
+	}
 
 	// Get invoice data for cancellation
 	$invoiceNumberToCancel = $facture->ref;
@@ -68,6 +73,7 @@ function handleInvoiceCancellation($manager, Facture $facture, $certOptions, $is
 
 	// Send cancellation
 	$response = $manager->sendCancellation($cancellation, $certOptions);
+	registerAEATWaitTime($response);
 
 	// Process response
 	return processCancellationResponse($response, $facture, $invoiceNumberToCancel, $langs);

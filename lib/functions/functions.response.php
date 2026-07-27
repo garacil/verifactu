@@ -25,6 +25,38 @@
  */
 
 /**
+ * Stores the next instant at which AEAT allows another submission.
+ *
+ * @param object $response AEAT response
+ * @return int Number of seconds requested by AEAT
+ */
+function registerAEATWaitTime($response)
+{
+	global $conf, $db;
+
+	$waitSeconds = is_object($response) ? (int) ($response->TiempoEsperaEnvio ?? 0) : 0;
+	if ($waitSeconds <= 0) {
+		return 0;
+	}
+	if (!function_exists('dolibarr_set_const')) {
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+	}
+	$nextSendAt = dol_now() + $waitSeconds;
+	dolibarr_set_const($db, 'VERIFACTU_NEXT_SEND_AT', (string) $nextSendAt, 'chaine', 0, '', $conf->entity);
+	return $waitSeconds;
+}
+
+/**
+ * Returns the remaining AEAT throttling delay for the active entity.
+ *
+ * @return int Remaining seconds
+ */
+function getAEATWaitTimeRemaining()
+{
+	return max(0, getDolGlobalInt('VERIFACTU_NEXT_SEND_AT') - dol_now());
+}
+
+/**
  * Saves VeriFactu error data using an independent connection
  * to prevent data loss in case of transaction rollback
  *

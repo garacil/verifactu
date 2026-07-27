@@ -608,3 +608,4 @@ verifactu_OPERACION_Exenta = Eragiketa Salbuetsia
 verifactu_OPERACION_ExentaTooltip = Salbueste mota (E1-E6) eragiketa BEZ/IGIC/IPSI-tik salbuetsita dagoenean.
 verifactu_INCIDENCIA = Intzidentzia
 verifactu_INCIDENCIATooltip = Intzidentzia teknikoa izan zen adierazten du (argindarik gabe, internetik gabe, sistemaren hutsegitea). Lehenetsita "N".
+VERIFACTU_AEAT_WAIT_REQUIRED=AEATek %s segundo itxarotea eskatzen du hurrengo VeriFactu bidalketa baino lehen.
