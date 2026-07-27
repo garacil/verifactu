@@ -547,7 +547,7 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 function processInvoiceSendResponse($response, $facture, $manager, $langs, $conf)
 {
 	if ($response) {
-		if (isset($response->EstadoEnvio) && in_array($response->EstadoEnvio, ['Correcto', 'ParcialmenteCorrecto'])) {
+		if (isAEATResponseAccepted($response)) {
 			// SUCCESS
 			$statusMessage = $response->EstadoEnvio === 'Correcto' ? 'successfully' : 'with partial success';
 			dol_syslog("VERIFACTU: Invoice {$facture->ref} sent {$statusMessage}", LOG_INFO);
