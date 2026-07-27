@@ -116,11 +116,27 @@ function calculateVerifactuIntegrityChecksums($moduleDirectory)
  */
 function getSystemConfig()
 {
-	global $conf, $dolibarr_main_instance_unique_id;
+	global $conf, $db, $dolibarr_main_instance_unique_id;
 
 	$issuerName = $conf->global->VERIFACTU_HOLDER_COMPANY_NAME ?? '';
 	$issuerNif = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
 	$installationNumber = $dolibarr_main_instance_unique_id . '_' . $conf->entity;
+	$supportsMultipleTaxpayers = isModEnabled('multicompany');
+	$hasMultipleTaxpayers = false;
+
+	if ($supportsMultipleTaxpayers) {
+		$sql = "SELECT COUNT(rowid) as nb";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "entity";
+		$sql .= " WHERE active = 1";
+		$resql = $db->query($sql);
+		if ($resql) {
+			$obj = $db->fetch_object($resql);
+			$hasMultipleTaxpayers = ((int) $obj->nb > 1);
+			$db->free($resql);
+		} else {
+			dol_syslog(__FUNCTION__ . ': unable to count active MultiCompany entities: ' . $db->lasterror(), LOG_WARNING);
+		}
+	}
 
 	return [
 		'NombreRazon' => $issuerName,
@@ -130,8 +146,8 @@ function getSystemConfig()
 		'Version' => (defined('DOL_VERSION') ? DOL_VERSION : '1.0.0'),
 		'NumeroInstalacion' => $installationNumber,
 		'TipoUsoPosibleSoloVerifactu' => 'S',
-		'TipoUsoPosibleMultiOT' => 'N',
-		'IndicadorMultiplesOT' => 'N',
+		'TipoUsoPosibleMultiOT' => ($supportsMultipleTaxpayers ? 'S' : 'N'),
+		'IndicadorMultiplesOT' => ($hasMultipleTaxpayers ? 'S' : 'N'),
 	];
 }
 
