@@ -125,9 +125,12 @@ function getSystemConfig()
 	$hasMultipleTaxpayers = false;
 
 	if ($supportsMultipleTaxpayers) {
-		$sql = "SELECT COUNT(rowid) as nb";
-		$sql .= " FROM " . MAIN_DB_PREFIX . "entity";
-		$sql .= " WHERE active = 1";
+		$sql = "SELECT COUNT(DISTINCT e.rowid) as nb";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "entity AS e";
+		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS c ON c.entity = e.rowid";
+		$sql .= " AND c.name = 'MAIN_MODULE_VERIFACTU'";
+		$sql .= " AND c.value = '1'";
+		$sql .= " WHERE e.active = 1";
 		$resql = $db->query($sql);
 		if ($resql) {
 			$obj = $db->fetch_object($resql);
