@@ -222,7 +222,7 @@ class Invoice
      * @param string $date Issue date
      * @param string $taxId Issuer tax ID
      * @param string $name Issuer name
-     * @param bool $priorRejection Whether correcting a rejection
+     * @param bool|null $priorRejection True if previously rejected by AEAT, null if it was never submitted
      * @return self
      */
     public static function createSubsanacion(
@@ -230,12 +230,12 @@ class Invoice
         string $date,
         string $taxId,
         string $name,
-        bool $priorRejection = false
+        ?bool $priorRejection = false
     ): self {
         $instance = new self($serial, $date, $taxId, $name);
         $instance->setAsCorrection(true);
-        if ($priorRejection) {
-            $instance->setAsPreviousRejection(true);
+        if ($priorRejection !== false) {
+            $instance->setAsPreviousRejection($priorRejection);
         }
         return $instance;
     }
@@ -752,14 +752,14 @@ class Invoice
     /**
      * Marks document as correction of prior rejection.
      *
-     * @param bool $isPrior Prior rejection flag
+     * @param bool|null $isPrior True if rejected by AEAT, null if it was never submitted
      * @return self
      */
-    public function setAsPreviousRejection(bool $isPrior = true): self
+    public function setAsPreviousRejection(?bool $isPrior = true): self
     {
-        $this->statusFlags['isPriorRejection'] = $isPrior;
-        if ($isPrior) {
-            $this->payload['RechazoPrevio'] = 'X';
+        $this->statusFlags['isPriorRejection'] = ($isPrior !== false);
+        if ($isPrior !== false) {
+            $this->payload['RechazoPrevio'] = ($isPrior === true ? 'S' : 'X');
             $this->setAsCorrection(true);
         } else {
             unset($this->payload['RechazoPrevio']);
