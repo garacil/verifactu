@@ -410,6 +410,18 @@ if ($action == 'update' && !empty($user->admin)) {
 		$action = '';
 		$error++;
 	}
+
+	// Once the first fiscal fingerprint exists, the taxpayer identity that owns
+	// the chain is immutable. Certificate rotation remains possible and audited
+	// through its entity-specific fingerprint.
+	$currentTaxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+	if ($action == 'update'
+		&& normalizeVerifactuTaxIdentifier($postedTaxId) !== normalizeVerifactuTaxIdentifier($currentTaxId)
+		&& hasVerifactuFiscalRecords((int) $conf->entity)) {
+		setEventMessages($langs->trans('VERIFACTU_TAX_IDENTITY_LOCKED'), null, 'errors');
+		$action = '';
+		$error++;
+	}
 }
 
 // For retrocompatibility Dolibarr < 15.0

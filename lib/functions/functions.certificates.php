@@ -54,33 +54,37 @@ function prepareLocalCertificate(
 	}
 
 	$isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-	$opensslBin = $isWindows ? "\"$winOpensslPath\"" : 'openssl';
+	$opensslBin = $isWindows ? escapeshellarg($winOpensslPath) : 'openssl';
 
 	$certOut = $outputPath . '_cert.pem';
 	$keyOut = $outputPath . '_key.pem';
 
 	// Extract certificate without key
-	$cmdCert = "$opensslBin pkcs12 -in \"$certificateFile\" -clcerts -nokeys -out \"$certOut\" -password pass:$certificatePassword";
+	$cmdCert = $opensslBin . ' pkcs12 -in ' . escapeshellarg($certificateFile)
+		. ' -clcerts -nokeys -out ' . escapeshellarg($certOut)
+		. ' -password ' . escapeshellarg('pass:' . $certificatePassword);
 	exec($cmdCert, $outputCert, $codeCert);
 
 	if ($codeCert !== 0 || !file_exists($certOut)) {
-		die("Error extracting certificate.");
+		throw new RuntimeException("Error extracting certificate.");
 	}
 
 	// Extract private key (with or without passphrase)
 	$passOut = $privateKeyPassword ?? $certificatePassword;
-	$cmdKey = "$opensslBin pkcs12 -in \"$certificateFile\" -nocerts " .
-		($encryptKey ? '' : '-nodes') .
-		" -out \"$keyOut\" -password pass:$certificatePassword" .
-		($encryptKey ? " -passout pass:$passOut" : '');
+	$cmdKey = $opensslBin . ' pkcs12 -in ' . escapeshellarg($certificateFile)
+		. ' -nocerts ' . ($encryptKey ? '' : '-nodes ')
+		. '-out ' . escapeshellarg($keyOut)
+		. ' -password ' . escapeshellarg('pass:' . $certificatePassword)
+		. ($encryptKey ? ' -passout ' . escapeshellarg('pass:' . $passOut) : '');
 	exec($cmdKey, $outputKey, $codeKey);
 
 	if ($codeKey !== 0 || !file_exists($keyOut)) {
-		die("Error extracting private key.");
+		throw new RuntimeException("Error extracting private key.");
 	}
 
 	// Combine into a single .pem
 	file_put_contents($bundleFile, file_get_contents($certOut) . "\n" . file_get_contents($keyOut));
+	@chmod($bundleFile, 0600);
 
 	// Delete temporary files
 	unlink($certOut);
@@ -153,7 +157,7 @@ function extractPrivateKeyWithOpenSSL(
 ): array {
 
 	$isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-	$opensslBin = $isWindows ? "\"$winOpensslPath\"" : 'openssl';
+	$opensslBin = $isWindows ? escapeshellarg($winOpensslPath) : 'openssl';
 
 	// Verify binary exists
 	if ($isWindows && !file_exists($winOpensslPath)) {
@@ -168,7 +172,9 @@ function extractPrivateKeyWithOpenSSL(
 
 	try {
 		// Command to extract private key without encryption
-		$cmd = "$opensslBin pkcs12 -in \"$certificateFile\" -nocerts -nodes -out \"$tempKey\" -password pass:$certificatePassword 2>&1";
+		$cmd = $opensslBin . ' pkcs12 -in ' . escapeshellarg($certificateFile)
+			. ' -nocerts -nodes -out ' . escapeshellarg($tempKey)
+			. ' -password ' . escapeshellarg('pass:' . $certificatePassword) . ' 2>&1';
 
 		// Execute command
 		exec($cmd, $output, $returnCode);
@@ -252,7 +258,7 @@ function extractPublicCertificateWithOpenSSL(
 ): array {
 
 	$isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-	$opensslBin = $isWindows ? "\"$winOpensslPath\"" : 'openssl';
+	$opensslBin = $isWindows ? escapeshellarg($winOpensslPath) : 'openssl';
 
 	if ($isWindows && !file_exists($winOpensslPath)) {
 		return [
@@ -264,7 +270,9 @@ function extractPublicCertificateWithOpenSSL(
 	$tempCert = tempnam(sys_get_temp_dir(), 'verifactu_cert_') . '.pem';
 
 	try {
-		$cmd = "$opensslBin pkcs12 -in \"$certificateFile\" -clcerts -nokeys -out \"$tempCert\" -password pass:$certificatePassword 2>&1";
+		$cmd = $opensslBin . ' pkcs12 -in ' . escapeshellarg($certificateFile)
+			. ' -clcerts -nokeys -out ' . escapeshellarg($tempCert)
+			. ' -password ' . escapeshellarg('pass:' . $certificatePassword) . ' 2>&1';
 
 		exec($cmd, $output, $returnCode);
 
@@ -683,6 +691,19 @@ function validateCertificateAndKey($certPath, $certPassphrase = '')
 	if ($cert === false) {
 		dol_syslog("VERIFACTU: Error reading X.509 certificate", LOG_ERR);
 		$GLOBALS['verifactu_cert_error'] = "Error reading X.509 certificate - invalid format";
+		return false;
+	}
+
+	// Reject certificates that are not currently valid. A matching private key
+	// is not sufficient when the X.509 validity window has expired or has not begun.
+	$certInfo = openssl_x509_parse($cert);
+	$now = time();
+	$validFrom = isset($certInfo['validFrom_time_t']) ? (int) $certInfo['validFrom_time_t'] : 0;
+	$validTo = isset($certInfo['validTo_time_t']) ? (int) $certInfo['validTo_time_t'] : 0;
+	if (($validFrom > 0 && $now < $validFrom) || ($validTo > 0 && $now > $validTo)) {
+		openssl_x509_free($cert);
+		dol_syslog("VERIFACTU: Certificate is outside its X.509 validity period", LOG_ERR);
+		$GLOBALS['verifactu_cert_error'] = "Certificate is outside its X.509 validity period";
 		return false;
 	}
 

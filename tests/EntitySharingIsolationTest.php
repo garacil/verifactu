@@ -60,6 +60,11 @@ class FakeEntitySharingDatabase
 	{
 		return '';
 	}
+
+	public function plimit($limit)
+	{
+		return ' LIMIT ' . (int) $limit;
+	}
 }
 
 function sharingOptions(array $sharings)
@@ -157,6 +162,18 @@ $db = new FakeEntitySharingDatabase(array(
 ));
 if (!isVerifactuCertificateFingerprintUnique($fingerprint, 2, $conflictEntity) || $conflictEntity !== null) {
 	fwrite(STDERR, "Different certificate fingerprints must be accepted\n");
+	exit(1);
+}
+
+$db = new FakeEntitySharingDatabase(array(array('found' => 1)));
+if (!hasVerifactuFiscalRecords(2)) {
+	fwrite(STDERR, "An existing fiscal fingerprint must lock the taxpayer identity\n");
+	exit(1);
+}
+
+$db = new FakeEntitySharingDatabase(array());
+if (hasVerifactuFiscalRecords(2)) {
+	fwrite(STDERR, "An entity without fiscal fingerprints must remain configurable\n");
 	exit(1);
 }
 
