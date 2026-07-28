@@ -238,6 +238,14 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 			return -1;
 		}
 
+		// A MultiCompany entity enabled for VeriFactu must represent a distinct taxpayer.
+		$conflictEntity = null;
+		$taxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+		if (!isVerifactuTaxIdentityUnique($taxId, (int) $object->entity, $conflictEntity)) {
+			$this->errors[] = $langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity);
+			return -1;
+		}
+
 		// Include utilities class to process pending invoices
 		dol_include_once('/verifactu/class/verifactu.utils.php');
 

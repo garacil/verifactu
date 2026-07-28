@@ -185,6 +185,108 @@ function isVerifactuEntityIsolated($entity = null, &$sharedElement = null)
 }
 
 /**
+ * Normalize a taxpayer identifier for comparisons between entities.
+ *
+ * @param string $taxId Tax identifier
+ * @return string Normalized identifier
+ */
+function normalizeVerifactuTaxIdentifier($taxId)
+{
+	return strtoupper(preg_replace('/[^A-Z0-9]/i', '', trim((string) $taxId)));
+}
+
+/**
+ * Check that no other VeriFactu-enabled entity uses the same taxpayer NIF.
+ *
+ * @param string   $taxId          Taxpayer NIF to check
+ * @param int|null $entity         Current entity by default
+ * @param int|null $conflictEntity Receives the conflicting entity id
+ * @return bool                    True when the NIF is unique
+ */
+function isVerifactuTaxIdentityUnique($taxId, $entity = null, &$conflictEntity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$taxId = normalizeVerifactuTaxIdentifier($taxId);
+	$conflictEntity = null;
+	if ($taxId === '' || !isModEnabled('multicompany')) {
+		return true;
+	}
+
+	$sql = "SELECT taxpayer.entity, taxpayer.value";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "const AS taxpayer";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS module ON module.entity = taxpayer.entity";
+	$sql .= " AND module.name = 'MAIN_MODULE_VERIFACTU' AND module.value = '1'";
+	$sql .= " WHERE taxpayer.name = 'VERIFACTU_HOLDER_NIF'";
+	$sql .= " AND taxpayer.entity <> " . $entity;
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog(__FUNCTION__ . ': unable to inspect taxpayer identities: ' . $db->lasterror(), LOG_ERR);
+		$conflictEntity = -1;
+		return false;
+	}
+
+	$unique = true;
+	while ($obj = $db->fetch_object($resql)) {
+		if (normalizeVerifactuTaxIdentifier($obj->value) === $taxId) {
+			$conflictEntity = (int) $obj->entity;
+			$unique = false;
+			break;
+		}
+	}
+	$db->free($resql);
+
+	return $unique;
+}
+
+/**
+ * Check that no other VeriFactu-enabled entity uses the same X.509 certificate.
+ *
+ * @param string   $fingerprint    SHA-256 certificate fingerprint
+ * @param int|null $entity         Current entity by default
+ * @param int|null $conflictEntity Receives the conflicting entity id
+ * @return bool                    True when the certificate is unique
+ */
+function isVerifactuCertificateFingerprintUnique($fingerprint, $entity = null, &$conflictEntity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$fingerprint = strtolower(preg_replace('/[^a-f0-9]/i', '', (string) $fingerprint));
+	$conflictEntity = null;
+	if ($fingerprint === '' || !isModEnabled('multicompany')) {
+		return true;
+	}
+
+	$sql = "SELECT certificate.entity, certificate.value";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "const AS certificate";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS module ON module.entity = certificate.entity";
+	$sql .= " AND module.name = 'MAIN_MODULE_VERIFACTU' AND module.value = '1'";
+	$sql .= " WHERE certificate.name = 'VERIFACTU_CERTIFICATE_FINGERPRINT_SHA256'";
+	$sql .= " AND certificate.entity <> " . $entity;
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog(__FUNCTION__ . ': unable to inspect certificate fingerprints: ' . $db->lasterror(), LOG_ERR);
+		$conflictEntity = -1;
+		return false;
+	}
+
+	$unique = true;
+	while ($obj = $db->fetch_object($resql)) {
+		$otherFingerprint = strtolower(preg_replace('/[^a-f0-9]/i', '', (string) $obj->value));
+		if ($otherFingerprint === $fingerprint) {
+			$conflictEntity = (int) $obj->entity;
+			$unique = false;
+			break;
+		}
+	}
+	$db->free($resql);
+
+	return $unique;
+}
+
+/**
  * Gets the billing system configuration for AEAT
  *
  * @return array System configuration array

@@ -127,4 +127,37 @@ if (isVerifactuEntityIsolated(2, $sharedElement) || $sharedElement !== 'invoicen
 	exit(1);
 }
 
+$db = new FakeEntitySharingDatabase(array(
+	array('entity' => 1, 'value' => ' B-12345678 '),
+));
+if (isVerifactuTaxIdentityUnique('b12345678', 2, $conflictEntity) || $conflictEntity !== 1) {
+	fwrite(STDERR, "Equivalent normalized taxpayer identities must be rejected\n");
+	exit(1);
+}
+
+$db = new FakeEntitySharingDatabase(array(
+	array('entity' => 1, 'value' => 'B12345678'),
+));
+if (!isVerifactuTaxIdentityUnique('A87654321', 2, $conflictEntity) || $conflictEntity !== null) {
+	fwrite(STDERR, "Different taxpayer identities must be accepted\n");
+	exit(1);
+}
+
+$fingerprint = str_repeat('ab', 32);
+$db = new FakeEntitySharingDatabase(array(
+	array('entity' => 3, 'value' => strtoupper(implode(':', str_split($fingerprint, 2)))),
+));
+if (isVerifactuCertificateFingerprintUnique($fingerprint, 2, $conflictEntity) || $conflictEntity !== 3) {
+	fwrite(STDERR, "Equivalent certificate fingerprints must be rejected\n");
+	exit(1);
+}
+
+$db = new FakeEntitySharingDatabase(array(
+	array('entity' => 3, 'value' => str_repeat('cd', 32)),
+));
+if (!isVerifactuCertificateFingerprintUnique($fingerprint, 2, $conflictEntity) || $conflictEntity !== null) {
+	fwrite(STDERR, "Different certificate fingerprints must be accepted\n");
+	exit(1);
+}
+
 echo "Entity sharing isolation tests passed\n";
