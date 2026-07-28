@@ -109,6 +109,58 @@ function calculateVerifactuIntegrityChecksums($moduleDirectory)
 	return hash('sha256', json_encode($files));
 }
 
+if (!function_exists('isEntitySharingAllowed')) {
+	/**
+	 * Check that a MultiCompany element is not shared from or with an entity.
+	 *
+	 * The function is declared conditionally so a future Dolibarr core implementation
+	 * can provide the same API without a function name collision.
+	 *
+	 * @param string   $element Element key used by MultiCompany
+	 * @param int|null $entity  Entity to check, current entity by default
+	 * @return bool             True when the element is isolated
+	 */
+	function isEntitySharingAllowed($element, $entity = null)
+	{
+		global $conf, $db;
+
+		if (!isModEnabled('multicompany')) {
+			return true;
+		}
+		$sharingConstant = 'MULTICOMPANY_' . strtoupper($element) . '_SHARING_ENABLED';
+		if (!getDolGlobalInt($sharingConstant)) {
+			return true;
+		}
+
+		$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+		$sql = "SELECT rowid, options FROM " . MAIN_DB_PREFIX . "entity";
+		$resql = $db->query($sql);
+		if (!$resql) {
+			dol_syslog(__FUNCTION__ . ': unable to inspect MultiCompany sharing configuration: ' . $db->lasterror(), LOG_ERR);
+			return false;
+		}
+
+		$allowed = true;
+		while ($obj = $db->fetch_object($resql)) {
+			$options = (!empty($obj->options) ? json_decode($obj->options, true) : array());
+			$sharedEntities = $options['sharings'][$element] ?? array();
+			if (!is_array($sharedEntities)) {
+				continue;
+			}
+
+			// Outgoing sharing from the checked entity or incoming sharing to it.
+			if (((int) $obj->rowid === $entity && !empty($sharedEntities))
+				|| ((int) $obj->rowid !== $entity && in_array((string) $entity, array_map('strval', $sharedEntities), true))) {
+				$allowed = false;
+				break;
+			}
+		}
+
+		$db->free($resql);
+		return $allowed;
+	}
+}
+
 /**
  * Gets the billing system configuration for AEAT
  *
