@@ -718,3 +718,4 @@ verifactu_OPERACION_Exenta = Exempt Operation
 verifactu_OPERACION_ExentaTooltip = Exemption type (E1-E6) when operation is VAT/IGIC/IPSI exempt.
 verifactu_INCIDENCIA = Incident
 verifactu_INCIDENCIATooltip = Indicates technical incident (no electricity, no internet, system failure). Defaults to "N".
+VERIFACTU_TAX_IDENTITY_LOCKED=The taxpayer NIF cannot be changed because this entity already contains chained VeriFactu fiscal records.
