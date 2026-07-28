@@ -721,4 +721,3 @@ verifactu_INCIDENCIATooltip = Indica si hubo incidencia técnica (sin electricid
 VERIFACTU_ENTITY_SHARING_NOT_ALLOWED=Verifactu requiere que el recurso Multicompany "%s" sea independiente, pero está compartido por esta entidad o con esta entidad. Desactive la compartición antes de continuar.
 VERIFACTU_FOREIGN_ENTITY_INVOICE_NOT_ALLOWED=Verifactu no puede validar una factura que pertenece a otra entidad.
 VERIFACTU_TAX_IDENTITY_ALREADY_USED=La identidad fiscal configurada ya está siendo utilizada por la entidad Verifactu %s. Cada entidad debe representar un obligado tributario diferente.
-VERIFACTU_TAX_IDENTITY_LOCKED=No se puede modificar el NIF del obligado tributario porque esta entidad ya contiene registros fiscales encadenados de Verifactu.

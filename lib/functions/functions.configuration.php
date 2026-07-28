@@ -287,36 +287,6 @@ function isVerifactuCertificateFingerprintUnique($fingerprint, $entity = null, &
 }
 
 /**
- * Check whether an entity already has invoices in its VeriFactu fiscal chain.
- *
- * @param int|null $entity Current entity by default
- * @return bool            True when at least one fingerprint was generated
- */
-function hasVerifactuFiscalRecords($entity = null)
-{
-	global $conf, $db;
-
-	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
-	$sql = "SELECT 1 AS found";
-	$sql .= " FROM " . MAIN_DB_PREFIX . "facture AS f";
-	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields AS fe ON fe.fk_object = f.rowid";
-	$sql .= " WHERE f.entity = " . $entity;
-	$sql .= " AND fe.verifactu_huella IS NOT NULL AND fe.verifactu_huella <> ''";
-	$sql .= $db->plimit(1);
-	$resql = $db->query($sql);
-	if (!$resql) {
-		// Fail closed: fiscal identity changes must not be allowed when chain state
-		// cannot be verified.
-		dol_syslog(__FUNCTION__ . ': unable to inspect the fiscal chain: ' . $db->lasterror(), LOG_ERR);
-		return true;
-	}
-
-	$hasRecords = (bool) $db->fetch_object($resql);
-	$db->free($resql);
-	return $hasRecords;
-}
-
-/**
  * Gets the billing system configuration for AEAT
  *
  * @return array System configuration array
