@@ -748,7 +748,8 @@ $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters, $object
 $sql .= $hookmanager->resPrint;
 
 $sql .= ' WHERE f.fk_soc = s.rowid';
-$sql .= ' AND f.entity IN (' . getEntity('invoice') . ')';
+// VeriFactu data must not include invoices shared from another legal entity.
+$sql .= ' AND f.entity = ' . ((int) $conf->entity);
 if (empty($user->rights->societe->client->voir) && !$socid) {
 	$sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = " . ((int) $user->id);
 }

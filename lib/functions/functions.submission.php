@@ -126,6 +126,11 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta')
 		$environment = getEnvironment();
 		$issuerNif = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
 		$issuerName = $conf->global->VERIFACTU_HOLDER_COMPANY_NAME ?? '';
+		$conflictEntity = null;
+		if (!isVerifactuTaxIdentityUnique($issuerNif, (int) $conf->entity, $conflictEntity)) {
+			setEventMessage($langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity), 'errors');
+			return false;
+		}
 
 		// Get certificate configuration
 		$certOptions = getCertificateOptions();

@@ -536,6 +536,27 @@ function getCertificateOptions()
 		return false;
 	}
 
+	// A certificate identifies the taxpayer and must not be reused by another
+	// VeriFactu-enabled MultiCompany entity.
+	$certificateContent = @file_get_contents($certPath);
+	$certificate = ($certificateContent !== false ? @openssl_x509_read($certificateContent) : false);
+	$fingerprint = ($certificate ? @openssl_x509_fingerprint($certificate, 'sha256') : false);
+	if (empty($fingerprint)) {
+		$GLOBALS['verifactu_cert_error'] = 'Unable to calculate the X.509 certificate fingerprint';
+		return false;
+	}
+
+	$conflictEntity = null;
+	if (!isVerifactuCertificateFingerprintUnique($fingerprint, (int) $conf->entity, $conflictEntity)) {
+		$GLOBALS['verifactu_cert_error'] = 'Certificate already used by VeriFactu entity ' . (int) $conflictEntity;
+		return false;
+	}
+	$result = dolibarr_set_const($db, 'VERIFACTU_CERTIFICATE_FINGERPRINT_SHA256', strtolower($fingerprint), 'chaine', 0, '', $conf->entity);
+	if ($result < 0) {
+		$GLOBALS['verifactu_cert_error'] = 'Unable to register the entity certificate fingerprint';
+		return false;
+	}
+
 	dol_syslog("VERIFACTU: Certificate options prepared successfully", LOG_DEBUG);
 	return $certOptions;
 }

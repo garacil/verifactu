@@ -222,6 +222,30 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 	}
 	public function billValidate($action, $object, User $user, Translate $langs, Conf $conf)
 	{
+		dol_include_once('/verifactu/lib/functions/functions.configuration.php');
+		$langs->load('verifactu@verifactu');
+
+		// Never let the active entity validate an invoice owned by another legal entity.
+		if ((int) $object->entity !== (int) $conf->entity) {
+			$this->errors[] = $langs->trans('VERIFACTU_FOREIGN_ENTITY_INVOICE_NOT_ALLOWED');
+			return -1;
+		}
+
+		// Recheck at validation time in case MultiCompany sharing changed after activation.
+		$sharedElement = null;
+		if (!isVerifactuEntityIsolated((int) $object->entity, $sharedElement)) {
+			$this->errors[] = $langs->trans('VERIFACTU_ENTITY_SHARING_NOT_ALLOWED', $sharedElement);
+			return -1;
+		}
+
+		// A MultiCompany entity enabled for VeriFactu must represent a distinct taxpayer.
+		$conflictEntity = null;
+		$taxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+		if (!isVerifactuTaxIdentityUnique($taxId, (int) $object->entity, $conflictEntity)) {
+			$this->errors[] = $langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity);
+			return -1;
+		}
+
 		// Include utilities class to process pending invoices
 		dol_include_once('/verifactu/class/verifactu.utils.php');
 
@@ -446,7 +470,7 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 		$sql = "SELECT COUNT(*) as count FROM " . MAIN_DB_PREFIX . "facture f ";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object ";
 		$sql .= "WHERE fk_soc = " . $object->id . " AND fe.verifactu_csv_factura IS NOT NULL AND fe.verifactu_huella IS NOT NULL";
-		$sql .= "  AND f.entity IN (" . getEntity('invoice') . ")";
+		$sql .= "  AND f.entity = " . ((int) $conf->entity);
 
 		$resql = $this->db->query($sql);
 		if ($resql) {

@@ -146,7 +146,8 @@ class VerifactuUtils
 		$sql = "SELECT f.rowid, f.ref, f.datef, f.entity";
 		$sql .= " FROM " . MAIN_DB_PREFIX . "facture f";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
-		$sql .= " WHERE f.entity = " . getEntity('invoice');
+		// Retry with the current entity configuration and certificate only.
+		$sql .= " WHERE f.entity = " . ((int) $conf->entity);
 		$sql .= " AND f.fk_statut > 0"; // Only validated invoices
 		$sql .= " AND f.ref NOT LIKE '%PROV%'"; // Exclude provisional invoices
 		$sql .= " AND (fe.verifactu_error LIKE '%NO_INTERNET_CONNECTION%' OR fe.verifactu_error LIKE '%SERVICE_UNAVAILABLE%')"; // With connection error

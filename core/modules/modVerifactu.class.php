@@ -557,6 +557,23 @@ class modVerifactu extends DolibarrModules
 			return -1;
 		}
 
+		// VeriFactu fiscal resources must remain isolated for the current legal entity.
+		dol_include_once('/verifactu/lib/functions/functions.configuration.php');
+		$sharedElement = null;
+		if (!isVerifactuEntityIsolated((int) $conf->entity, $sharedElement)) {
+			$this->error = $langs->trans('VERIFACTU_ENTITY_SHARING_NOT_ALLOWED', $sharedElement);
+			return -1;
+		}
+
+		// The NIF is the primary identity of the taxpayer. Never allow a second
+		// VeriFactu entity to activate with an identity already in use.
+		$conflictEntity = null;
+		$taxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+		if (!isVerifactuTaxIdentityUnique($taxId, (int) $conf->entity, $conflictEntity)) {
+			$this->error = $langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity);
+			return -1;
+		}
+
 		// Include VeriFactu data types
 		require_once(dol_buildpath('/verifactu/lib/verifactu-types.array.php', 0));
 
@@ -1174,7 +1191,7 @@ class modVerifactu extends DolibarrModules
 
 			//Default values
 			$dFalues = [
-				['type' => 'mandatory', 'entity' => 1, 'page' => 'societe/card.php', 'param' => 'country_id', 'value' => '']
+				['type' => 'mandatory', 'entity' => $conf->entity, 'page' => 'societe/card.php', 'param' => 'country_id', 'value' => '']
 
 			];
 
@@ -1194,7 +1211,9 @@ class modVerifactu extends DolibarrModules
 		// Permissions
 		$this->remove($options);
 		$badge = '<div class="center"><span class="badge badge-status8 classfortooltip badge-status" attr-status="' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '">' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '</span></div>';
-		$sql1 = "UPDATE " . MAIN_DB_PREFIX . "facture_extrafields SET verifactu_estado='$badge' WHERE verifactu_estado IS NULL";
+		$sql1 = "UPDATE " . MAIN_DB_PREFIX . "facture_extrafields SET verifactu_estado='$badge'";
+		$sql1 .= " WHERE verifactu_estado IS NULL AND fk_object IN (";
+		$sql1 .= "SELECT rowid FROM " . MAIN_DB_PREFIX . "facture WHERE entity = " . ((int) $conf->entity) . ")";
 
 		$sql = array($sql1);
 		dol_include_once('/verifactu/lib/verifactu.lib.php');

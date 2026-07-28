@@ -109,6 +109,183 @@ function calculateVerifactuIntegrityChecksums($moduleDirectory)
 	return hash('sha256', json_encode($files));
 }
 
+if (!function_exists('isEntitySharingAllowed')) {
+	/**
+	 * Check that a MultiCompany element is not shared from or with an entity.
+	 *
+	 * The function is declared conditionally so a future Dolibarr core implementation
+	 * can provide the same API without a function name collision.
+	 *
+	 * @param string   $element Element key used by MultiCompany
+	 * @param int|null $entity  Entity to check, current entity by default
+	 * @return bool             True when the element is isolated
+	 */
+	function isEntitySharingAllowed($element, $entity = null)
+	{
+		global $conf, $db;
+
+		if (!isModEnabled('multicompany')) {
+			return true;
+		}
+		$sharingConstant = 'MULTICOMPANY_' . strtoupper($element) . '_SHARING_ENABLED';
+		if (!getDolGlobalInt($sharingConstant)) {
+			return true;
+		}
+
+		$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+		$sql = "SELECT rowid, options FROM " . MAIN_DB_PREFIX . "entity";
+		$resql = $db->query($sql);
+		if (!$resql) {
+			dol_syslog(__FUNCTION__ . ': unable to inspect MultiCompany sharing configuration: ' . $db->lasterror(), LOG_ERR);
+			return false;
+		}
+
+		$allowed = true;
+		while ($obj = $db->fetch_object($resql)) {
+			$options = (!empty($obj->options) ? json_decode($obj->options, true) : array());
+			$sharedEntities = $options['sharings'][$element] ?? array();
+			if (!is_array($sharedEntities)) {
+				continue;
+			}
+
+			// Outgoing sharing from the checked entity or incoming sharing to it.
+			if (((int) $obj->rowid === $entity && !empty($sharedEntities))
+				|| ((int) $obj->rowid !== $entity && in_array((string) $entity, array_map('strval', $sharedEntities), true))) {
+				$allowed = false;
+				break;
+			}
+		}
+
+		$db->free($resql);
+		return $allowed;
+	}
+}
+
+/**
+ * Check all resources that VeriFactu requires to be isolated per legal entity.
+ *
+ * @param int|null    $entity        Entity to check, current entity by default
+ * @param string|null $sharedElement Receives the first incompatible element
+ * @return bool                      True when every fiscal resource is isolated
+ */
+function isVerifactuEntityIsolated($entity = null, &$sharedElement = null)
+{
+	global $conf;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$sharedElement = null;
+	foreach (array('invoice', 'invoicenumber', 'bankaccount') as $element) {
+		if (!isEntitySharingAllowed($element, $entity)) {
+			$sharedElement = $element;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Normalize a taxpayer identifier for comparisons between entities.
+ *
+ * @param string $taxId Tax identifier
+ * @return string Normalized identifier
+ */
+function normalizeVerifactuTaxIdentifier($taxId)
+{
+	return strtoupper(preg_replace('/[^A-Z0-9]/i', '', trim((string) $taxId)));
+}
+
+/**
+ * Check that no other VeriFactu-enabled entity uses the same taxpayer NIF.
+ *
+ * @param string   $taxId          Taxpayer NIF to check
+ * @param int|null $entity         Current entity by default
+ * @param int|null $conflictEntity Receives the conflicting entity id
+ * @return bool                    True when the NIF is unique
+ */
+function isVerifactuTaxIdentityUnique($taxId, $entity = null, &$conflictEntity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$taxId = normalizeVerifactuTaxIdentifier($taxId);
+	$conflictEntity = null;
+	if ($taxId === '' || !isModEnabled('multicompany')) {
+		return true;
+	}
+
+	$sql = "SELECT taxpayer.entity, taxpayer.value";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "const AS taxpayer";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS module ON module.entity = taxpayer.entity";
+	$sql .= " AND module.name = 'MAIN_MODULE_VERIFACTU' AND module.value = '1'";
+	$sql .= " WHERE taxpayer.name = 'VERIFACTU_HOLDER_NIF'";
+	$sql .= " AND taxpayer.entity <> " . $entity;
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog(__FUNCTION__ . ': unable to inspect taxpayer identities: ' . $db->lasterror(), LOG_ERR);
+		$conflictEntity = -1;
+		return false;
+	}
+
+	$unique = true;
+	while ($obj = $db->fetch_object($resql)) {
+		if (normalizeVerifactuTaxIdentifier($obj->value) === $taxId) {
+			$conflictEntity = (int) $obj->entity;
+			$unique = false;
+			break;
+		}
+	}
+	$db->free($resql);
+
+	return $unique;
+}
+
+/**
+ * Check that no other VeriFactu-enabled entity uses the same X.509 certificate.
+ *
+ * @param string   $fingerprint    SHA-256 certificate fingerprint
+ * @param int|null $entity         Current entity by default
+ * @param int|null $conflictEntity Receives the conflicting entity id
+ * @return bool                    True when the certificate is unique
+ */
+function isVerifactuCertificateFingerprintUnique($fingerprint, $entity = null, &$conflictEntity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$fingerprint = strtolower(preg_replace('/[^a-f0-9]/i', '', (string) $fingerprint));
+	$conflictEntity = null;
+	if ($fingerprint === '' || !isModEnabled('multicompany')) {
+		return true;
+	}
+
+	$sql = "SELECT certificate.entity, certificate.value";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "const AS certificate";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS module ON module.entity = certificate.entity";
+	$sql .= " AND module.name = 'MAIN_MODULE_VERIFACTU' AND module.value = '1'";
+	$sql .= " WHERE certificate.name = 'VERIFACTU_CERTIFICATE_FINGERPRINT_SHA256'";
+	$sql .= " AND certificate.entity <> " . $entity;
+	$resql = $db->query($sql);
+	if (!$resql) {
+		dol_syslog(__FUNCTION__ . ': unable to inspect certificate fingerprints: ' . $db->lasterror(), LOG_ERR);
+		$conflictEntity = -1;
+		return false;
+	}
+
+	$unique = true;
+	while ($obj = $db->fetch_object($resql)) {
+		$otherFingerprint = strtolower(preg_replace('/[^a-f0-9]/i', '', (string) $obj->value));
+		if ($otherFingerprint === $fingerprint) {
+			$conflictEntity = (int) $obj->entity;
+			$unique = false;
+			break;
+		}
+	}
+	$db->free($resql);
+
+	return $unique;
+}
+
 /**
  * Gets the billing system configuration for AEAT
  *
@@ -116,11 +293,29 @@ function calculateVerifactuIntegrityChecksums($moduleDirectory)
  */
 function getSystemConfig()
 {
-	global $conf, $dolibarr_main_instance_unique_id;
+	global $conf, $db, $dolibarr_main_instance_unique_id;
 
 	$issuerName = $conf->global->VERIFACTU_HOLDER_COMPANY_NAME ?? '';
 	$issuerNif = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
 	$installationNumber = $dolibarr_main_instance_unique_id . '_' . $conf->entity;
+	$hasMultipleTaxpayers = false;
+
+	if (isModEnabled('multicompany')) {
+		$sql = "SELECT COUNT(DISTINCT e.rowid) as nb";
+		$sql .= " FROM " . MAIN_DB_PREFIX . "entity AS e";
+		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS c ON c.entity = e.rowid";
+		$sql .= " AND c.name = 'MAIN_MODULE_VERIFACTU'";
+		$sql .= " AND c.value = '1'";
+		$sql .= " WHERE e.active = 1";
+		$resql = $db->query($sql);
+		if ($resql) {
+			$obj = $db->fetch_object($resql);
+			$hasMultipleTaxpayers = ((int) $obj->nb > 1);
+			$db->free($resql);
+		} else {
+			dol_syslog(__FUNCTION__ . ': unable to count active MultiCompany entities: ' . $db->lasterror(), LOG_WARNING);
+		}
+	}
 
 	return [
 		'NombreRazon' => $issuerName,
@@ -130,8 +325,8 @@ function getSystemConfig()
 		'Version' => (defined('DOL_VERSION') ? DOL_VERSION : '1.0.0'),
 		'NumeroInstalacion' => $installationNumber,
 		'TipoUsoPosibleSoloVerifactu' => 'S',
-		'TipoUsoPosibleMultiOT' => 'N',
-		'IndicadorMultiplesOT' => 'N',
+		'TipoUsoPosibleMultiOT' => ($hasMultipleTaxpayers ? 'S' : 'N'),
+		'IndicadorMultiplesOT' => ($hasMultipleTaxpayers ? 'S' : 'N'),
 	];
 }
 

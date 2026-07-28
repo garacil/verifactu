@@ -86,7 +86,7 @@ $sqlByStatus = "SELECT fe.verifactu_estado as estado, COUNT(*) as total";
 $sqlByStatus .= " FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlByStatus .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlByStatus .= " WHERE fe.verifactu_estado IS NOT NULL AND fe.verifactu_estado != ''";
-$sqlByStatus .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlByStatus .= " AND f.entity = " . ((int) $conf->entity);
 $sqlByStatus .= " GROUP BY fe.verifactu_estado";
 $sqlByStatus .= " ORDER BY total DESC";
 
@@ -106,7 +106,7 @@ $sqlErrors = "SELECT COUNT(*) as total FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlErrors .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlErrors .= " WHERE fe.verifactu_error IS NOT NULL AND fe.verifactu_error != ''";
 $sqlErrors .= " AND f.fk_statut > 0";
-$sqlErrors .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlErrors .= " AND f.entity = " . ((int) $conf->entity);
 $resqlErrors = $db->query($sqlErrors);
 $totalErrors = 0;
 if ($resqlErrors) {
@@ -122,7 +122,7 @@ $sqlByMonth .= " FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlByMonth .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlByMonth .= " WHERE fe.verifactu_estado IS NOT NULL AND fe.verifactu_estado != ''";
 $sqlByMonth .= " AND YEAR(f.datef) = " . $currentYear;
-$sqlByMonth .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlByMonth .= " AND f.entity = " . ((int) $conf->entity);
 $sqlByMonth .= " GROUP BY MONTH(f.datef)";
 $sqlByMonth .= " ORDER BY MONTH(f.datef)";
 
@@ -141,7 +141,7 @@ $sqlLastSent .= " FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlLastSent .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlLastSent .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON f.fk_soc = s.rowid";
 $sqlLastSent .= " WHERE fe.verifactu_estado IS NOT NULL AND fe.verifactu_estado != ''";
-$sqlLastSent .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlLastSent .= " AND f.entity = " . ((int) $conf->entity);
 $sqlLastSent .= " ORDER BY fe.verifactu_ultimafecha_modificacion DESC";
 $sqlLastSent .= " LIMIT 5";
 
@@ -161,7 +161,7 @@ $sqlWithErrors .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f
 $sqlWithErrors .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON f.fk_soc = s.rowid";
 $sqlWithErrors .= " WHERE fe.verifactu_error IS NOT NULL AND fe.verifactu_error != ''";
 $sqlWithErrors .= " AND f.fk_statut > 0";
-$sqlWithErrors .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlWithErrors .= " AND f.entity = " . ((int) $conf->entity);
 $sqlWithErrors .= " ORDER BY f.datef DESC";
 $sqlWithErrors .= " LIMIT 5";
 
@@ -181,7 +181,7 @@ $sqlPending .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.row
 $sqlPending .= " LEFT JOIN " . MAIN_DB_PREFIX . "societe s ON f.fk_soc = s.rowid";
 $sqlPending .= " WHERE f.fk_statut = 1"; // Validated
 $sqlPending .= " AND (fe.verifactu_estado IS NULL OR fe.verifactu_estado = '')";
-$sqlPending .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlPending .= " AND f.entity = " . ((int) $conf->entity);
 $sqlPending .= " ORDER BY f.datef DESC";
 $sqlPending .= " LIMIT 5";
 
@@ -202,7 +202,7 @@ $sqlPendingCount .= " FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlPendingCount .= " LEFT JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlPendingCount .= " WHERE f.fk_statut = 1";
 $sqlPendingCount .= " AND (fe.verifactu_estado IS NULL OR fe.verifactu_estado = '')";
-$sqlPendingCount .= " AND f.entity IN (" . getEntity('invoice') . ")";
+$sqlPendingCount .= " AND f.entity = " . ((int) $conf->entity);
 $resqlPendingCount = $db->query($sqlPendingCount);
 if ($resqlPendingCount) {
 	$obj = $db->fetch_object($resqlPendingCount);

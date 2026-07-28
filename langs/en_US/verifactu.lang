@@ -718,3 +718,6 @@ verifactu_OPERACION_Exenta = Exempt Operation
 verifactu_OPERACION_ExentaTooltip = Exemption type (E1-E6) when operation is VAT/IGIC/IPSI exempt.
 verifactu_INCIDENCIA = Incident
 verifactu_INCIDENCIATooltip = Indicates technical incident (no electricity, no internet, system failure). Defaults to "N".
+VERIFACTU_ENTITY_SHARING_NOT_ALLOWED=VeriFactu requires the MultiCompany resource "%s" to remain entity-specific, but it is shared from or with this entity. Disable sharing before continuing.
+VERIFACTU_FOREIGN_ENTITY_INVOICE_NOT_ALLOWED=VeriFactu cannot validate an invoice that belongs to another entity.
+VERIFACTU_TAX_IDENTITY_ALREADY_USED=The configured taxpayer identity is already used by VeriFactu entity %s. Each entity must represent a different taxpayer.
