@@ -565,6 +565,15 @@ class modVerifactu extends DolibarrModules
 			return -1;
 		}
 
+		// The NIF is the primary identity of the taxpayer. Never allow a second
+		// VeriFactu entity to activate with an identity already in use.
+		$conflictEntity = null;
+		$taxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+		if (!isVerifactuTaxIdentityUnique($taxId, (int) $conf->entity, $conflictEntity)) {
+			$this->error = $langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity);
+			return -1;
+		}
+
 		// Include VeriFactu data types
 		require_once(dol_buildpath('/verifactu/lib/verifactu-types.array.php', 0));
 

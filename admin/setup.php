@@ -400,6 +400,18 @@ $dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
  * Actions
  */
 
+// Reject a duplicated taxpayer identity before FormSetup persists any value.
+// This is the earliest safeguard and complements activation/runtime checks.
+if ($action == 'update' && !empty($user->admin)) {
+	$postedTaxId = GETPOST('VERIFACTU_HOLDER_NIF', 'alphanohtml');
+	$conflictEntity = null;
+	if (!isVerifactuTaxIdentityUnique($postedTaxId, (int) $conf->entity, $conflictEntity)) {
+		setEventMessages($langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity), null, 'errors');
+		$action = '';
+		$error++;
+	}
+}
+
 // For retrocompatibility Dolibarr < 15.0
 if (versioncompare(explode('.', DOL_VERSION), array(15)) < 0 && $action == 'update' && !empty($user->admin)) {
 	$formSetup->saveConfFromPost();
