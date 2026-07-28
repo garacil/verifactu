@@ -121,10 +121,9 @@ function getSystemConfig()
 	$issuerName = $conf->global->VERIFACTU_HOLDER_COMPANY_NAME ?? '';
 	$issuerNif = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
 	$installationNumber = $dolibarr_main_instance_unique_id . '_' . $conf->entity;
-	$supportsMultipleTaxpayers = isModEnabled('multicompany');
 	$hasMultipleTaxpayers = false;
 
-	if ($supportsMultipleTaxpayers) {
+	if (isModEnabled('multicompany')) {
 		$sql = "SELECT COUNT(DISTINCT e.rowid) as nb";
 		$sql .= " FROM " . MAIN_DB_PREFIX . "entity AS e";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS c ON c.entity = e.rowid";
@@ -149,7 +148,7 @@ function getSystemConfig()
 		'Version' => (defined('DOL_VERSION') ? DOL_VERSION : '1.0.0'),
 		'NumeroInstalacion' => $installationNumber,
 		'TipoUsoPosibleSoloVerifactu' => 'S',
-		'TipoUsoPosibleMultiOT' => ($supportsMultipleTaxpayers ? 'S' : 'N'),
+		'TipoUsoPosibleMultiOT' => ($hasMultipleTaxpayers ? 'S' : 'N'),
 		'IndicadorMultiplesOT' => ($hasMultipleTaxpayers ? 'S' : 'N'),
 	];
 }

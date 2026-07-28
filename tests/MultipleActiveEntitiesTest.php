@@ -46,6 +46,11 @@ $dolibarr_main_instance_unique_id = 'test-instance';
 $db = new FakeVerifactuEntitiesDatabase(2);
 
 $config = getSystemConfig();
+if ($config['TipoUsoPosibleMultiOT'] !== 'S') {
+	fwrite(STDERR, "Two active VeriFactu entities must set TipoUsoPosibleMultiOT to S\n");
+	exit(1);
+}
+
 if ($config['IndicadorMultiplesOT'] !== 'S') {
 	fwrite(STDERR, "Two active VeriFactu entities must set IndicadorMultiplesOT to S\n");
 	exit(1);
@@ -65,6 +70,11 @@ if (stripos($db->lastQuery, 'country') !== false) {
 
 $db = new FakeVerifactuEntitiesDatabase(1);
 $config = getSystemConfig();
+if ($config['TipoUsoPosibleMultiOT'] !== 'N') {
+	fwrite(STDERR, "One active VeriFactu entity must set TipoUsoPosibleMultiOT to N\n");
+	exit(1);
+}
+
 if ($config['IndicadorMultiplesOT'] !== 'N') {
 	fwrite(STDERR, "One active VeriFactu entity must set IndicadorMultiplesOT to N\n");
 	exit(1);
