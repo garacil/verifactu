@@ -82,6 +82,10 @@ if (!isEntitySharingAllowed('invoice', 2)) {
 	fwrite(STDERR, "An isolated entity must allow invoice use\n");
 	exit(1);
 }
+if (!isVerifactuEntityIsolated(2, $sharedElement) || $sharedElement !== null) {
+	fwrite(STDERR, "All isolated VeriFactu resources must pass the aggregate check\n");
+	exit(1);
+}
 
 $enabledSharingConstants['MULTICOMPANY_INVOICE_SHARING_ENABLED'] = 0;
 $db = new FakeEntitySharingDatabase(array(
@@ -116,6 +120,10 @@ $db = new FakeEntitySharingDatabase(array(
 ));
 if (isEntitySharingAllowed('invoicenumber', 2)) {
 	fwrite(STDERR, "Numeric incoming invoice-number sharing must be rejected\n");
+	exit(1);
+}
+if (isVerifactuEntityIsolated(2, $sharedElement) || $sharedElement !== 'invoicenumber') {
+	fwrite(STDERR, "Aggregate isolation check must report the incompatible resource\n");
 	exit(1);
 }
 

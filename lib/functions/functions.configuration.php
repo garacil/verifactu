@@ -162,6 +162,29 @@ if (!function_exists('isEntitySharingAllowed')) {
 }
 
 /**
+ * Check all resources that VeriFactu requires to be isolated per legal entity.
+ *
+ * @param int|null    $entity        Entity to check, current entity by default
+ * @param string|null $sharedElement Receives the first incompatible element
+ * @return bool                      True when every fiscal resource is isolated
+ */
+function isVerifactuEntityIsolated($entity = null, &$sharedElement = null)
+{
+	global $conf;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$sharedElement = null;
+	foreach (array('invoice', 'invoicenumber', 'bankaccount') as $element) {
+		if (!isEntitySharingAllowed($element, $entity)) {
+			$sharedElement = $element;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Gets the billing system configuration for AEAT
  *
  * @return array System configuration array

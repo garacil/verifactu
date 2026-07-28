@@ -222,6 +222,22 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 	}
 	public function billValidate($action, $object, User $user, Translate $langs, Conf $conf)
 	{
+		dol_include_once('/verifactu/lib/functions/functions.configuration.php');
+		$langs->load('verifactu@verifactu');
+
+		// Never let the active entity validate an invoice owned by another legal entity.
+		if ((int) $object->entity !== (int) $conf->entity) {
+			$this->errors[] = $langs->trans('VERIFACTU_FOREIGN_ENTITY_INVOICE_NOT_ALLOWED');
+			return -1;
+		}
+
+		// Recheck at validation time in case MultiCompany sharing changed after activation.
+		$sharedElement = null;
+		if (!isVerifactuEntityIsolated((int) $object->entity, $sharedElement)) {
+			$this->errors[] = $langs->trans('VERIFACTU_ENTITY_SHARING_NOT_ALLOWED', $sharedElement);
+			return -1;
+		}
+
 		// Include utilities class to process pending invoices
 		dol_include_once('/verifactu/class/verifactu.utils.php');
 

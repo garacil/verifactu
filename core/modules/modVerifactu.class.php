@@ -559,11 +559,10 @@ class modVerifactu extends DolibarrModules
 
 		// VeriFactu fiscal resources must remain isolated for the current legal entity.
 		dol_include_once('/verifactu/lib/functions/functions.configuration.php');
-		foreach (array('invoice', 'invoicenumber', 'bankaccount') as $element) {
-			if (!isEntitySharingAllowed($element, (int) $conf->entity)) {
-				$this->error = $langs->trans('VERIFACTU_ENTITY_SHARING_NOT_ALLOWED', $element);
-				return -1;
-			}
+		$sharedElement = null;
+		if (!isVerifactuEntityIsolated((int) $conf->entity, $sharedElement)) {
+			$this->error = $langs->trans('VERIFACTU_ENTITY_SHARING_NOT_ALLOWED', $sharedElement);
+			return -1;
 		}
 
 		// Include VeriFactu data types
