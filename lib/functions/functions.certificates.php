@@ -153,17 +153,23 @@ function runOpensslCommand(array $arguments, string $password = ''): array
 	);
 
 	// Inherit the current environment and add the password variable.
+	// getenv() is the base because under the usual web SAPI variables_order
+	// ("GPCS", no "E") $_ENV comes back empty, and dropping PATH would leave
+	// proc_open unable to find the openssl binary.
 	$environment = array();
+	if (function_exists('getenv')) {
+		$inherited = getenv();
+		if (is_array($inherited)) {
+			$environment = array_filter($inherited, 'is_string');
+		}
+	}
 	foreach ($_ENV as $key => $value) {
 		if (is_string($value)) {
 			$environment[$key] = $value;
 		}
 	}
-	if (empty($environment) && function_exists('getenv')) {
-		$inherited = getenv();
-		if (is_array($inherited)) {
-			$environment = array_filter($inherited, 'is_string');
-		}
+	if (empty($environment['PATH']) && !empty($_SERVER['PATH']) && is_string($_SERVER['PATH'])) {
+		$environment['PATH'] = $_SERVER['PATH'];
 	}
 	$environment['VERIFACTU_P12_PASS'] = $password;
 
