@@ -1321,9 +1321,13 @@ class ActionsVerifactu
 
 		// The 'beforePDFCreation' hook is not fired only by invoice PDF models.
 		// Report models such as pdf_paiement / pdf_paiement_fourn (Invoices > Reports >
-		// Payment report) fire it too, but pass the PDF model itself as $object.
-		// Those classes do not extend CommonObject and therefore have no
-		// fetch_optionals(), which turned this hook into a fatal error.
+		// Payment report) fire it too, and what they pass as $object is not an invoice:
+		//   - Dolibarr 22.x passes the PDF model itself ($this). That class extends
+		//     CommonDocGenerator, not CommonObject, so it has no fetch_optionals().
+		//   - Dolibarr 17.x passes a $object variable that is never assigned in
+		//     write_file(), i.e. null.
+		// Either way the unguarded call was a fatal error. Verified against 17.0.2
+		// and 22.0.5.
 		if (!is_object($object) || !method_exists($object, 'fetch_optionals')) {
 			return 0;
 		}

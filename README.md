@@ -369,11 +369,14 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
   `Call to undefined method pdf_paiement_fourn::fetch_optionals()` al generar el
   informe de pagos de facturas de cliente o de proveedor. Ese hook no lo disparan
   solo los modelos PDF de factura: los modelos de informe (`pdf_paiement`,
-  `pdf_paiement_fourn`) también lo lanzan, pero pasan como `$object` el propio
-  modelo PDF, que no extiende `CommonObject` y no tiene `fetch_optionals()`.
-  Añadido un guard que sale limpiamente cuando el objeto no es un objeto de
-  negocio. De paso, se deja de acceder al extrafield cuando no existe, lo que
-  además eliminaba un warning de PHP 8.
+  `pdf_paiement_fourn`) también lo lanzan, y lo que pasan como `$object` no es una
+  factura. En Dolibarr 22.x pasan el propio modelo PDF, que extiende
+  `CommonDocGenerator` y no tiene `fetch_optionals()`; en Dolibarr 17.x pasan una
+  variable `$object` que nunca se asigna en `write_file()`, es decir `null`. En
+  ambos casos la llamada sin comprobación era un error fatal. Añadido un guard
+  que sale limpiamente cuando el objeto no es un objeto de negocio. De paso, se
+  deja de acceder al extrafield cuando no existe, lo que además eliminaba un
+  warning de PHP 8.
 
 - **TypeError en el QR con PHP 8 (issue #32)**: `QRGenerator::renderQrCode()`
   declaraba `int $outputType`, pero las constantes `QRCode::OUTPUT_IMAGE_PNG` y
@@ -451,8 +454,23 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 - `core/modules/modVerifactu.class.php` - Versión del módulo
 - Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
+#### Compatibilidad verificada
+
+Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento:
+
+| Entorno | Resultado |
+|---|---|
+| Dolibarr 22.0.5 + PHP 8.4 + PostgreSQL 16 | 22/22 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 8.4 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 7.4 (mínimo declarado) | 20/20 comprobaciones en vivo |
+| Suite de regresión (PHP 7.4 y 8.4) | 53/53 |
+
+En ambas versiones se activa el módulo, se dispara el hook `beforePDFCreation`
+con el objeto que realmente pasa cada una, se generan los QR y se comprueban las
+constantes de tipo de factura contra la clase `Facture` real.
+
 #### Tests
-- `tests/IssueFixesTest.php` - 51 tests de regresión para los issues #30, #31, #32 y #33
+- `tests/IssueFixesTest.php` - 53 tests de regresión para los issues #30, #31, #32 y #33
 
 ### v1.0.4 (2026-03-04)
 

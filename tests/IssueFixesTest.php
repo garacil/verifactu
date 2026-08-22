@@ -430,10 +430,23 @@ echo "Issue #30 (3): proforma invoices excluded from VeriFactu\n";
 require_once $moduleRoot . '/lib/functions/functions.compatibility.php';
 
 /**
- * Stand-in for a Dolibarr invoice with just the type discriminator.
+ * Stand-in for a Dolibarr invoice carrying the real type constants.
+ *
+ * The values are the ones Dolibarr actually uses (verified against 22.0.5,
+ * htdocs/compta/facture/class/facture.class.php and
+ * htdocs/core/class/commoninvoice.class.php). Getting these wrong is not
+ * academic: TYPE_CREDIT_NOTE is 2 and TYPE_PROFORMA is 4, so mistaking one for
+ * the other would silently drop every credit note from VeriFactu.
  */
 class VerifactuTestTypedInvoice
 {
+    const TYPE_STANDARD = 0;
+    const TYPE_REPLACEMENT = 1;
+    const TYPE_CREDIT_NOTE = 2;
+    const TYPE_DEPOSIT = 3;
+    const TYPE_PROFORMA = 4;
+    const TYPE_SITUATION = 5;
+
     /** @var int Dolibarr invoice type */
     public $type;
 
@@ -446,14 +459,46 @@ class VerifactuTestTypedInvoice
     }
 }
 
-// Dolibarr Facture type constants: 0 standard, 1 replacement, 2 proforma,
-// 3 credit note, 5 situation.
-assert_test(!isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(2)), 'proforma is excluded', $passed, $failed, $total);
-assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(0)), 'standard invoice is included', $passed, $failed, $total);
-assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(1)), 'replacement invoice is included', $passed, $failed, $total);
-assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(3)), 'credit note is included', $passed, $failed, $total);
-assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(5)), 'situation invoice is included', $passed, $failed, $total);
+assert_test(!isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(4)), 'proforma (type 4) is excluded', $passed, $failed, $total);
+assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(0)), 'standard invoice (type 0) is included', $passed, $failed, $total);
+assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(1)), 'replacement invoice (type 1) is included', $passed, $failed, $total);
+assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(2)), 'credit note (type 2) is included - NOT mistaken for a proforma', $passed, $failed, $total);
+assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(3)), 'deposit invoice (type 3) is included', $passed, $failed, $total);
+assert_test(isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice(5)), 'situation invoice (type 5) is included', $passed, $failed, $total);
 assert_test(!isVerifactuApplicableInvoice(null), 'a non-object is excluded', $passed, $failed, $total);
+
+// An object with no type at all must not be dropped silently.
+assert_test(isVerifactuApplicableInvoice(new stdClass()), 'an object without a type is kept in scope', $passed, $failed, $total);
+
+// The constants must match the ones a real Dolibarr install exposes. If Dolibarr
+// is available locally, assert against its own source rather than our copy.
+$dolibarrFacture = getenv('DOLIBARR_HTDOCS') . '/compta/facture/class/facture.class.php';
+if (getenv('DOLIBARR_HTDOCS') && is_readable($dolibarrFacture)) {
+    $factureSource = file_get_contents($dolibarrFacture);
+    preg_match('/const TYPE_PROFORMA\s*=\s*(\d+)/', $factureSource, $m);
+    $realProforma = isset($m[1]) ? (int) $m[1] : null;
+    preg_match('/const TYPE_CREDIT_NOTE\s*=\s*(\d+)/', $factureSource, $m);
+    $realCreditNote = isset($m[1]) ? (int) $m[1] : null;
+
+    assert_test($realProforma === 4, 'real Dolibarr TYPE_PROFORMA is 4', $passed, $failed, $total);
+    assert_test($realCreditNote === 2, 'real Dolibarr TYPE_CREDIT_NOTE is 2', $passed, $failed, $total);
+    assert_test(
+        !isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice($realProforma)),
+        'real Dolibarr proforma type is excluded',
+        $passed,
+        $failed,
+        $total
+    );
+    assert_test(
+        isVerifactuApplicableInvoice(new VerifactuTestTypedInvoice($realCreditNote)),
+        'real Dolibarr credit note type is included',
+        $passed,
+        $failed,
+        $total
+    );
+} else {
+    echo "  SKIP: set DOLIBARR_HTDOCS to cross-check the type constants against a real install\n";
+}
 
 $triggerSource = file_get_contents($moduleRoot . '/core/triggers/interface_999_modVerifactu_VerifactuTriggers.class.php');
 assert_test(

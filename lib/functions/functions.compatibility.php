@@ -87,11 +87,14 @@ function getVerifactuImporteTotal($invoice)
  *
  * Proforma invoices are not legally issued invoices: they are a quotation-like
  * document that creates no tax obligation, so under Art. 6 RD 1007/2023 they
- * must not produce a billing record nor be transmitted to AEAT. Dolibarr maps
- * them to Facture::TYPE_PROFORMA (2).
+ * must not produce a billing record nor be transmitted to AEAT.
  *
- * Every other invoice type (standard, situation, replacement, credit note and
- * deposit) is in scope for VeriFactu.
+ * Every other invoice type (standard, replacement, credit note, deposit and
+ * situation) is in scope for VeriFactu.
+ *
+ * Dolibarr invoice types (Facture / CommonInvoice, verified against 22.0.5):
+ *   0 TYPE_STANDARD, 1 TYPE_REPLACEMENT, 2 TYPE_CREDIT_NOTE,
+ *   3 TYPE_DEPOSIT,  4 TYPE_PROFORMA,    5 TYPE_SITUATION
  *
  * @param object $invoice Invoice object (Facture)
  * @return bool True when the invoice must be sent to VeriFactu
@@ -102,13 +105,25 @@ function isVerifactuApplicableInvoice($invoice)
 		return false;
 	}
 
-	// Facture::TYPE_PROFORMA is 2. The literal is used as a fallback because this
-	// helper is also reached from contexts where the class may not be loaded.
-	$proformaType = defined('Facture::TYPE_PROFORMA') ? Facture::TYPE_PROFORMA : 2;
-
-	if (isset($invoice->type) && (int) $invoice->type === (int) $proformaType) {
-		return false;
+	if (!isset($invoice->type)) {
+		// Without a type there is nothing to exclude on; treat it as in scope so
+		// that a real invoice is never dropped silently.
+		return true;
 	}
 
-	return true;
+	// Read the constant from the object's own class when possible, so subclasses
+	// and any future renumbering stay correct. The literal 4 is only a last
+	// resort: it must never be confused with TYPE_CREDIT_NOTE (2), which is very
+	// much in scope for VeriFactu.
+	if (defined(get_class($invoice) . '::TYPE_PROFORMA')) {
+		$proformaType = constant(get_class($invoice) . '::TYPE_PROFORMA');
+	} elseif (defined('Facture::TYPE_PROFORMA')) {
+		$proformaType = Facture::TYPE_PROFORMA;
+	} elseif (defined('CommonInvoice::TYPE_PROFORMA')) {
+		$proformaType = CommonInvoice::TYPE_PROFORMA;
+	} else {
+		$proformaType = 4;
+	}
+
+	return (int) $invoice->type !== (int) $proformaType;
 }
