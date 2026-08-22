@@ -1319,10 +1319,25 @@ class ActionsVerifactu
 	{
 		global  $langs;
 
+		// The 'beforePDFCreation' hook is not fired only by invoice PDF models.
+		// Report models such as pdf_paiement / pdf_paiement_fourn (Invoices > Reports >
+		// Payment report) fire it too, but pass the PDF model itself as $object.
+		// Those classes do not extend CommonObject and therefore have no
+		// fetch_optionals(), which turned this hook into a fatal error.
+		if (!is_object($object) || !method_exists($object, 'fetch_optionals')) {
+			return 0;
+		}
+
 		$langs->load("verifactu@verifactu");
-		if ($object->fetch_optionals() && $object->array_options['options_verifactu_factura_tipo'] == Sietekas\Verifactu\VerifactuInvoice::TYPE_SIMPLIFIED) {
+
+		if ($object->fetch_optionals() <= 0 || empty($object->array_options['options_verifactu_factura_tipo'])) {
+			return 0;
+		}
+
+		if ($object->array_options['options_verifactu_factura_tipo'] == Sietekas\Verifactu\VerifactuInvoice::TYPE_SIMPLIFIED) {
 			$langs->tab_translate["PdfInvoiceTitle"] = $langs->trans("verifactu_FACTURA_Simplificada"); // Translation ID for "Simplified Invoice"
 		}
+
 		return 0;
 	}
 

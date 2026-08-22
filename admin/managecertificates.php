@@ -146,7 +146,7 @@ if ($action == 'upload_certificate') {
  */
 function extractAndSendPublicKey($certPath, $password)
 {
-	global $conf, $db;
+	global $conf, $db, $langs;
 
 	try {
 		// Read certificate content
@@ -159,6 +159,11 @@ function extractAndSendPublicKey($certPath, $password)
 		$publicCert = '';
 		$privateKey = null;
 		$extractionMethod = '';
+
+		// Why the extraction failed, so the user gets an accurate message instead
+		// of the blanket "check the password" that hid legacy-cipher failures.
+		$legacyCipherDetected = false;
+		$wrongPasswordDetected = false;
 
 		// METHOD 1: Try PHP native functions first
 		$certs = [];
@@ -194,7 +199,15 @@ function extractAndSendPublicKey($certPath, $password)
 			while ($error = openssl_error_string()) {
 				$openssl_errors[] = $error;
 			}
-			dol_syslog("VERIFACTU DEBUG: ❌ openssl_pkcs12_read falló - Errores OpenSSL: " . implode('; ', $openssl_errors), LOG_ERR);
+			$nativeErrorText = implode('; ', $openssl_errors);
+			dol_syslog("VERIFACTU DEBUG: ❌ openssl_pkcs12_read falló - Errores OpenSSL: " . $nativeErrorText, LOG_ERR);
+
+			if (isLegacyCipherOpensslError($nativeErrorText)) {
+				$legacyCipherDetected = true;
+				dol_syslog("VERIFACTU: el contenedor PKCS#12 usa cifrado legacy no soportado por OpenSSL 3; se reintentará con el proveedor legacy", LOG_INFO);
+			} elseif (isWrongPasswordOpensslError($nativeErrorText)) {
+				$wrongPasswordDetected = true;
+			}
 		}
 
 		// METHOD 2: If PHP native extraction of public certificate failed, use external OpenSSL
@@ -209,12 +222,38 @@ function extractAndSendPublicKey($certPath, $password)
 				dol_syslog("VERIFACTU DEBUG: ✅ Certificado público extraído con OpenSSL externo", LOG_DEBUG);
 			} else {
 				dol_syslog("VERIFACTU DEBUG: ❌ También falló OpenSSL externo para certificado público: " . $certResult['message'], LOG_ERR);
+
+				if (!empty($certResult['legacy_cipher'])) {
+					$legacyCipherDetected = true;
+				}
+				if (!empty($certResult['wrong_password'])) {
+					$wrongPasswordDetected = true;
+				}
 			}
 		}
 
 		// Verify we have at least the public certificate
 		if (empty($publicCert)) {
-			return ['success' => false, 'message' => 'Error: No se pudo extraer el certificado público del archivo. Verifique la contraseña.'];
+			// A legacy container that the -legacy retry could not open either means
+			// the server has no legacy provider available at all.
+			if ($legacyCipherDetected && !$wrongPasswordDetected) {
+				return [
+					'success' => false,
+					'message' => $langs->trans('VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM'),
+				];
+			}
+
+			if ($wrongPasswordDetected) {
+				return [
+					'success' => false,
+					'message' => $langs->trans('VERIFACTU_CERT_ERROR_WRONG_PASSWORD'),
+				];
+			}
+
+			return [
+				'success' => false,
+				'message' => $langs->trans('VERIFACTU_CERT_ERROR_EXTRACTION_FAILED'),
+			];
 		}
 
 		// Verify it is a valid certificate

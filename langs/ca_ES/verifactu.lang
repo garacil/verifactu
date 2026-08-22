@@ -608,3 +608,8 @@ verifactu_OPERACION_Exenta = Operació Exempta
 verifactu_OPERACION_ExentaTooltip = Tipus d'exempció (E1-E6) quan l'operació està exempta d'IVA/IGIC/IPSI.
 verifactu_INCIDENCIA = Incidència
 verifactu_INCIDENCIATooltip = Indica si hi va haver incidència tècnica (sense electricitat, sense internet, fallada del sistema). Per defecte "N".
+
+# Errors de càrrega de certificats
+VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Error: la contrasenya del certificat no és correcta. Comproveu-la i torneu-ho a provar.
+VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Error: el certificat està xifrat amb un algorisme antic (RC2-40-CBC / PBE-SHA1-3DES) que OpenSSL 3 desactiva per defecte. Això és habitual en certificats .p12 de la FNMT. La contrasenya pot ser correcta. Solucions: activar el proveïdor "legacy" d'OpenSSL al servidor (secció [provider_sect] de /etc/ssl/openssl.cnf) o tornar a exportar el certificat amb un algorisme modern.
+VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Error: no s'ha pogut extreure el certificat públic del fitxer. Reviseu el registre d'esdeveniments de Dolibarr per veure el detall de l'error d'OpenSSL.

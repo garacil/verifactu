@@ -633,13 +633,18 @@ class QRGenerator
     /**
      * Renders QR code using chillerlan/php-qrcode library.
      *
+     * The output type is declared as string because chillerlan/php-qrcode
+     * exposes QRCode::OUTPUT_* as string constants (QROutputInterface::MARKUP_SVG
+     * = 'svg', QROutputInterface::GDIMAGE_PNG = 'png'). Declaring it as int made
+     * every call fail with a TypeError under declare(strict_types=1).
+     *
      * @param string $content Data to encode
      * @param int $pixels Output size
-     * @param int $outputType QRCode output type constant
+     * @param string $outputType QRCode output type constant (QRCode::OUTPUT_*)
      * @return string Rendered output (binary or markup)
      * @throws \RuntimeException On failure
      */
-    private function renderQrCode(string $content, int $pixels, int $outputType): string
+    private function renderQrCode(string $content, int $pixels, string $outputType): string
     {
         try {
             $scale = max(1, (int) ($pixels / 25));

@@ -290,6 +290,54 @@ Si el certificado no es reconocido:
 - Comprobar que la contraseña es correcta
 - Asegurarse de que el certificado es de persona jurídica
 
+### Certificados FNMT `.p12` rechazados con OpenSSL 3
+
+Si al subir un `.p12` de la **FNMT** (habitual en autónomos y personas físicas) el
+módulo responde que la contraseña no es correcta aunque sí lo sea, lo más probable
+es que el problema no sea la contraseña sino el cifrado del contenedor PKCS#12.
+
+La FNMT ha protegido históricamente estos ficheros con algoritmos **legacy**
+(`RC2-40-CBC` y `PBE-SHA1-3DES`). **OpenSSL 3** —el que traen Debian 12 y la imagen
+oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
+*legacy provider*, por lo que `openssl_pkcs12_read()` falla con
+`error:0308010C: digital envelope routines::unsupported`.
+
+Desde la versión 1.0.5 el módulo:
+
+- Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
+  en la mayoría de servidores el certificado se acepta sin tocar nada.
+- Distingue en el mensaje de error entre *contraseña incorrecta* y *algoritmo de
+  cifrado legacy no soportado*, en lugar de culpar siempre a la contraseña.
+
+Si aun así falla, el binario `openssl` del servidor no tiene el proveedor legacy
+disponible. Hay dos soluciones:
+
+**Opción A — activar el *legacy provider* en el servidor.** Editar
+`/etc/ssl/openssl.cnf` y dejar la sección de proveedores así:
+
+```ini
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+
+[default_sect]
+activate = 1
+
+[legacy_sect]
+activate = 1
+```
+
+**Opción B — reexportar el certificado con un algoritmo moderno**, en una máquina
+donde sí se pueda abrir:
+
+```bash
+openssl pkcs12 -legacy -in certificado_fnmt.p12 -nodes -out temporal.pem -password pass:TU_CLAVE
+openssl pkcs12 -export -in temporal.pem -out certificado_moderno.p12 -password pass:TU_CLAVE
+rm temporal.pem
+```
+
+Después subir `certificado_moderno.p12` desde la pestaña **Certificados**.
+
 ### Pantalla en Blanco
 
 Si aparece una pantalla en blanco al ver facturas:
@@ -305,13 +353,106 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.0.4
+- **Versión**: 1.0.5
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
 - **Dedicado a**: Mi compañero y amigo Ildefonso González Rodríguez
 
 ## Registro de Cambios
+
+### v1.0.5 (2026-08-22)
+
+#### Correcciones
+
+- **Fatal error en el informe de pagos (issue #31)**: `beforePDFCreation()` daba
+  `Call to undefined method pdf_paiement_fourn::fetch_optionals()` al generar el
+  informe de pagos de facturas de cliente o de proveedor. Ese hook no lo disparan
+  solo los modelos PDF de factura: los modelos de informe (`pdf_paiement`,
+  `pdf_paiement_fourn`) también lo lanzan, pero pasan como `$object` el propio
+  modelo PDF, que no extiende `CommonObject` y no tiene `fetch_optionals()`.
+  Añadido un guard que sale limpiamente cuando el objeto no es un objeto de
+  negocio. De paso, se deja de acceder al extrafield cuando no existe, lo que
+  además eliminaba un warning de PHP 8.
+
+- **TypeError en el QR con PHP 8 (issue #32)**: `QRGenerator::renderQrCode()`
+  declaraba `int $outputType`, pero las constantes `QRCode::OUTPUT_IMAGE_PNG` y
+  `QRCode::OUTPUT_MARKUP_SVG` de `chillerlan/php-qrcode` son *strings*. Con
+  `declare(strict_types=1)`, PHP 8 rechazaba toda llamada y rompía la pestaña
+  VeriFactu y la vista de factura (el QR del PDF no se veía afectado porque usa
+  `TCPDF::write2DBarcode()`). Corregido el tipo del parámetro a `string`.
+
+- **Certificados FNMT `.p12` con cifrado legacy (issue #33)**: los contenedores
+  PKCS#12 protegidos con `RC2-40-CBC` / `PBE-SHA1-3DES` —los habituales de la
+  FNMT— fallaban bajo OpenSSL 3 y el módulo lo notificaba como *"Verifique la
+  contraseña"*, que es engañoso. Ahora la extracción reintenta automáticamente
+  con `openssl pkcs12 -legacy` y el mensaje de error distingue entre contraseña
+  incorrecta, algoritmo legacy no soportado y fallo genérico. Documentado en la
+  sección de resolución de problemas.
+
+- **Identidad del sistema declarada vs. transmitida (issue #30, puntos 1 y 6)**:
+  la declaración responsable declaraba `IdSistemaInformatico` =
+  `VERIFACTU-DOLIBARR-OSS` y nombre `VeriFactu para Dolibarr ERP/CRM`, mientras
+  que a la AEAT se enviaban `DV` y `Dolibarr Verifactu Module`. El Art. 15.2
+  de la Orden HAC/1177/2024 exige que coincidan. Se ha unificado tomando como
+  válidos los valores que admite el esquema oficial: `SuministroInformacion.xsd`
+  define `IdSistemaInformatico` como `sf:TextMax2Type` (máximo 2 caracteres) y
+  `NombreSistemaInformatico` como `sf:TextMax30Type` (máximo 30), por lo que los
+  valores largos que se declaraban serían rechazados por el webservice.
+  `getSystemConfig()` lee ahora la identidad de la propia declaración
+  responsable, de modo que ya no pueden divergir, y aplica los límites del
+  esquema. Además el campo `Version` transmitía `DOL_VERSION` (la versión de
+  Dolibarr) en lugar de la del módulo, que es lo que exige el Art. 15.2.c.
+
+- **Hash de integridad incompleto (issue #30, punto 2)**: la lista
+  `ficheros_verificados` referenciaba `interface_99_...` en vez de
+  `interface_999_...` y `class/verifactu.class.php`, que no existe. Como
+  `calcularHashModuloVerifactu()` ignoraba en silencio los ficheros ausentes, el
+  trigger principal quedaba fuera del cálculo de integridad. Corregida la lista,
+  ampliada con los ficheros críticos de hash, envío y anulación, y ahora la
+  función registra los ficheros no encontrados en
+  `integridad.ficheros_no_encontrados` y en el log en lugar de callarlos.
+
+- **Facturas proforma enviadas a la AEAT como F1 (issue #30, punto 3)**: una
+  proforma no es una factura expedida legalmente y no debe generar registro de
+  facturación (Art. 6 RD 1007/2023). Nueva función
+  `isVerifactuApplicableInvoice()` que las excluye tanto en el trigger de
+  validación como en `execVERIFACTUCall()`, con lo que quedan fuera de todas las
+  vías de envío (validación, pestaña VeriFactu, listado, envío masivo y
+  reintentos). Las proformas siguen validándose con normalidad en Dolibarr.
+
+- **Tipo rectificativo divergente (issue #30, punto 5)**: `billCreate()`
+  almacenaba R2 para abonos y facturas de sustitución, pero el envío transmitía
+  R1. La pestaña VeriFactu mostraba por tanto un tipo que nunca era el enviado.
+  Unificado a R1, que es lo que realmente se transmite.
+
+#### Seguridad
+
+- La contraseña del certificado ya no se interpola en la línea de comandos de
+  `openssl`. Las llamadas usan `proc_open` con argumentos en array y pasan la
+  contraseña por variable de entorno (`-password env:`), lo que elimina la
+  posibilidad de inyección de comandos a través de la contraseña y evita que
+  quede visible en la lista de procesos del servidor.
+
+- `prepareLocalCertificate()` ya no hace `die()` ante un fallo de extracción
+  (tumbaba la petición entera): lanza una excepción que el llamador convierte en
+  el mensaje de error habitual del módulo.
+
+#### Archivos Modificados
+- `class/actions_verifactu.class.php` - Guard en `beforePDFCreation()`
+- `lib/newfenix/src/QRGenerator.php` - Tipo del parámetro `$outputType`
+- `lib/functions/functions.certificates.php` - Reintento `-legacy`, clasificación de errores y llamadas seguras a OpenSSL
+- `admin/managecertificates.php` - Mensajes de error diferenciados
+- `lib/functions/functions.configuration.php` - `getDeclaredSystemIdentity()` y `getSystemConfig()`
+- `lib/functions/functions.compatibility.php` - Nueva función `isVerifactuApplicableInvoice()`
+- `lib/functions/functions.submission.php` - Exclusión de proformas
+- `core/triggers/interface_999_modVerifactu_VerifactuTriggers.class.php` - Exclusión de proformas y tipos rectificativos
+- `conf/declaracion_responsable.conf.php` - Identidad del sistema y lista de integridad
+- `core/modules/modVerifactu.class.php` - Versión del módulo
+- Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
+
+#### Tests
+- `tests/IssueFixesTest.php` - 51 tests de regresión para los issues #30, #31, #32 y #33
 
 ### v1.0.4 (2026-03-04)
 

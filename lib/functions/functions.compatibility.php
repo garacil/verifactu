@@ -81,3 +81,34 @@ function getVerifactuImporteTotal($invoice)
 	// Adding abs() reverses the deduction, yielding: base + IVA + surcharge.
 	return $totalTtc + abs($localtax2);
 }
+
+/**
+ * Tells whether an invoice must generate a VeriFactu billing record.
+ *
+ * Proforma invoices are not legally issued invoices: they are a quotation-like
+ * document that creates no tax obligation, so under Art. 6 RD 1007/2023 they
+ * must not produce a billing record nor be transmitted to AEAT. Dolibarr maps
+ * them to Facture::TYPE_PROFORMA (2).
+ *
+ * Every other invoice type (standard, situation, replacement, credit note and
+ * deposit) is in scope for VeriFactu.
+ *
+ * @param object $invoice Invoice object (Facture)
+ * @return bool True when the invoice must be sent to VeriFactu
+ */
+function isVerifactuApplicableInvoice($invoice)
+{
+	if (!is_object($invoice)) {
+		return false;
+	}
+
+	// Facture::TYPE_PROFORMA is 2. The literal is used as a fallback because this
+	// helper is also reached from contexts where the class may not be loaded.
+	$proformaType = defined('Facture::TYPE_PROFORMA') ? Facture::TYPE_PROFORMA : 2;
+
+	if (isset($invoice->type) && (int) $invoice->type === (int) $proformaType) {
+		return false;
+	}
+
+	return true;
+}
