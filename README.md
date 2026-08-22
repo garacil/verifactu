@@ -309,8 +309,31 @@ Desde la versión 1.0.5 el módulo:
 - Distingue en el mensaje de error entre *contraseña incorrecta* y *algoritmo de
   cifrado legacy no soportado*, en lugar de culpar siempre a la contraseña.
 
-Si aun así falla, el binario `openssl` del servidor no tiene el proveedor legacy
-disponible. Hay dos soluciones:
+### Hosting compartido: `exec()` y `proc_open()` desactivados
+
+En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
+`exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
+puede invocar el binario `openssl` del sistema.
+
+Desde la versión 1.0.5 esto ya no impide usar certificados: la extracción intenta
+**primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
+necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
+falta. En la práctica:
+
+| Certificado | Hosting normal | Hosting compartido sin `proc_open` |
+|---|---|---|
+| Cifrado moderno | funciona | **funciona** |
+| Cifrado legacy (FNMT antiguo) | funciona (vía `-legacy`) | no es posible |
+
+El único caso que no tiene solución desde el módulo es un certificado con cifrado
+legacy en un servidor sin acceso al binario `openssl` ni a `openssl.cnf`: ahí hay
+que reexportar el certificado con un algoritmo moderno (opción B más abajo) desde
+otra máquina.
+
+### Si el certificado legacy sigue fallando
+
+Si el binario `openssl` del servidor no tiene el proveedor legacy disponible, hay
+dos soluciones:
 
 **Opción A — activar el *legacy provider* en el servidor.** Editar
 `/etc/ssl/openssl.cnf` y dejar la sección de proveedores así:
@@ -384,6 +407,17 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
   `declare(strict_types=1)`, PHP 8 rechazaba toda llamada y rompía la pestaña
   VeriFactu y la vista de factura (el QR del PDF no se veía afectado porque usa
   `TCPDF::write2DBarcode()`). Corregido el tipo del parámetro a `string`.
+
+- **Certificados en hosting compartido (feedback del PR #42)**: en alojamientos
+  donde `exec()` y `proc_open()` están ambos en `disable_functions` el módulo no
+  podía leer el certificado en absoluto, y por tanto no podía comunicarse con la
+  AEAT. La extracción usa ahora **primero** las funciones OpenSSL propias de PHP
+  (`openssl_pkcs12_read()`), que no lanzan ningún proceso, y solo recurre al
+  binario externo cuando hace falta (contenedores legacy). Se ha eliminado
+  también el requisito duro de `proc_open` en la conversión a PEM. Los
+  certificados con cifrado moderno funcionan ya de forma transparente en esos
+  servidores; los legacy siguen necesitando el binario, lo que se comunica con un
+  mensaje explícito.
 
 - **Certificados FNMT `.p12` con cifrado legacy (issue #33)**: los contenedores
   PKCS#12 protegidos con `RC2-40-CBC` / `PBE-SHA1-3DES` —los habituales de la
@@ -464,7 +498,7 @@ Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento
 | Dolibarr 17.0.2 + PHP 8.2 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 8.4 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 7.4 (mínimo declarado) | 20/20 comprobaciones en vivo |
-| Suite de regresión (PHP 7.4, 8.2 y 8.4) | 59/59 |
+| Suite de regresión (PHP 7.4, 8.2 y 8.4) | 65/65 |
 
 En ambas versiones se activa el módulo, se dispara el hook `beforePDFCreation`
 con el objeto que realmente pasa cada una, se generan los QR y se comprueban las
@@ -476,7 +510,7 @@ modificador no existe, no se añade (añadirlo convertiría una extracción corr
 en un error de "opción desconocida").
 
 #### Tests
-- `tests/IssueFixesTest.php` - 59 tests de regresión para los issues #30, #31, #32 y #33
+- `tests/IssueFixesTest.php` - 65 tests de regresión para los issues #30, #31, #32 y #33
 
 ### v1.0.4 (2026-03-04)
 

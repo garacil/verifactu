@@ -288,6 +288,131 @@ function runOpensslPkcs12(
 }
 
 /**
+ * Tells whether a PHP function is really callable on this server.
+ *
+ * function_exists() already returns false for anything listed in
+ * disable_functions on current PHP versions, but the ini value is checked too:
+ * some SAPI and hardening setups (common on shared hosting) leave the function
+ * defined while refusing to run it.
+ *
+ * @param string $name Function name
+ * @return bool True when the function can be called
+ */
+function isPhpFunctionAvailable(string $name): bool
+{
+	if (!function_exists($name)) {
+		return false;
+	}
+
+	$disabled = ini_get('disable_functions');
+	if (!is_string($disabled) || $disabled === '') {
+		return true;
+	}
+
+	$disabledList = array_map('trim', explode(',', strtolower($disabled)));
+
+	return !in_array(strtolower($name), $disabledList, true);
+}
+
+/**
+ * Extracts a PKCS#12 container using PHP's own OpenSSL bindings.
+ *
+ * This needs no external process, so it is the only path that works on shared
+ * hosting where exec() and proc_open() are both in disable_functions - a very
+ * common setup among the small Spanish businesses VeriFactu targets.
+ *
+ * It cannot open a container encrypted with a legacy cipher unless the server's
+ * OpenSSL has the legacy provider active, because there is no PHP equivalent of
+ * the "-legacy" switch. That case is reported through the legacy_cipher flag so
+ * the caller can try the external binary instead.
+ *
+ * @param string $certificateFile Path to the .pfx or .p12 file
+ * @param string $certificatePassword Certificate password
+ * @return array{success:bool, public_cert_pem:string, private_key_pem:string, extra_certs:array, message:string, legacy_cipher:bool, wrong_password:bool}
+ */
+function extractPkcs12WithPhp(string $certificateFile, string $certificatePassword): array
+{
+	$failure = array(
+		'success' => false,
+		'public_cert_pem' => '',
+		'private_key_pem' => '',
+		'extra_certs' => array(),
+		'message' => '',
+		'legacy_cipher' => false,
+		'wrong_password' => false,
+	);
+
+	if (!function_exists('openssl_pkcs12_read')) {
+		$failure['message'] = 'The OpenSSL extension is not available in PHP';
+		return $failure;
+	}
+
+	if (!is_readable($certificateFile)) {
+		$failure['message'] = 'Certificate file could not be read: ' . $certificateFile;
+		return $failure;
+	}
+
+	$contents = file_get_contents($certificateFile);
+	if ($contents === false || $contents === '') {
+		$failure['message'] = 'Certificate file is empty: ' . $certificateFile;
+		return $failure;
+	}
+
+	// Drain any error left behind by earlier calls so the diagnosis below
+	// describes this attempt and not a previous one.
+	while (openssl_error_string()) {
+		continue;
+	}
+
+	$bundle = array();
+	if (!openssl_pkcs12_read($contents, $bundle, $certificatePassword)) {
+		$errors = array();
+		while ($error = openssl_error_string()) {
+			$errors[] = $error;
+		}
+		$errorText = implode('; ', $errors);
+
+		$failure['message'] = $errorText !== '' ? $errorText : 'openssl_pkcs12_read() failed without reporting a reason';
+		$failure['legacy_cipher'] = isLegacyCipherOpensslError($errorText);
+		$failure['wrong_password'] = isWrongPasswordOpensslError($errorText);
+
+		return $failure;
+	}
+
+	$publicCert = isset($bundle['cert']) ? (string) $bundle['cert'] : '';
+	$privateKey = '';
+
+	if (isset($bundle['pkey']) && !empty($bundle['pkey'])) {
+		// openssl_pkcs12_read() hands back the key already in PEM form on every
+		// supported PHP version, but normalise it through the key functions so a
+		// resource or handle is exported consistently.
+		if (is_string($bundle['pkey'])) {
+			$privateKey = $bundle['pkey'];
+		} else {
+			$exported = '';
+			if (openssl_pkey_export($bundle['pkey'], $exported)) {
+				$privateKey = $exported;
+			}
+		}
+	}
+
+	if ($publicCert === '') {
+		$failure['message'] = 'The PKCS#12 container has no public certificate';
+		return $failure;
+	}
+
+	return array(
+		'success' => true,
+		'public_cert_pem' => $publicCert,
+		'private_key_pem' => $privateKey,
+		'extra_certs' => isset($bundle['extracerts']) && is_array($bundle['extracerts']) ? $bundle['extracerts'] : array(),
+		'message' => 'Extracted with PHP openssl_pkcs12_read()',
+		'legacy_cipher' => false,
+		'wrong_password' => false,
+	);
+}
+
+/**
  * Builds a human-readable explanation for a failed PKCS#12 extraction.
  *
  * Distinguishes the three cases that used to collapse into the misleading
@@ -341,6 +466,41 @@ function prepareLocalCertificate(
 		return $bundleFile;
 	}
 
+	$passOut = $privateKeyPassword ?? $certificatePassword;
+
+	// PHP-native conversion first: works with no external process, which is the
+	// only option on shared hosting where exec() and proc_open() are disabled.
+	$native = extractPkcs12WithPhp($certificateFile, $certificatePassword);
+	if ($native['success'] && $native['private_key_pem'] !== '') {
+		$privateKeyPem = $native['private_key_pem'];
+
+		if ($encryptKey) {
+			// Re-export the key protected with the requested passphrase.
+			$keyResource = openssl_pkey_get_private($privateKeyPem);
+			$protectedKey = '';
+			if ($keyResource !== false && openssl_pkey_export($keyResource, $protectedKey, $passOut)) {
+				$privateKeyPem = $protectedKey;
+			} else {
+				// Without the passphrase the bundle would silently be weaker
+				// than asked for, so fall through to the external binary.
+				$privateKeyPem = '';
+			}
+		}
+
+		if ($privateKeyPem !== '') {
+			file_put_contents($bundleFile, trim($native['public_cert_pem']) . "\n" . trim($privateKeyPem) . "\n");
+			return $bundleFile;
+		}
+	}
+
+	if (!isPhpFunctionAvailable('proc_open')) {
+		throw new RuntimeException(describeCertificateExtractionFailure(array(
+			'output' => $native['message'] . ' (proc_open is disabled on this server, so the external OpenSSL binary cannot be used either)',
+			'legacy_cipher' => $native['legacy_cipher'],
+			'wrong_password' => $native['wrong_password'],
+		)));
+	}
+
 	$certOut = $outputPath . '_cert.pem';
 	$keyOut = $outputPath . '_key.pem';
 
@@ -360,7 +520,6 @@ function prepareLocalCertificate(
 	}
 
 	// Extract private key (with or without passphrase)
-	$passOut = $privateKeyPassword ?? $certificatePassword;
 	$keyArguments = array('-nocerts');
 	if (!$encryptKey) {
 		$keyArguments[] = '-nodes';
@@ -467,6 +626,18 @@ function extractPrivateKeyWithOpenSSL(
 	string $winOpensslPath = 'C:\laragon\bin\apache\httpd-2.4.54-win64-VS16\bin\openssl.exe'
 ): array {
 
+	// Try PHP's own OpenSSL bindings first: no external process, so this is the
+	// only path available on shared hosting where exec() and proc_open() are
+	// both disabled, and it is cheaper than spawning a binary everywhere else.
+	$native = extractPkcs12WithPhp($certificateFile, $certificatePassword);
+	if ($native['success'] && $native['private_key_pem'] !== '') {
+		return [
+			'success' => true,
+			'private_key_pem' => $native['private_key_pem'],
+			'message' => 'Private key extracted successfully using PHP OpenSSL',
+		];
+	}
+
 	$isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 
 	// Verify binary exists
@@ -474,6 +645,18 @@ function extractPrivateKeyWithOpenSSL(
 		return [
 			'success' => false,
 			'message' => 'OpenSSL binary not found at: ' . $winOpensslPath
+		];
+	}
+
+	// Fall back to the external binary, which is the only way to open a legacy
+	// container under OpenSSL 3. If it cannot be launched, report the native
+	// failure instead: it explains the real reason.
+	if (!isPhpFunctionAvailable('proc_open')) {
+		return [
+			'success' => false,
+			'message' => 'proc_open is disabled on this server and PHP could not read the certificate: ' . $native['message'],
+			'legacy_cipher' => $native['legacy_cipher'],
+			'wrong_password' => $native['wrong_password'],
 		];
 	}
 
@@ -575,12 +758,33 @@ function extractPublicCertificateWithOpenSSL(
 	string $winOpensslPath = 'C:\laragon\bin\apache\httpd-2.4.54-win64-VS16\bin\openssl.exe'
 ): array {
 
+	// Try PHP's own OpenSSL bindings first (see extractPrivateKeyWithOpenSSL).
+	$native = extractPkcs12WithPhp($certificateFile, $certificatePassword);
+	if ($native['success']) {
+		return [
+			'success' => true,
+			'public_cert_pem' => $native['public_cert_pem'],
+			'message' => 'Public certificate extracted successfully using PHP OpenSSL',
+		];
+	}
+
 	$isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
 
 	if ($isWindows && !file_exists($winOpensslPath)) {
 		return [
 			'success' => false,
 			'message' => 'OpenSSL binary not found at: ' . $winOpensslPath
+		];
+	}
+
+	// Fall back to the external binary for legacy containers; when it cannot be
+	// launched, the native failure is the informative one.
+	if (!isPhpFunctionAvailable('proc_open')) {
+		return [
+			'success' => false,
+			'message' => 'proc_open is disabled on this server and PHP could not read the certificate: ' . $native['message'],
+			'legacy_cipher' => $native['legacy_cipher'],
+			'wrong_password' => $native['wrong_password'],
 		];
 	}
 
@@ -913,9 +1117,11 @@ function prepareCertificateLocalForVerifactu()
 		return false;
 	}
 
-	// Verify the functions needed to invoke the OpenSSL binary are enabled
-	if (!function_exists('proc_open')) {
-		$GLOBALS['verifactu_cert_error'] = "The proc_open function is not enabled on your server. Please contact your administrator.";
+	// No hard requirement on proc_open any more: the conversion falls back to
+	// PHP's own OpenSSL bindings, which is what makes the module usable on shared
+	// hosting where exec() and proc_open() are both in disable_functions.
+	if (!function_exists('openssl_pkcs12_read') && !isPhpFunctionAvailable('proc_open')) {
+		$GLOBALS['verifactu_cert_error'] = "Neither the PHP OpenSSL extension nor proc_open is available on your server. Please contact your administrator.";
 		return false;
 	}
 

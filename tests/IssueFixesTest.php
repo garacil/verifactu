@@ -445,11 +445,47 @@ if ($opensslUsable) {
     echo "  SKIP: proc_open is disabled, external OpenSSL not exercised\n";
 }
 
+// Shared hosting (PR #42 feedback): exec() and proc_open() are both in
+// disable_functions on Loading.es, Hostinger and similar. The extraction must
+// still work there through PHP's own OpenSSL bindings, otherwise the module
+// cannot talk to AEAT at all on those servers.
+assert_test(function_exists('extractPkcs12WithPhp'), 'a PHP-native PKCS#12 path exists', $passed, $failed, $total);
+assert_test(function_exists('isPhpFunctionAvailable'), 'disable_functions is taken into account', $passed, $failed, $total);
+assert_test(isPhpFunctionAvailable('strlen'), 'an enabled function is reported available', $passed, $failed, $total);
+assert_test(!isPhpFunctionAvailable('a_function_that_does_not_exist'), 'a missing function is reported unavailable', $passed, $failed, $total);
+
+$certificatesSource = file_get_contents($moduleRoot . '/lib/functions/functions.certificates.php');
+assert_test(
+    strpos($certificatesSource, "isPhpFunctionAvailable('proc_open')") !== false,
+    'the external binary is only used when proc_open is really callable',
+    $passed,
+    $failed,
+    $total
+);
+// Look for real calls, not the word appearing in a comment: tokenise and keep
+// only T_STRING tokens naming a process function.
+$processFunctions = array('exec', 'shell_exec', 'passthru', 'system', 'popen');
+$calledProcessFunctions = array();
+foreach (token_get_all($certificatesSource) as $token) {
+    if (is_array($token) && $token[0] === T_STRING && in_array(strtolower($token[1]), $processFunctions, true)) {
+        $calledProcessFunctions[] = $token[1];
+    }
+}
+assert_test(
+    empty($calledProcessFunctions),
+    'no shell-spawning call is left in the certificate code'
+        . ($calledProcessFunctions ? ' (found: ' . implode(', ', array_unique($calledProcessFunctions)) . ')' : ''),
+    $passed,
+    $failed,
+    $total
+);
+
 echo "\n";
 
 // ---------------------------------------------------------------------------
 // Issue #30 (point 3) - proforma invoices must stay out of VeriFactu
 // ---------------------------------------------------------------------------
+
 echo "Issue #30 (3): proforma invoices excluded from VeriFactu\n";
 
 require_once $moduleRoot . '/lib/functions/functions.compatibility.php';
