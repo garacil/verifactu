@@ -350,6 +350,31 @@ $passwordMessage = describeCertificateExtractionFailure(array(
 ));
 assert_test(stripos($passwordMessage, 'password') !== false, 'wrong password message mentions the password', $passed, $failed, $total);
 
+// The -legacy switch only exists in OpenSSL 3+. Adding it on an older binary
+// would turn a working extraction into an "unknown option" failure, so the
+// version gate matters on servers still running OpenSSL 1.1.1 (Ubuntu 20.04)
+// or LibreSSL. The detection is a regex over `openssl version`, exercised here
+// directly because those binaries cannot be installed alongside this one.
+$legacyFlagRegex = '/OpenSSL\s+([3-9]|\d{2,})\./';
+$versionExpectations = array(
+    'OpenSSL 3.0.13 30 Jan 2024' => true,
+    'OpenSSL 3.5.0 8 Apr 2025' => true,
+    'OpenSSL 1.1.1f  31 Mar 2020' => false,
+    'OpenSSL 1.0.2k-fips  26 Jan 2017' => false,
+    'LibreSSL 2.8.3' => false,
+    'OpenSSL 10.0.0 1 Jan 2030' => true,
+);
+foreach ($versionExpectations as $versionString => $shouldSupport) {
+    $detected = (preg_match($legacyFlagRegex, $versionString) === 1);
+    assert_test(
+        $detected === $shouldSupport,
+        "'" . $versionString . "' " . ($shouldSupport ? 'supports' : 'does not support') . ' -legacy',
+        $passed,
+        $failed,
+        $total
+    );
+}
+
 // End-to-end against real containers, when the OpenSSL binary is usable.
 $opensslUsable = function_exists('proc_open');
 $fixtureDir = sys_get_temp_dir() . '/verifactu_p12_' . getmypid();

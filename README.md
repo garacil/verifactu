@@ -461,16 +461,22 @@ Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento
 | Entorno | Resultado |
 |---|---|
 | Dolibarr 22.0.5 + PHP 8.4 + PostgreSQL 16 | 22/22 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 8.2 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 8.4 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 7.4 (mínimo declarado) | 20/20 comprobaciones en vivo |
-| Suite de regresión (PHP 7.4 y 8.4) | 53/53 |
+| Suite de regresión (PHP 7.4, 8.2 y 8.4) | 59/59 |
 
 En ambas versiones se activa el módulo, se dispara el hook `beforePDFCreation`
 con el objeto que realmente pasa cada una, se generan los QR y se comprueban las
 constantes de tipo de factura contra la clase `Facture` real.
 
+El reintento con `openssl pkcs12 -legacy` está condicionado a que el binario sea
+OpenSSL 3 o superior: en servidores con OpenSSL 1.1.1 o LibreSSL, donde ese
+modificador no existe, no se añade (añadirlo convertiría una extracción correcta
+en un error de "opción desconocida").
+
 #### Tests
-- `tests/IssueFixesTest.php` - 53 tests de regresión para los issues #30, #31, #32 y #33
+- `tests/IssueFixesTest.php` - 59 tests de regresión para los issues #30, #31, #32 y #33
 
 ### v1.0.4 (2026-03-04)
 
