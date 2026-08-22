@@ -105,24 +105,43 @@ $declaracionResponsable['sistema'] = array(
     'nombre' => 'VeriFactu para Dolibarr ERP/CRM',
 
     /**
-     * IdSistemaInformatico - Código identificador único
-     * Asignado por el productor para identificar unívocamente el sistema
-     * @required Obligatorio según Art. 15.2.b) Orden HAC/1177/2024
-     * @format Alfanumérico, máximo 30 caracteres
+     * NombreSistemaInformatico - Nombre exacto que se transmite a la AEAT
+     * en el bloque SistemaInformatico de cada registro de facturación.
+     * Debe coincidir con lo declarado y respetar el límite del esquema oficial.
+     * @required Obligatorio según Art. 15.2.a) Orden HAC/1177/2024
+     * @format Alfanumérico, máximo 30 caracteres (sf:TextMax30Type)
      */
-    'id_sistema_informatico' => 'VERIFACTU-DOLIBARR-OSS',
+    'nombre_sistema_informatico' => 'Dolibarr Verifactu Module',
+
+    /**
+     * IdSistemaInformatico - Código identificador único
+     * Asignado por el productor para identificar unívocamente el sistema.
+     *
+     * IMPORTANTE: el esquema oficial de la AEAT (SuministroInformacion.xsd)
+     * define este campo como sf:TextMax2Type, es decir un MÁXIMO DE 2
+     * CARACTERES. Un identificador más largo es rechazado por el webservice,
+     * por lo que el valor declarado debe ser el mismo código corto que se
+     * transmite en cada registro.
+     *
+     * @required Obligatorio según Art. 15.2.b) Orden HAC/1177/2024
+     * @format Alfanumérico, máximo 2 caracteres (sf:TextMax2Type)
+     */
+    'id_sistema_informatico' => 'DV',
 
     /**
      * Versión del sistema informático
-     * Identificador completo de la versión concreta
+     * Identificador completo de la versión concreta.
+     * Debe coincidir con $this->verifactu_version de modVerifactu.class.php,
+     * ya que es el valor que se transmite en el campo Version.
      * @required Obligatorio según Art. 15.2.c) Orden HAC/1177/2024
+     * @format Alfanumérico, máximo 50 caracteres (sf:TextMax50Type)
      */
-    'version' => '1.0.2',
+    'version' => '1.0.5',
 
     /**
      * Fecha de la versión
      */
-    'fecha_version' => '2025-07-16',
+    'fecha_version' => '2026-08-22',
 
     /**
      * Número de instalación/instancia (generado automáticamente)
@@ -321,12 +340,24 @@ $declaracionResponsable['integridad'] = array(
      */
     'ficheros_verificados' => array(
         'core/modules/modVerifactu.class.php',
-        'class/verifactu.class.php',
+        'class/actions_verifactu.class.php',
         'class/verifactu.utils.php',
         'lib/verifactu.lib.php',
         'lib/verifactu-types.array.php',
-        'core/triggers/interface_99_modVerifactu_VerifactuTriggers.class.php',
+        'core/triggers/interface_999_modVerifactu_VerifactuTriggers.class.php',
+        'core/triggers/interface_900_modVerifactu_BillRestrictions.class.php',
+        'lib/functions/functions.hash.php',
+        'lib/functions/functions.submission.php',
+        'lib/functions/functions.cancellation.php',
+        'lib/functions/functions.configuration.php',
     ),
+
+    /**
+     * Ficheros declarados que no se han encontrado en disco
+     * Se rellena en calcularHashModuloVerifactu(). Debe estar siempre vacío:
+     * un fichero ausente queda fuera del hash y por tanto sin verificar.
+     */
+    'ficheros_no_encontrados' => array(),
 );
 
 /**
@@ -464,11 +495,17 @@ function calcularHashModuloVerifactu($basePath = '')
     }
 
     $contenidoTotal = '';
+    $noEncontrados = array();
 
     foreach ($declaracionResponsable['integridad']['ficheros_verificados'] as $fichero) {
         $rutaCompleta = $basePath . '/' . $fichero;
         if (file_exists($rutaCompleta)) {
             $contenidoTotal .= file_get_contents($rutaCompleta);
+        } else {
+            // Un fichero declarado pero ausente quedaría fuera del hash sin dejar
+            // rastro. Se registra para que la ausencia sea visible en la
+            // declaración responsable y en el log del sistema.
+            $noEncontrados[] = $fichero;
         }
     }
 
@@ -477,6 +514,15 @@ function calcularHashModuloVerifactu($basePath = '')
     // Actualizar valores en la configuración
     $declaracionResponsable['integridad']['hash_modulo'] = $hash;
     $declaracionResponsable['integridad']['fecha_calculo'] = date('Y-m-d H:i:s');
+    $declaracionResponsable['integridad']['ficheros_no_encontrados'] = $noEncontrados;
+
+    if (!empty($noEncontrados) && function_exists('dol_syslog')) {
+        dol_syslog(
+            'VERIFACTU: ficheros declarados para el hash de integridad no encontrados: '
+                . implode(', ', $noEncontrados),
+            LOG_WARNING
+        );
+    }
 
     return $hash;
 }

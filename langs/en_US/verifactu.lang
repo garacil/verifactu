@@ -718,3 +718,8 @@ verifactu_OPERACION_Exenta = Exempt Operation
 verifactu_OPERACION_ExentaTooltip = Exemption type (E1-E6) when operation is VAT/IGIC/IPSI exempt.
 verifactu_INCIDENCIA = Incident
 verifactu_INCIDENCIATooltip = Indicates technical incident (no electricity, no internet, system failure). Defaults to "N".
+
+# Certificate upload errors
+VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Error: the certificate password is not correct. Please check it and try again.
+VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Error: the certificate is encrypted with a legacy algorithm (RC2-40-CBC / PBE-SHA1-3DES) that OpenSSL 3 disables by default. This is common in FNMT .p12 certificates. The password may well be correct. Fixes: enable the OpenSSL "legacy" provider on the server ([provider_sect] section of /etc/ssl/openssl.cnf), or re-export the certificate with a modern algorithm.
+VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Error: the public certificate could not be extracted from the file. Check the Dolibarr event log for the detailed OpenSSL error.

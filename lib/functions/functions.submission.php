@@ -64,6 +64,14 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta')
 
 	dol_syslog("VERIFACTU execVERIFACTUCall: After fetch - ref=" . $facture->ref . " status=" . $facture->status, LOG_DEBUG);
 
+	// Proforma invoices are not legally issued invoices and must never reach AEAT
+	// (Art. 6 RD 1007/2023). Guarding here covers every entry point: validation
+	// trigger, VeriFactu tab, invoice list, mass send and pending-invoice retries.
+	if (!isVerifactuApplicableInvoice($facture)) {
+		dol_syslog("VERIFACTU execVERIFACTUCall: Invoice " . $facture->ref . " is a proforma, skipping VeriFactu submission", LOG_INFO);
+		return false;
+	}
+
 	// Verify actionVERIFACTU is valid
 	if (!in_array($actionVERIFACTU, array('Alta', 'Mod', 'Baja'))) {
 		setEventMessage($langs->trans('INVALID_VERIFACTU_ACTION', $actionVERIFACTU), 'errors');

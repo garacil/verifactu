@@ -608,3 +608,8 @@ verifactu_OPERACION_Exenta = Operación Exenta
 verifactu_OPERACION_ExentaTooltip = Tipo de exención (E1-E6) cando a operación está exenta de IVE/IGIC/IPSI.
 verifactu_INCIDENCIA = Incidencia
 verifactu_INCIDENCIATooltip = Indica se houbo incidencia técnica (sen electricidade, sen internet, fallo do sistema). Por defecto "N".
+
+# Erros de carga de certificados
+VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Erro: o contrasinal do certificado non é correcto. Compróbeo e ténteo de novo.
+VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Erro: o certificado está cifrado cun algoritmo antigo (RC2-40-CBC / PBE-SHA1-3DES) que OpenSSL 3 desactiva por defecto. Isto é habitual en certificados .p12 da FNMT. O contrasinal pode ser correcto. Solucións: activar o provedor "legacy" de OpenSSL no servidor (sección [provider_sect] de /etc/ssl/openssl.cnf) ou volver exportar o certificado cun algoritmo moderno.
+VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Erro: non se puido extraer o certificado público do ficheiro. Revise o rexistro de eventos de Dolibarr para ver o detalle do erro de OpenSSL.
