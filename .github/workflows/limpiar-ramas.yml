@@ -1,0 +1,44 @@
+name: Limpiar ramas integradas
+
+# Borra las ramas de trabajo cuyo contenido ya está completo en main. Solo toca
+# las que empiezan por claude/, nunca una rama con commits que main no tenga.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Borrar las ramas ya integradas
+        run: |
+          set -euo pipefail
+          borradas=0
+          for rama in $(git branch -r --format='%(refname:short)' | sed 's|^origin/||'); do
+            case "$rama" in
+              claude/*) ;;
+              *) continue ;;
+            esac
+
+            pendientes=$(git rev-list --count "origin/main..origin/$rama")
+            if [ "$pendientes" -ne 0 ]; then
+              echo "Se conserva $rama: tiene $pendientes commits que no están en main."
+              continue
+            fi
+
+            echo "Se borra $rama: su contenido está completo en main."
+            git push origin --delete "$rama"
+            borradas=$((borradas + 1))
+          done
+          echo "Ramas borradas: $borradas"
