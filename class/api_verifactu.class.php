@@ -30,9 +30,13 @@ dol_include_once('/verifactu/lib/verifactu.lib.php');
  */
 
 /**
- * API class for verifactu integrity
+ * API class for verifactu integrity and environment
  *
- * @access public
+ * Every method is protected by the Dolibarr API key unless it says otherwise:
+ * only the integrity hash is public, like integrity.php. The methods that change
+ * the environment also require an administrator.
+ *
+ * @access protected
  */
 class VerifactuApi extends DolibarrApi
 {
@@ -93,14 +97,21 @@ class VerifactuApi extends DolibarrApi
 	/**
 	 * Update verifactu environment to production
 	 *
+	 * Requires a valid API key of an administrator: it decides where every
+	 * following billing record is sent.
+	 *
 	 * @return array response message
 	 *
 	 * @url POST toProduction
-	 * @access public
+	 * @access protected
 	 */
 	public function toProduction()
 	{
 		global $conf;
+		// Outside the try: a refusal must reach the client as 403, not as 500.
+		if (empty(DolibarrApiAccess::$user->admin)) {
+			throw new RestException(403, 'Only an administrator can change the VeriFactu environment');
+		}
 		try {
 			dol_include_once('/core/lib/admin.lib.php');
 			$res = dolibarr_set_const($this->db, 'VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT', 1, 'chaine', 0, '', $conf->entity);
@@ -119,16 +130,23 @@ class VerifactuApi extends DolibarrApi
 		}
 	}
 	/**
-	 * Update verifactu environment to production
+	 * Update verifactu environment to test
+	 *
+	 * Requires a valid API key of an administrator: it decides where every
+	 * following billing record is sent.
 	 *
 	 * @return array response message
 	 *
 	 * @url POST toTest
-	 * @access public
+	 * @access protected
 	 */
 	public function toTest()
 	{
 		global $conf;
+		// Outside the try: a refusal must reach the client as 403, not as 500.
+		if (empty(DolibarrApiAccess::$user->admin)) {
+			throw new RestException(403, 'Only an administrator can change the VeriFactu environment');
+		}
 		try {
 			dol_include_once('/core/lib/admin.lib.php');
 			$res = dolibarr_del_const($this->db, 'VERIFACTU_FORCE_PRODUCTION_ENVIRONMENT', $conf->entity);
