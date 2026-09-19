@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '2.2.0',
+		'version' => '2.2.1',
 	];
 
 	// Bind the global before including: the declaration file assigns
