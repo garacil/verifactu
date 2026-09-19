@@ -302,7 +302,7 @@ oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
 *legacy provider*, por lo que `openssl_pkcs12_read()` falla con
 `error:0308010C: digital envelope routines::unsupported`.
 
-Desde la versión 1.1.1 el módulo:
+Desde la versión 2.0.0 el módulo:
 
 - Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
   en la mayoría de servidores el certificado se acepta sin tocar nada.
@@ -315,7 +315,7 @@ En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
 `exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
 puede invocar el binario `openssl` del sistema.
 
-Desde la versión 1.1.1 esto ya no impide usar certificados: la extracción intenta
+Desde la versión 2.0.0 esto ya no impide usar certificados: la extracción intenta
 **primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
 necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
 falta. En la práctica:
@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.1.1
+- **Versión**: 2.0.0
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -384,7 +384,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Registro de Cambios
 
-### v1.1.1 (2026-09-19)
+### v2.0.0 (2026-09-19)
 
 #### Numeración de versión
 
@@ -395,11 +395,16 @@ movieron pero `modVerifactu.class.php` no. Esto importa más allá de lo cosmét
 porque ese mismo valor es el que se transmite a la AEAT en el campo `Version`
 del bloque `SistemaInformatico` (Art. 15.2.c de la Orden HAC/1177/2024).
 
-Esta versión se numera **1.1.1** —y no 1.0.5— para quedar por encima de la
-etiqueta 1.1 ya publicada, de modo que quien la tenga instalada no vea un
-retroceso al actualizar. El número está ahora unificado en los tres sitios donde
-aparecía descoordinado: la clase del módulo, la declaración responsable y este
-README.
+Esta versión se numera **2.0.0**. Además de dejar atrás sin ambigüedad la
+etiqueta 1.1 ya publicada —para que quien la tenga instalada no vea un retroceso
+al actualizar—, el salto de versión mayor corresponde a lo que cambia de
+comportamiento: registros que antes se transmitían ahora se rechazan localmente
+por incumplir los límites del esquema, las consultas dejan de abarcar las
+entidades con las que se comparten facturas, un envío parcialmente correcto con
+líneas rechazadas deja de darse por enviado y el NIF del obligado tributario
+queda fijado en cuanto existe la primera huella. El número está unificado en los
+tres sitios donde aparecía descoordinado: la clase del módulo, la declaración
+responsable y este README.
 
 #### Correcciones
 
