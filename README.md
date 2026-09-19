@@ -302,7 +302,7 @@ oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
 *legacy provider*, por lo que `openssl_pkcs12_read()` falla con
 `error:0308010C: digital envelope routines::unsupported`.
 
-Desde la versión 1.0.5 el módulo:
+Desde la versión 1.1.1 el módulo:
 
 - Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
   en la mayoría de servidores el certificado se acepta sin tocar nada.
@@ -315,7 +315,7 @@ En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
 `exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
 puede invocar el binario `openssl` del sistema.
 
-Desde la versión 1.0.5 esto ya no impide usar certificados: la extracción intenta
+Desde la versión 1.1.1 esto ya no impide usar certificados: la extracción intenta
 **primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
 necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
 falta. En la práctica:
@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.0.5
+- **Versión**: 1.1.1
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -384,7 +384,22 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Registro de Cambios
 
-### v1.0.5 (2026-08-22)
+### v1.1.1 (2026-09-19)
+
+#### Numeración de versión
+
+El número de versión que declaraba el módulo llevaba desde diciembre de 2025
+congelado en `1.0.3`: los paquetes publicados como 1.0.4 y 1.1 seguían
+instalándose y mostrándose en Dolibarr como 1.0.3, porque las etiquetas se
+movieron pero `modVerifactu.class.php` no. Esto importa más allá de lo cosmético,
+porque ese mismo valor es el que se transmite a la AEAT en el campo `Version`
+del bloque `SistemaInformatico` (Art. 15.2.c de la Orden HAC/1177/2024).
+
+Esta versión se numera **1.1.1** —y no 1.0.5— para quedar por encima de la
+etiqueta 1.1 ya publicada, de modo que quien la tenga instalada no vea un
+retroceso al actualizar. El número está ahora unificado en los tres sitios donde
+aparecía descoordinado: la clase del módulo, la declaración responsable y este
+README.
 
 #### Correcciones
 
