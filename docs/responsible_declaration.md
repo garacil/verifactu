@@ -70,18 +70,24 @@ Information about the invoicing IT system.
 
 ```php
 $declaracionResponsable['sistema'] = array(
-    'nombre' => 'VeriFactu for Dolibarr ERP/CRM',
-    'id_sistema_informatico' => 'VERIFACTU-DOLIBARR-OSS',
-    'version' => '1.0.2',
-    'fecha_version' => '2025-07-16',
+    'nombre' => 'VeriFactu para Dolibarr ERP/CRM',
+    'nombre_sistema_informatico' => 'Dolibarr Verifactu Module',
+    'id_sistema_informatico' => 'DV',
+    'version' => '2.2.2',
+    'fecha_version' => '2026-09-19',
+    'numero_instalacion' => '',   // Filled in at runtime by generarIdInstalacion()
     'tipo_licencia' => 'GPL-3.0-or-later',
+    'repositorio' => 'https://github.com/garacil/verifactu',
 );
 ```
 
 **Required fields:**
-- `nombre`: Commercial name of the system
-- `id_sistema_informatico`: Unique identifier code (max. 30 characters)
-- `version`: System version
+- `nombre`: Commercial name of the system, shown on the declaration page
+- `nombre_sistema_informatico`: Exact value transmitted to AEAT as `NombreSistemaInformatico` (max. **30** characters, `sf:TextMax30Type`)
+- `id_sistema_informatico`: Identifier transmitted as `IdSistemaInformatico` (max. **2** characters, `sf:TextMax2Type`; a longer value is rejected by the web service)
+- `version`: Transmitted as `Version` (max. 50 characters)
+
+> **Important:** Art. 15.2 of Order HAC/1177/2024 requires the declared identity and the one transmitted in every billing record to be the same. Since version 2.0.0 `getSystemConfig()` reads `nombre_sistema_informatico`, `id_sistema_informatico` and `version` from this file, and `getDeclaredSystemIdentity()` logs an error if a value has to be truncated to fit the schema. The version must also match `$this->verifactu_version` in `core/modules/modVerifactu.class.php` and the fallback in `lib/functions/functions.configuration.php`: the release workflow refuses to publish otherwise.
 
 ### 3. Components (`$declaracionResponsable['componentes']`)
 
@@ -142,11 +148,14 @@ $declaracionResponsable['integridad'] = array(
     'fecha_calculo' => '',
     'ficheros_verificados' => array(
         'core/modules/modVerifactu.class.php',
-        'class/verifactu.class.php',
+        'class/actions_verifactu.class.php',
         // ... critical files
     ),
+    'ficheros_no_encontrados' => array(),  // Filled in by calcularHashModuloVerifactu()
 );
 ```
+
+`ficheros_no_encontrados` must always end up empty: a declared file that is missing stays out of the hash and is therefore unverified. Since version 2.0.0 any missing file is also written to the Dolibarr log.
 
 ### 6. Compliance (`$declaracionResponsable['cumplimiento']`)
 
@@ -198,10 +207,12 @@ Information about the configuration file.
 $declaracionResponsable['metadata'] = array(
     'version_config' => '1.0.0',
     'fecha_creacion' => '2025-12-12',
-    'ultima_modificacion' => '2025-12-12',
+    'ultima_modificacion' => '2026-09-19',
     'autor' => 'Author name',
 );
 ```
+
+These fields describe the configuration file itself, not the module.
 
 ## Using the File
 
@@ -299,23 +310,30 @@ The page shows:
 ### JSON Endpoint
 
 ```
-GET /verifactu/views/declaration_json.php
+GET /custom/verifactu/views/declaration_json.php
 ```
 
-Requires authentication and VeriFactu management permissions.
+Requires an open session and the VeriFactu management permission (or an administrator account).
 
 ## Integrity Hash
 
-The integrity hash is calculated on the following critical files:
+The integrity hash is calculated on the following critical files (list corrected and extended in version 2.0.0):
 
 - `core/modules/modVerifactu.class.php`
-- `class/verifactu.class.php`
+- `class/actions_verifactu.class.php`
 - `class/verifactu.utils.php`
 - `lib/verifactu.lib.php`
 - `lib/verifactu-types.array.php`
-- `core/triggers/interface_99_modVerifactu_VerifactuTriggers.class.php`
+- `core/triggers/interface_999_modVerifactu_VerifactuTriggers.class.php`
+- `core/triggers/interface_900_modVerifactu_BillRestrictions.class.php`
+- `lib/functions/functions.hash.php`
+- `lib/functions/functions.submission.php`
+- `lib/functions/functions.cancellation.php`
+- `lib/functions/functions.configuration.php`
+- `lib/functions/functions.response.php`
+- `lib/functions/functions.certificates.php`
 
-The hash is recalculated every time the responsible declaration page is accessed, ensuring that any modification to critical files is detected.
+The hash is recalculated every time the responsible declaration page is accessed, ensuring that any modification to critical files is detected. It is not the same value as the one returned by `integrity.php` and the REST API, which hashes every `.php` file of the module.
 
 ## Frequently Asked Questions
 
@@ -347,4 +365,4 @@ The subscription date should be updated when significant changes are made to the
 
 ---
 
-*Last updated: 2025-12-12*
+*Last updated: 2026-09-19 (module version 2.2.2)*
