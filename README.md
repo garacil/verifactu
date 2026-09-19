@@ -261,10 +261,14 @@ verifactu/
 
 ## API REST
 
-El módulo expone una API REST para integración externa:
+El módulo expone una API REST para integración externa. La ruta base es
+`verifactuapi` (el núcleo de Dolibarr localiza la clase `VerifactuApi` por el
+primer segmento de la URL):
 
 ```
-GET  /api/index.php/verifactu/integrity
+GET  /api/index.php/verifactuapi/integrity      # público, como integrity.php
+POST /api/index.php/verifactuapi/toProduction   # clave de API (DOLAPIKEY) de un administrador
+POST /api/index.php/verifactuapi/toTest         # clave de API (DOLAPIKEY) de un administrador
 ```
 
 ## Resolución de Problemas
@@ -376,7 +380,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.2.1
+- **Versión**: 2.2.2
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -416,6 +420,81 @@ uno:
   binario.
 
 ## Registro de Cambios
+
+### v2.2.2 (2026-09-19)
+
+Correcciones propias del autor del módulo,
+[@garacil](https://github.com/garacil) (Germán Luis Aracil Boned), detectadas al
+revisar el código fuente para redactar la wiki del proyecto.
+
+#### La API REST permitía cambiar el entorno sin autenticación
+
+`class/api_verifactu.class.php` declaraba `@access public` en la clase y en sus
+tres métodos. Restler, el framework de la API de Dolibarr, solo autentica los
+métodos con un nivel de acceso superior a público, así que `toProduction` y
+`toTest` podían invocarse sin clave de API ni permiso alguno: cualquiera que
+alcanzase la URL de la API podía decidir a qué entorno de la AEAT se remitían
+los registros de facturación de una entidad.
+
+Ahora ambos métodos se declaran `@access protected`, como los de la API del
+núcleo de Dolibarr, de modo que exigen una clave de API válida (`DOLAPIKEY`), y
+además rechazan con HTTP 403 a cualquier usuario que no sea administrador, antes
+de tocar la configuración. El hash de integridad sigue siendo público, igual que
+`integrity.php`. La ruta base de la API es `verifactuapi` y no `verifactu` como
+indicaba este README; queda corregida en la sección «API REST».
+
+> En Dolibarr 17 la API del módulo no llega a ejecutarse: el Restler que incluye
+> esa versión del núcleo termina con `Access to undeclared static property
+> Composer\Autoload\ClassLoader::$loader` en cuanto hay registrado un autoloader
+> de Composer, como el de `lib/newfenix/vendor`. Es un fallo del núcleo, corregido
+> en versiones posteriores de Dolibarr, anterior a esta versión e independiente de
+> ella. Donde la API sí funciona (Dolibarr 19 y posteriores), la corrección cierra
+> el acceso sin credenciales.
+
+#### Una anulación fallida borraba la huella del alta
+
+El bloque `catch` de `execVERIFACTUCall()` vaciaba `verifactu_huella` y
+`verifactu_csv_factura` fuera cual fuera la operación que había fallado. Si una
+anulación o una subsanación terminaba con una excepción (sin conexión, error de
+certificado, bloqueo de la cadena ocupado…), la factura perdía en Dolibarr la
+huella y el CSV de un registro que la AEAT sí había aceptado: `getLastInvoiceHash()`
+dejaba de verla, la siguiente factura se encadenaba sobre un registro anterior al
+real y el código QR desaparecía de una factura que seguía registrada.
+
+Ahora una excepción nunca toca la huella ni el CSV. Si la factura ya tiene un
+registro aceptado, conserva además su estado «Enviada» y solo se anota el error de
+la operación fallida en `verifactu_error` y `verifactu_ultima_salida`, de modo que
+la baja o la subsanación pueden repetirse. Si nunca llegó a aceptarse, se muestra
+el estado «Error» como hasta ahora. La decisión se toma sobre los campos guardados
+en la base de datos, no sobre lo que la operación fallida hubiera dejado en memoria,
+y está en la nueva función `buildVerifactuExceptionErrorData()`.
+
+#### Mensajes que se mostraban como claves sin traducir
+
+El código pedía varios textos con un nombre de clave distinto del que definían
+los ficheros de idioma, y Dolibarr mostraba la clave en bruto: los avisos de
+factura no modificable y de datos obligatorios del cliente
+(`VERIFACTU_INVOICE_CAN_NOT_BE_*`), el estado «Anulada», el aviso de factura ya
+anulada, los tipos de anulación del diálogo de baja, los avisos de NIF de tercero
+no modificable, los valores fiscales aplicados desde el tercero, el título «Factura
+simplificada» del PDF, la etiqueta del campo «Cliente de factura simplificada» y
+los textos de ayuda de varios campos. Además, los textos de la validación masiva,
+el aviso de ajuste de fecha de la validación individual y el título de la guía de
+ayuda solo existían en español e inglés.
+
+Se añaden en los cinco idiomas las claves que faltaban, como alias con el mismo
+texto que su clave equivalente, y las traducciones que no existían en catalán,
+euskera y gallego.
+
+#### Verificación
+
+Tres tests nuevos, que fallan con el código de la 2.2.1 y pasan con esta versión:
+`tests/ApiAccessTest.php` (acceso de cada método de la API, rechazo 403 antes de
+cambiar la configuración, ningún método público que escriba),
+`tests/ExceptionKeepsRecordTest.php` (la excepción conserva huella, CSV y estado de
+un registro aceptado) y `tests/LanguageKeysTest.php` (toda clave del módulo que pide
+el código existe y no está vacía en los cinco idiomas). La suite completa, 15
+ficheros, pasa.
 
 ### v2.2.1 (2026-09-19)
 

@@ -621,3 +621,59 @@ VERIFACTU_CHAIN_LOCK_BUSY = Beste faktura bat kateatzen ari da une honetan eta i
 VERIFACTU_PENDING_SUBMISSION_INFO = %s faktura VeriFactu erregistroa bidaltzeke duela balioztatu da, balidazioan bidalketa zuzena desaktibatuta dagoelako. Berriro saiatzeko ilaratik bidaliko da.
 VERIFACTU_TAX_IDENTITY_ALREADY_USED = Zergapekoaren IFZ %s VeriFactu entitatean dago jada konfiguratuta. VeriFactu aktibatuta duen entitate bakoitza zergapeko desberdin bat da, bere erregistro-kate propioarekin.
 VERIFACTU_SHARED_INVOICE_NUMBERING_WARNING = Multicompany-k fakturen zenbakitzea entitateen artean partekatzen ari da. Bi zergapekok kontagailu beretik hartuko lukete beren seriea, eta VeriFactuk ezin du hori bateratu: zergapeko bakoitzak bere zenbakitzea mantendu behar du.
+
+# Keys the code references under a different name than the one defined above (2.2.2).
+# Each alias carries the text of its canonical key; keep them in sync.
+VERIFACTU_INVOICE_CAN_NOT_BE_MODIFIED = %s faktura ezin da aldatu (VeriFactu murrizketa)
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_CIF_REQUIRED = %s faktura: Bezeroaren IFK/NAN derrigorrezkoa VeriFactu-rako
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_TVA_INTRA_REQUIRED = %s faktura: Erkidego barruko IFK derrigorrezkoa VeriFactu-rako
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_ADDRESS_REQUIRED = %s faktura: Bezeroaren helbidea derrigorrezkoa VeriFactu-rako
+VERIFACTU_STATUS_ANULADA = Baliogabetua
+VERIFACTU_ERROR_FACTURA_YA_ANULADA = Faktura dagoeneko baliogabetuta dago VeriFactu-n
+SOCIETE_HAVE_INVOICES_NOT_IDPROF1_MODIFIED = <strong>IFK/NAN</strong> ez da eguneratu. <strong>%s</strong>-k <strong>%s</strong> faktura ditu VeriFactu-n.
+SOCIETE_HAVE_INVOICES_NOT_TVAINTRA_MODIFIED = <strong>Erkidego barruko IFK</strong> ez da eguneratu. <strong>%s</strong>-k <strong>%s</strong> faktura ditu VeriFactu-n.
+VERIFACTU_DEFAULT_SOCIETE_IMPUESTO_SET = '%s'-ren lehenetsitako zerga aplikatua
+VERIFACTU_DEFAULT_SOCIETE_CLAVE_REGIMEN_SET = '%s'-ren erregimen gakoa aplikatua
+VERIFACTU_DEFAULT_SOCIETE_CALIFICACION_OPERACION_SET = '%s'-ren kalifikazioa aplikatua
+VERIFACTU_DEFAULT_SOCIETE_OPERACION_EXENTA_SET = '%s'-ren eragiketa salbuetsia aplikatua
+VERIFACTU_TIPO_ANULACION = Baliogabetze mota
+VERIFACTU_ANULACION_NORMAL = Baliogabetze arrunta
+VERIFACTU_ANULACION_RECHAZO_PREVIO = Aurreko bazterketarengatik
+VERIFACTU_ANULACION_SIN_REGISTRO_PREVIO = Aurreko erregistrorik gabe
+VERIFACTU_INFO_ANULACION_NORMAL = <strong>Arrunta:</strong> Ondo erregistratutako fakturak baliogabetzen ditu.
+VERIFACTU_INFO_ANULACION_RECHAZO_PREVIO = <strong>Bazterketagatik:</strong> Aurretik baztertutako fakturak baliogabetzen ditu.
+VERIFACTU_INFO_ANULACION_SIN_REGISTRO_PREVIO = <strong>Erregistrorik gabe:</strong> VeriFactu-n erregistratu gabeko fakturak baliogabetzen ditu.
+verifactu_FACTURA_Simplificada = Faktura Sinplifikatua
+verifactu_SIMPLIFIED_INVOICE_CUSTOMER = Faktura sinplifikatuaren bezeroa
+verifactu_SIMPLIFIED_INVOICE_CUSTOMERTooltip = Aktibo badago, fakturak F2 mota gisa (sinplifikatua) bidaltzen dira
+verifactu_STATUSTooltip = Fakturaren egoera VeriFactu-n
+verifactu_ERRORTooltip = Azken errorea VeriFactu-ra bidaltzean
+verifactu_INVOICE_IDTooltip = Fakturaren identifikatzailea VeriFactu-n
+verifactu_INVOICE_DATETooltip = VeriFactu-n erregistratutako jaulkipen data
+verifactu_LAST_OUTPUTTooltip = VeriFactu-ren azken erantzuna
+verifactu_LAST_MODIFICATION_DATETooltip = VeriFactu-n azken aldaketaren data
+verifactu_GENERATION_DATETIMETooltip = Hatz-markaren sorrera data eta ordua (ISO 8601)
+verifactu_INVOICE_TYPETooltip = VeriFactu-rako faktura mota
+verifactu_TAX_TYPETooltip = Aplikagarri den zerga mota. Lehenespenez BEZ. Faktura tipologiarako beharrezkoa.
+verifactu_OPERATION_QUALIFICATIONTooltip = Lotutako/salbuetsi gabeko edo lotu gabeko eragiketaren gakoa. S1=Inbertsiorik gabe, S2=Inbertsioarekin, N1=Lotu gabe 7,14 art., N2=Lotu gabe kokapenagatik.
+verifactu_EXEMPT_OPERATIONTooltip = Salbuespen mota (E1-E6) eragiketa BEZ/IGIC/IPSI-tik salbuetsita dagoenean.
+verifactu_INCIDENTTooltip = Intzidentzia teknikorik (argirik gabe, internetik gabe, sistemaren hutsa) egon den adierazten du. Lehenespenez "N".
+verifactu_ID_TYPETooltip = Atzerriko hartzailearen identifikazio mota.
+VERIFACTU_MODE_HELP = Gaur egun VeriFactu modua bakarrik dago eskuragarri. EZ-VeriFactu modua garapenean.
+VERIFACTU_CERTIFICATE_HELP = VeriFactu-rako sinadura elektronikoko ziurtagiria. PEM formatua behar da; P12/PFX formatuak automatikoki bihurtzen dira.
+VERIFACTU_CERT_TYPE_HELP = VeriFactu-rako ziurtagiri mota.<br><strong>Normala:</strong> Ziurtagiri guztiekin bateragarria (gomendatua)<br><strong>Zigilu:</strong> Zigilu ziurtagiri enpresarialak bakarrik<br><br>"no XML document" erroreak lortzen badituzu kontsultetan, erabili 'normala'.
+ERROR_FETCHING_INVOICE = Ezin izan da %s faktura datu-basetik kargatu
+VERIFACTU_HOLDER_COMPANY_NAME_HELP = Zergapekoaren sozietate-izena, fakturazio-erregistroetan agertu behar den bezala (NombreRazon).
+VERIFACTU_HOLDER_NIF_HELP = Fakturak jaulkitzen dituen zergapekoaren IFZ. Kateatutako lehen aztarna sortzen denean blokeatuta geratzen da.
+VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP = Legezko ordezkariaren IFZ, informazio gisa. Ez zaio AEATri bidaltzen.
+
+# Mass validation and help guide texts, previously only in es_ES and en_US (2.2.2).
+VERIFACTU_FAQ_TITLE = VeriFactu laguntza-gida
+VERIFACTU_MASS_VALIDATE_INFO = VeriFactu moduluak baliozkotze masiboa faktura bakoitzeko transakzio independenteekin kudeatzen du, AEATrekin koherentziarik eza saihesteko.
+VERIFACTU_MASS_VALIDATE_PARTIAL = %s faktura behar bezala baliozkotu dira, %s fakturak erroreak izan dituzte. Faktura zuzenei ez diete eragiten besteen erroreek.
+VERIFACTU_MASS_VALIDATE_FETCH_ERROR = Ezin izan da %s IDa duen faktura kargatu
+VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = %s faktura ezin da baliozkotu bere egungo egoeratik
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE = Datak doitu behar dira
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG = <b>%s faktura</b> aurkitu dira <b>%s</b> baino lehenagoko datarekin (baliozkotutako azken faktura: %s).<br><br>Datak automatikoki doituko dira, VeriFactu-k eskatzen duen hurrenkera kronologikoa betetzeko behar den gutxienekora.<br><br>Baliozkotzearekin jarraitu nahi duzu?
+VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = %s fakturaren data doitu da VeriFactu-ren hurrenkera kronologikoa errespetatzeko.
+VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Data doitzea:</strong> Fakturaren jatorrizko data (<strong>%s</strong>) <strong>%s</strong> datara doitu da, VeriFactu-ren hurrenkera kronologikoa errespetatzeko (baliozkotutako azken faktura: %s).

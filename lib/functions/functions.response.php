@@ -385,3 +385,39 @@ function buildVerifactuOutputSummary($response, $isError = false)
 
 	return $summary;
 }
+
+/**
+ * Builds the data persisted when a VeriFactu operation ends with an exception
+ *
+ * A record already accepted by AEAT (the invoice has a fingerprint) stays
+ * registered whatever happens to a later operation: a failed cancellation or
+ * correction must not erase the fingerprint or the CSV, nor replace the "sent"
+ * status, otherwise the local chain loses a record that AEAT still holds and
+ * the QR disappears from an invoice that is still registered. In that case only
+ * the error fields are written. Without a fingerprint nothing was ever accepted,
+ * so the error status is shown as before.
+ *
+ * The returned keys are the ones accepted by saveVerifactuErrorData(). The
+ * fingerprint and the CSV are never among them.
+ *
+ * @param array  $currentOptions array_options of the invoice as stored (options_verifactu_*)
+ * @param string $errorBadge     HTML badge of the error status
+ * @param string $errorMessage   Message of the exception
+ * @param int    $now            Timestamp of the failure
+ * @return array                 Data to persist
+ */
+function buildVerifactuExceptionErrorData(array $currentOptions, $errorBadge, $errorMessage, $now)
+{
+	$errorData = array(
+		'error' => 'Exception: ' . $errorMessage,
+		'ultima_salida' => 'VeriFactu Exception: ' . $errorMessage,
+		'fecha_modificacion' => $now,
+	);
+
+	$hasAcceptedRecord = !empty($currentOptions['options_verifactu_huella']);
+	if (!$hasAcceptedRecord) {
+		$errorData['estado'] = $errorBadge;
+	}
+
+	return $errorData;
+}

@@ -232,33 +232,30 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta', $enforce
 		$errorMessage = $e->getMessage();
 		dol_syslog("Verifactu Error: " . $errorMessage, LOG_ERR);
 
+		// Judge the invoice by what is stored, not by whatever the failed
+		// operation may have left in memory.
+		$facture->fetch_optionals();
+
 		// Error badge (red) to indicate exception
 		$errorBadge = '<div class="center"><span class="badge badge-status8 classfortooltip badge-status" attr-status="' . $langs->trans('VERIFACTU_STATUS_ERROR') . '">' . $langs->trans('VERIFACTU_STATUS_ERROR') . '</span></div>';
-		$facture->array_options['options_verifactu_estado'] = $errorBadge;
 
-		// Save complete error message
-		$facture->array_options['options_verifactu_error'] = 'Exception: ' . $errorMessage;
+		// A record already accepted by AEAT stays registered whatever happened to
+		// this operation: a failed cancellation or correction must not erase the
+		// fingerprint or the CSV, nor replace the "sent" status, or the local
+		// chain would lose a record that AEAT still holds. In that case only the
+		// error fields are written; without a fingerprint the error status is
+		// shown as before. The fingerprint and the CSV are never cleared here.
+		$storedOptions = is_array($facture->array_options) ? $facture->array_options : array();
+		$errorData = buildVerifactuExceptionErrorData($storedOptions, $errorBadge, $errorMessage, dol_now());
 
-		// Save error summary in ultima_salida
-		$errorSummary = "VeriFactu Exception: " . $errorMessage;
-		$facture->array_options['options_verifactu_ultima_salida'] = $errorSummary;
-
-		// Update last modification date
-		$facture->array_options['options_verifactu_ultimafecha_modificacion'] = dol_now();
-
-		// Clear previous success data
-		$facture->array_options['options_verifactu_csv_factura'] = '';
-		$facture->array_options['options_verifactu_huella'] = '';
-
-		// Prepare error data to save with independent connection
-		$errorData = array(
-			'estado' => $errorBadge,
-			'error' => 'Exception: ' . $errorMessage,
-			'ultima_salida' => $errorSummary,
-			'fecha_modificacion' => dol_now(),
-			'csv_factura' => '',
-			'huella' => ''
-		);
+		if (isset($errorData['estado'])) {
+			$facture->array_options['options_verifactu_estado'] = $errorData['estado'];
+		} else {
+			dol_syslog("VERIFACTU: invoice " . $facture->ref . " keeps its accepted record (fingerprint present); only the error of the failed " . $actionVERIFACTU . " is stored", LOG_WARNING);
+		}
+		$facture->array_options['options_verifactu_error'] = $errorData['error'];
+		$facture->array_options['options_verifactu_ultima_salida'] = $errorData['ultima_salida'];
+		$facture->array_options['options_verifactu_ultimafecha_modificacion'] = $errorData['fecha_modificacion'];
 
 		// Try to save using external function with independent connection
 		$saved = saveVerifactuErrorData($facture, $errorData);

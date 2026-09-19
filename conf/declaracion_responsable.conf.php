@@ -136,7 +136,7 @@ $declaracionResponsable['sistema'] = array(
      * @required Obligatorio según Art. 15.2.c) Orden HAC/1177/2024
      * @format Alfanumérico, máximo 50 caracteres (sf:TextMax50Type)
      */
-    'version' => '2.2.1',
+    'version' => '2.2.2',
 
     /**
      * Fecha de la versión
