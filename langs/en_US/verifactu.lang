@@ -729,3 +729,5 @@ VERIFACTU_TAX_IDENTITY_LOCKED = The taxpayer NIF cannot be changed because this 
 VERIFACTU_CHAIN_READ_FAILED = The VeriFactu chain could not be read to find the previous record, so the invoice was not submitted. Check the Dolibarr event log for the database error.
 VERIFACTU_CHAIN_LOCK_BUSY = Another invoice is being chained right now and the wait time expired. Try again in a few seconds: the chain is strictly sequential and two invoices cannot be chained at the same time.
 VERIFACTU_PENDING_SUBMISSION_INFO = Invoice %s was validated with a VeriFactu record pending submission, because direct submission on validation is disabled. It will be sent by the retry queue.
+VERIFACTU_TAX_IDENTITY_ALREADY_USED = The taxpayer NIF is already configured in VeriFactu entity %s. Each entity with VeriFactu enabled is a different taxpayer, with its own chain of records.
+VERIFACTU_SHARED_INVOICE_NUMBERING_WARNING = MultiCompany is sharing the invoice numbering between entities. Two taxpayers then draw their invoice series from the same counter, which VeriFactu cannot reconcile: each taxpayer must keep its own numbering.

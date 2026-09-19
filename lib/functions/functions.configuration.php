@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '2.1.0',
+		'version' => '2.2.0',
 	];
 
 	// Bind the global before including: the declaration file assigns
@@ -192,6 +192,83 @@ function getDeclaredSystemIdentity()
 function normalizeVerifactuTaxIdentifier($taxId)
 {
 	return strtoupper(preg_replace('/[^A-Z0-9]/i', '', trim((string) $taxId)));
+}
+
+/**
+ * Returns another VeriFactu entity declaring the same taxpayer, if any.
+ *
+ * Two MultiCompany entities with VeriFactu enabled are two taxpayers, each with
+ * its own chain of fingerprints. Sharing one NIF between them means two chains
+ * for a single taxpayer, which the AEAT records as a broken sequence.
+ *
+ * Only core tables are read (llx_const), so the check does not depend on the
+ * internals of the MultiCompany module.
+ *
+ * @param  string   $taxId  Taxpayer NIF about to be configured
+ * @param  int|null $entity Entity being configured, current one by default
+ * @return int|null         Conflicting entity id, or null when the NIF is free
+ */
+function getVerifactuEntityWithSameTaxId($taxId, $entity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$taxId = normalizeVerifactuTaxIdentifier($taxId);
+	if ($taxId === '' || !isModEnabled('multicompany')) {
+		return null;
+	}
+
+	$sql = "SELECT taxpayer.entity, taxpayer.value";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "const AS taxpayer";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "const AS module ON module.entity = taxpayer.entity";
+	$sql .= " AND " . $db->decrypt('module.name') . " = 'MAIN_MODULE_VERIFACTU'";
+	$sql .= " AND " . $db->decrypt('module.value') . " = '1'";
+	$sql .= " WHERE " . $db->decrypt('taxpayer.name') . " = 'VERIFACTU_HOLDER_NIF'";
+	$sql .= " AND taxpayer.entity <> " . $entity;
+
+	$resql = $db->query($sql);
+	if (!$resql) {
+		// Fail open on purpose: a query error must not block the configuration
+		// screen. A duplicated NIF is a configuration mistake, not a threat to
+		// an existing chain, which hasVerifactuFiscalRecords() already guards.
+		dol_syslog(__FUNCTION__ . ': unable to inspect the taxpayers of the other entities: ' . $db->lasterror(), LOG_ERR);
+		return null;
+	}
+
+	$conflict = null;
+	while ($obj = $db->fetch_object($resql)) {
+		if (normalizeVerifactuTaxIdentifier($obj->value) === $taxId) {
+			$conflict = (int) $obj->entity;
+			break;
+		}
+	}
+	$db->free($resql);
+
+	return $conflict;
+}
+
+/**
+ * Checks whether MultiCompany shares the invoice numbering between entities.
+ *
+ * With shared numbering two taxpayers draw from the same counter, so the series
+ * submitted by each one is no longer its own. The module cannot fix that, but it
+ * should not stay quiet about it either.
+ *
+ * Read from the module configuration constant rather than from the internals of
+ * llx_entity, which belong to MultiCompany and change between its versions.
+ *
+ * @return bool True when invoice numbering is shared across entities
+ */
+function isVerifactuInvoiceNumberingShared()
+{
+	global $conf;
+
+	if (!isModEnabled('multicompany')) {
+		return false;
+	}
+
+	return !empty($conf->global->MULTICOMPANY_SHARINGS_ENABLED)
+		&& !empty($conf->global->MULTICOMPANY_INVOICENUMBER_SHARING_ENABLED);
 }
 
 /**
