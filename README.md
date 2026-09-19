@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.1.0
+- **Versión**: 2.2.0
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -416,6 +416,52 @@ uno:
   binario.
 
 ## Registro de Cambios
+
+### v2.2.0 (2026-09-19)
+
+Resuelve los dos últimos PR abiertos de [@braito4](https://github.com/braito4),
+el #34 y el #39. En ambos casos se aplica el fondo del hallazgo, no la
+implementación propuesta, y el motivo está explicado en cada PR.
+
+#### Una anulación puede abrir la cadena (PR #39)
+
+El PR proponía impedir que un registro de anulación fuese el primero de la
+cadena. El esquema oficial dice lo contrario:
+`RegistroFacturacionAnulacionType` declara `Encadenamiento` como un `choice`
+entre `PrimerRegistro` y `RegistroAnterior`, y existe `SinRegistroPrevioType`
+precisamente para anular un registro que nunca se remitió a la AEAT.
+
+Pero el PR apuntaba a algo real: sin registro anterior, el módulo **no
+configuraba el encadenamiento en absoluto**, así que `validate()` fallaba con un
+error genérico. Ahora la anulación se marca explícitamente como primer registro,
+que es lo que el esquema admite y lo que el propio módulo ya ofrecía con el tipo
+de anulación «sin registro previo».
+
+#### Un obligado tributario no puede tener dos entidades VeriFactu (PR #34)
+
+Dos entidades de Multicompany con VeriFactu activado son dos obligados
+tributarios, cada uno con su cadena. El mismo NIF en las dos significa dos
+cadenas para un solo obligado.
+
+La comprobación se hace ahora al guardar la configuración, y **solo con tablas
+del núcleo** (`llx_const`), sin leer la estructura interna de Multicompany, que
+no forma parte de Dolibarr y cambia entre versiones. Falla en abierto: un error
+de consulta no bloquea la pantalla de configuración, porque lo que protege una
+cadena ya existente es el bloqueo del NIF que entró en la 2.0.0.
+
+Nada de esto se ejecuta en el camino del envío. Ahí un `false` revierte la
+factura a borrador, de modo que un fallo transitorio de base de datos habría
+des-validado facturas ya emitidas.
+
+Además, si Multicompany está compartiendo la **numeración de facturas**, la
+pantalla de configuración lo advierte: dos obligados tomarían su serie del mismo
+contador y VeriFactu no puede conciliarlo. Se lee de la constante de
+configuración del propio módulo, no de sus tablas.
+
+**No se incorpora la unicidad de la huella del certificado** que proponía el
+mismo PR: un certificado de representante o de colaborador social puede firmar
+legítimamente por varios obligados tributarios, así que bloquear su reutilización
+entre entidades impediría un caso de uso válido.
 
 ### v2.1.0 (2026-09-19)
 

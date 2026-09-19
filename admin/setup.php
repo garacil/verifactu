@@ -400,17 +400,34 @@ $dirmodels = array_merge(array('/'), (array) $conf->modules_parts['models']);
  * Actions
  */
 
-// Once the first fiscal fingerprint exists, the taxpayer identity owning the
-// chain is immutable. This runs before FormSetup stores anything.
+// Checks that run before FormSetup stores anything.
 if ($action == 'update' && !empty($user->admin)) {
 	$postedTaxId = GETPOST('VERIFACTU_HOLDER_NIF', 'alphanohtml');
 	$currentTaxId = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
+
+	// Once the first fiscal fingerprint exists, the taxpayer identity owning
+	// the chain is immutable.
 	if (normalizeVerifactuTaxIdentifier($postedTaxId) !== normalizeVerifactuTaxIdentifier($currentTaxId)
 		&& hasVerifactuFiscalRecords((int) $conf->entity)) {
 		setEventMessages($langs->trans('VERIFACTU_TAX_IDENTITY_LOCKED'), null, 'errors');
 		$action = '';
 		$error++;
 	}
+
+	// Two VeriFactu entities are two taxpayers, each with its own chain. The
+	// same NIF in both means two chains for one taxpayer.
+	$conflictEntity = getVerifactuEntityWithSameTaxId($postedTaxId, (int) $conf->entity);
+	if ($conflictEntity !== null) {
+		setEventMessages($langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity), null, 'errors');
+		$action = '';
+		$error++;
+	}
+}
+
+// Shared invoice numbering is not something the module can fix, but the user
+// has to know: two taxpayers would draw their series from the same counter.
+if (isVerifactuInvoiceNumberingShared()) {
+	setEventMessages($langs->trans('VERIFACTU_SHARED_INVOICE_NUMBERING_WARNING'), null, 'warnings');
 }
 
 // For retrocompatibility Dolibarr < 15.0

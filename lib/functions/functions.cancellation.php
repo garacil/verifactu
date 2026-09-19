@@ -64,6 +64,15 @@ function handleInvoiceCancellation($manager, Facture $facture, $certOptions, $is
 			$previousHash['hash']
 		);
 		dol_syslog("VERIFACTU: Chaining configured with previous invoice: " . $previousHash['numero'], LOG_DEBUG);
+	} else {
+		// A cancellation may open the chain. SuministroInformacion.xsd declares
+		// Encadenamiento in RegistroFacturacionAnulacionType as a choice between
+		// PrimerRegistro and RegistroAnterior, and SinRegistroPrevio exists
+		// precisely to cancel a record that never reached AEAT, which is the
+		// case when a system moves to Veri*factu and its first submission is a
+		// cancellation. Leaving the chaining unset made validate() fail instead.
+		$cancellation->setAsFirstInChain();
+		dol_syslog("VERIFACTU: no previous record in this chain, the cancellation opens it", LOG_INFO);
 	}
 
 	// Send cancellation
