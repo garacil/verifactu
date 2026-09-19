@@ -6,11 +6,18 @@ name: Publicar versión
 # registro de cambios del README para no mantener el texto por duplicado.
 
 on:
+  # Al integrar en main: si la versión que declara el módulo todavía no tiene
+  # etiqueta, se publica. Así la etiqueta no puede volver a quedarse atrás
+  # respecto al número que se transmite a la AEAT.
+  push:
+    branches:
+      - main
+  # Y a mano, para republicar o para una versión concreta.
   workflow_dispatch:
     inputs:
       version:
-        description: "Versión a publicar, sin prefijo (por ejemplo 2.0.0)"
-        required: true
+        description: "Versión a publicar, sin prefijo (por ejemplo 2.0.0). Vacío: la que declare el módulo"
+        required: false
         type: string
 
 permissions:
@@ -25,35 +32,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Comprobar que la versión coincide con la declarada
+      - name: Determinar la versión y comprobar que está declarada igual en los tres sitios
+        id: version
         run: |
           set -euo pipefail
-          version='${{ inputs.version }}'
           modulo=$(sed -n "s/.*verifactu_version = '\([0-9.]*\)'.*/\1/p" core/modules/modVerifactu.class.php | head -1)
           declaracion=$(sed -n "s/.*'version' => '\([0-9.]*\)',.*/\1/p" conf/declaracion_responsable.conf.php | head -1)
           respaldo=$(sed -n "s/.*'version' => '\([0-9.]*\)',.*/\1/p" lib/functions/functions.configuration.php | head -1)
 
-          echo "Solicitada:             $version"
-          echo "modVerifactu.class.php: $modulo"
-          echo "declaracion_responsable: $declaracion"
+          version='${{ inputs.version }}'
+          if [ -z "$version" ]; then
+            version="$modulo"
+          fi
+
+          echo "A publicar:                $version"
+          echo "modVerifactu.class.php:    $modulo"
+          echo "declaracion_responsable:   $declaracion"
           echo "getDeclaredSystemIdentity: $respaldo"
 
           for declarada in "$modulo" "$declaracion" "$respaldo"; do
             if [ "$declarada" != "$version" ]; then
-              echo "::error::La versión declarada ($declarada) no coincide con la solicitada ($version). Ese número se transmite a la AEAT en el campo Version, así que no se publica hasta que cuadre."
+              echo "::error::La versión declarada ($declarada) no coincide con la que se va a publicar ($version). Ese número se transmite a la AEAT en el campo Version, así que no se publica hasta que cuadre."
               exit 1
             fi
           done
 
-      - name: Comprobar que la etiqueta no existe
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Comprobar si la etiqueta ya existe
+        id: etiqueta
         run: |
           set -euo pipefail
-          if git rev-parse "refs/tags/${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "::error::La etiqueta ${{ inputs.version }} ya existe."
-            exit 1
+          version='${{ steps.version.outputs.version }}'
+          if git rev-parse "refs/tags/$version" >/dev/null 2>&1; then
+            echo "La etiqueta $version ya existe; no hay nada que publicar."
+            echo "publicar=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "publicar=si" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Pasar la suite de regresión
+        if: steps.etiqueta.outputs.publicar == 'si'
         run: |
           set -euo pipefail
           fallos=0
@@ -71,29 +90,32 @@ jobs:
           fi
 
       - name: Extraer las notas del registro de cambios
+        if: steps.etiqueta.outputs.publicar == 'si'
         run: |
           set -euo pipefail
-          awk -v version="### v${{ inputs.version }} " '
+          awk -v version="### v${{ steps.version.outputs.version }} " '
             index($0, version) == 1 { dentro = 1; next }
             dentro && /^### v/ { exit }
             dentro { print }
           ' README.md > NOTAS_VERSION.md
 
           if [ ! -s NOTAS_VERSION.md ]; then
-            echo "::error::No hay entrada '### v${{ inputs.version }}' en el registro de cambios del README."
+            echo "::error::No hay entrada '### v${{ steps.version.outputs.version }}' en el registro de cambios del README."
             exit 1
           fi
           echo "Notas extraídas: $(wc -l < NOTAS_VERSION.md) líneas."
 
       - name: Crear la etiqueta y publicar la versión
+        if: steps.etiqueta.outputs.publicar == 'si'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ inputs.version }}" -m "VeriFactu para Dolibarr ${{ inputs.version }}"
-          git push origin "refs/tags/${{ inputs.version }}"
-          gh release create "${{ inputs.version }}" \
-            --title "VeriFactu para Dolibarr ${{ inputs.version }}" \
+          version='${{ steps.version.outputs.version }}'
+          git tag -a "$version" -m "VeriFactu para Dolibarr $version"
+          git push origin "refs/tags/$version"
+          gh release create "$version" \
+            --title "VeriFactu para Dolibarr $version" \
             --notes-file NOTAS_VERSION.md
