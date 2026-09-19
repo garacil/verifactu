@@ -302,7 +302,7 @@ oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
 *legacy provider*, por lo que `openssl_pkcs12_read()` falla con
 `error:0308010C: digital envelope routines::unsupported`.
 
-Desde la versión 1.1.1 el módulo:
+Desde la versión 2.0.0 el módulo:
 
 - Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
   en la mayoría de servidores el certificado se acepta sin tocar nada.
@@ -315,7 +315,7 @@ En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
 `exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
 puede invocar el binario `openssl` del sistema.
 
-Desde la versión 1.1.1 esto ya no impide usar certificados: la extracción intenta
+Desde la versión 2.0.0 esto ya no impide usar certificados: la extracción intenta
 **primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
 necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
 falta. En la práctica:
@@ -376,15 +376,47 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.1.1
+- **Versión**: 2.0.0
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
 - **Dedicado a**: Mi compañero y amigo Ildefonso González Rodríguez
 
+## Agradecimientos
+
+Este módulo mejora gracias a quien se toma el trabajo de reproducir un fallo,
+leer la normativa y contarlo con detalle. Nominalmente, y por lo que aportó cada
+uno:
+
+- **[@hisie](https://github.com/hisie)** (Diego Cebrián) — revisión de
+  conformidad con el RD 1007/2023 y la Orden HAC/1177/2024 (issue #30), con
+  referencia al articulado punto por punto. De ahí salieron la identidad del
+  sistema informático declarada y transmitida, el hash de integridad que dejaba
+  ficheros fuera, la exclusión de las proformas y el tipo rectificativo que se
+  mostraba distinto del que se enviaba. Su análisis de la condición de carrera
+  en el encadenamiento sigue abierto y es la base de la cola de envío que se
+  está diseñando.
+- **[@braito4](https://github.com/braito4)** — ocho propuestas de corrección
+  normativa (PR #34 a #41): respuestas parciales de la AEAT, semántica de
+  `RechazoPrevio`, validación del registro contra el esquema, control de flujo
+  del servicio, validez del certificado e identidad fiscal, aislamiento entre
+  entidades MultiCompany y la columna de fecha de creación. Cada una venía con
+  su test.
+- **[@hippo16214](https://github.com/hippo16214)** — los certificados `.p12` de
+  la FNMT rechazados por OpenSSL 3 (issue #33), con el comando exacto para
+  generar un contenedor *legacy* reproducible, que hoy se ejecuta en cada pasada
+  de la suite de regresión; y el `TypeError` del generador de QR que rompía la
+  vista de factura en PHP 8 (issue #32), diagnosticado hasta la línea.
+- **[@jose73wrc](https://github.com/jose73wrc)** (José Antonio) — el error fatal
+  del informe de pagos (issue #31), con la traza y la causa raíz ya
+  identificadas; y el aviso de que la corrección de los certificados no servía
+  en alojamientos compartidos donde `proc_open` está desactivado, que es lo que
+  llevó a leer el `.p12` con las funciones nativas de PHP antes que con el
+  binario.
+
 ## Registro de Cambios
 
-### v1.1.1 (2026-09-19)
+### v2.0.0 (2026-09-19)
 
 #### Numeración de versión
 
@@ -395,15 +427,20 @@ movieron pero `modVerifactu.class.php` no. Esto importa más allá de lo cosmét
 porque ese mismo valor es el que se transmite a la AEAT en el campo `Version`
 del bloque `SistemaInformatico` (Art. 15.2.c de la Orden HAC/1177/2024).
 
-Esta versión se numera **1.1.1** —y no 1.0.5— para quedar por encima de la
-etiqueta 1.1 ya publicada, de modo que quien la tenga instalada no vea un
-retroceso al actualizar. El número está ahora unificado en los tres sitios donde
-aparecía descoordinado: la clase del módulo, la declaración responsable y este
-README.
+Esta versión se numera **2.0.0**. Además de dejar atrás sin ambigüedad la
+etiqueta 1.1 ya publicada —para que quien la tenga instalada no vea un retroceso
+al actualizar—, el salto de versión mayor corresponde a lo que cambia de
+comportamiento: registros que antes se transmitían ahora se rechazan localmente
+por incumplir los límites del esquema, las consultas dejan de abarcar las
+entidades con las que se comparten facturas, un envío parcialmente correcto con
+líneas rechazadas deja de darse por enviado y el NIF del obligado tributario
+queda fijado en cuanto existe la primera huella. El número está unificado en los
+tres sitios donde aparecía descoordinado: la clase del módulo, la declaración
+responsable y este README.
 
 #### Correcciones
 
-- **Fatal error en el informe de pagos (issue #31)**: `beforePDFCreation()` daba
+- **Fatal error en el informe de pagos (issue #31, reportada por [@jose73wrc](https://github.com/jose73wrc))**: `beforePDFCreation()` daba
   `Call to undefined method pdf_paiement_fourn::fetch_optionals()` al generar el
   informe de pagos de facturas de cliente o de proveedor. Ese hook no lo disparan
   solo los modelos PDF de factura: los modelos de informe (`pdf_paiement`,
@@ -416,7 +453,7 @@ README.
   deja de acceder al extrafield cuando no existe, lo que además eliminaba un
   warning de PHP 8.
 
-- **TypeError en el QR con PHP 8 (issue #32)**: `QRGenerator::renderQrCode()`
+- **TypeError en el QR con PHP 8 (issue #32, reportada por [@hippo16214](https://github.com/hippo16214))**: `QRGenerator::renderQrCode()`
   declaraba `int $outputType`, pero las constantes `QRCode::OUTPUT_IMAGE_PNG` y
   `QRCode::OUTPUT_MARKUP_SVG` de `chillerlan/php-qrcode` son *strings*. Con
   `declare(strict_types=1)`, PHP 8 rechazaba toda llamada y rompía la pestaña
@@ -434,7 +471,7 @@ README.
   servidores; los legacy siguen necesitando el binario, lo que se comunica con un
   mensaje explícito.
 
-- **Certificados FNMT `.p12` con cifrado legacy (issue #33)**: los contenedores
+- **Certificados FNMT `.p12` con cifrado legacy (issue #33, reportada por [@hippo16214](https://github.com/hippo16214), con la aportación de [@jose73wrc](https://github.com/jose73wrc) sobre alojamientos compartidos)**: los contenedores
   PKCS#12 protegidos con `RC2-40-CBC` / `PBE-SHA1-3DES` —los habituales de la
   FNMT— fallaban bajo OpenSSL 3 y el módulo lo notificaba como *"Verifique la
   contraseña"*, que es engañoso. Ahora la extracción reintenta automáticamente
@@ -442,7 +479,7 @@ README.
   incorrecta, algoritmo legacy no soportado y fallo genérico. Documentado en la
   sección de resolución de problemas.
 
-- **Identidad del sistema declarada vs. transmitida (issue #30, puntos 1 y 6)**:
+- **Identidad del sistema declarada vs. transmitida (issue #30, puntos 1 y 6, revisión de [@hisie](https://github.com/hisie))**:
   la declaración responsable declaraba `IdSistemaInformatico` =
   `VERIFACTU-DOLIBARR-OSS` y nombre `VeriFactu para Dolibarr ERP/CRM`, mientras
   que a la AEAT se enviaban `DV` y `Dolibarr Verifactu Module`. El Art. 15.2
@@ -456,7 +493,7 @@ README.
   esquema. Además el campo `Version` transmitía `DOL_VERSION` (la versión de
   Dolibarr) en lugar de la del módulo, que es lo que exige el Art. 15.2.c.
 
-- **Hash de integridad incompleto (issue #30, punto 2)**: la lista
+- **Hash de integridad incompleto (issue #30, punto 2, revisión de [@hisie](https://github.com/hisie))**: la lista
   `ficheros_verificados` referenciaba `interface_99_...` en vez de
   `interface_999_...` y `class/verifactu.class.php`, que no existe. Como
   `calcularHashModuloVerifactu()` ignoraba en silencio los ficheros ausentes, el
@@ -465,7 +502,7 @@ README.
   función registra los ficheros no encontrados en
   `integridad.ficheros_no_encontrados` y en el log en lugar de callarlos.
 
-- **Facturas proforma enviadas a la AEAT como F1 (issue #30, punto 3)**: una
+- **Facturas proforma enviadas a la AEAT como F1 (issue #30, punto 3, revisión de [@hisie](https://github.com/hisie))**: una
   proforma no es una factura expedida legalmente y no debe generar registro de
   facturación (Art. 6 RD 1007/2023). Nueva función
   `isVerifactuApplicableInvoice()` que las excluye tanto en el trigger de
@@ -473,7 +510,7 @@ README.
   vías de envío (validación, pestaña VeriFactu, listado, envío masivo y
   reintentos). Las proformas siguen validándose con normalidad en Dolibarr.
 
-- **Tipo rectificativo divergente (issue #30, punto 5)**: `billCreate()`
+- **Tipo rectificativo divergente (issue #30, punto 5, revisión de [@hisie](https://github.com/hisie))**: `billCreate()`
   almacenaba R2 para abonos y facturas de sustitución, pero el envío transmitía
   R1. La pestaña VeriFactu mostraba por tanto un tipo que nunca era el enviado.
   Unificado a R1, que es lo que realmente se transmite.
