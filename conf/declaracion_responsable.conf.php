@@ -350,6 +350,8 @@ $declaracionResponsable['integridad'] = array(
         'lib/functions/functions.submission.php',
         'lib/functions/functions.cancellation.php',
         'lib/functions/functions.configuration.php',
+        'lib/functions/functions.response.php',
+        'lib/functions/functions.certificates.php',
     ),
 
     /**
