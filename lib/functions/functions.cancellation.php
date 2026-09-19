@@ -68,6 +68,7 @@ function handleInvoiceCancellation($manager, Facture $facture, $certOptions, $is
 
 	// Send cancellation
 	$response = $manager->sendCancellation($cancellation, $certOptions);
+	registerAEATWaitTime($response);
 
 	// Process response
 	return processCancellationResponse($response, $facture, $invoiceNumberToCancel, $langs);

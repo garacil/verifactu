@@ -123,7 +123,8 @@ if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && $acti
 
 	//
 	try {
-		execVERIFACTUCall($object, $actionVERIFACTU);
+		// A submission asked for explicitly by the user is not throttled here.
+		execVERIFACTUCall($object, $actionVERIFACTU, false);
 	} catch (\Throwable $e) {
 		// Capture and display detailed error information
 		setEventMessages($e->getMessage(), null, 'errors');

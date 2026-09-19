@@ -209,7 +209,9 @@ class VerifactuUtils
 		}
 
 		// Execute VeriFactu call (incident 'S' will be used in handleInvoiceCreationOrSubsanation)
-		$response = execVERIFACTUCall($facture, 'Alta');
+		// Automatic retries do honour the AEAT wait time: postponing one is
+		// harmless and keeps a retry loop from hammering the web service.
+		$response = execVERIFACTUCall($facture, 'Alta', true);
 
 		// Check if response indicates success (can be boolean true or array with success)
 		$isSuccess = false;

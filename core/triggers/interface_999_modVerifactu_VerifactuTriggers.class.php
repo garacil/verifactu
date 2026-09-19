@@ -376,7 +376,10 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 			// DO NOT use transaction here - let validate() function handle main transaction
 			dol_syslog("VERIFACTU TRIGGER: About to call execVERIFACTUCall for invoice id=" . $object->id . " ref=" . $object->ref . " newref=" . ($object->newref ?? 'NULL') . " status=" . $object->status, LOG_DEBUG);
 
-			$res = execVERIFACTUCall($object);
+			// Validation never enforces the AEAT wait time: returning false here
+			// reverts the invoice to draft, and a throttling window must not undo
+			// an issued invoice.
+			$res = execVERIFACTUCall($object, 'Alta', false);
 
 			dol_syslog("VERIFACTU TRIGGER: execVERIFACTUCall returned: " . var_export($res, true) . " for invoice " . ($object->newref ?? $object->ref), LOG_DEBUG);
 

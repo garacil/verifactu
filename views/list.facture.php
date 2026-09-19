@@ -387,7 +387,8 @@ if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && count
 				continue;
 			}
 
-			execVERIFACTUCall($staticFacture, $actionVERIFACTU);
+			// Mass sending is an explicit user action, so it is not throttled either.
+			execVERIFACTUCall($staticFacture, $actionVERIFACTU, false);
 		}
 	} catch (\Throwable $e) {
 		// Captura y muestra información detallada del error

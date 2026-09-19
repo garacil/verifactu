@@ -44,15 +44,31 @@ function executeVerifactuCall(Facture $facture, $action = 'Alta')
  *
  * @param Facture $facture Dolibarr invoice object
  * @param string $actionVERIFACTU Action to perform: 'Alta' (create), 'Mod' (modify) or 'Baja' (cancel)
+ * @param bool $enforceWaitTime Whether to abort when AEAT still asks the system to wait
  * @return bool True if submission was successful, false otherwise
  */
-function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta')
+function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta', $enforceWaitTime = true)
 {
 	global $conf, $langs, $user, $db;
 
 	$langs->load("verifactu@verifactu");
 
 	dol_syslog("VERIFACTU execVERIFACTUCall START: Invoice id=" . $facture->id . " ref=" . $facture->ref . " action=" . $actionVERIFACTU, LOG_DEBUG);
+
+	// AEAT returns TiempoEsperaEnvio on every response and expects the system to
+	// wait before submitting again. The delay is only enforced where aborting is
+	// harmless: on validation the caller reverts the invoice to draft when this
+	// function returns false, and an invoice must not be un-validated because of
+	// a throttling window.
+	$waitSeconds = getAEATWaitTimeRemaining();
+	if ($waitSeconds > 0) {
+		if ($enforceWaitTime) {
+			dol_syslog("VERIFACTU: AEAT asked to wait " . $waitSeconds . " more seconds, submission of " . $facture->ref . " postponed", LOG_WARNING);
+			setEventMessage($langs->trans('VERIFACTU_AEAT_WAIT_REQUIRED', $waitSeconds), 'warnings');
+			return false;
+		}
+		dol_syslog("VERIFACTU: AEAT wait time of " . $waitSeconds . " seconds not enforced on validation of " . $facture->ref, LOG_WARNING);
+	}
 
 	// Reload invoice values in case something was modified
 	$res = $facture->fetch($facture->id);
@@ -537,6 +553,8 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 
 		throw $e;
 	}
+
+	registerAEATWaitTime($response);
 
 	// Process VeriFactu response
 	return processInvoiceSendResponse($response, $facture, $manager, $langs, $conf);
