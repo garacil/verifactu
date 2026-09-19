@@ -393,9 +393,10 @@ uno:
   referencia al articulado punto por punto. De ahí salieron la identidad del
   sistema informático declarada y transmitida, el hash de integridad que dejaba
   ficheros fuera, la exclusión de las proformas y el tipo rectificativo que se
-  mostraba distinto del que se enviaba. Su análisis de la condición de carrera
-  en el encadenamiento sigue abierto y es la base de la cola de envío que se
-  está diseñando.
+  mostraba distinto del que se enviaba. Y en la 2.1.0, su análisis de la
+  condición de carrera en el encadenamiento y del envío no garantizado en la
+  validación: al ir a resolverlo apareció además que la cadena no se construía
+  en absoluto sobre PostgreSQL, así que ese hallazgo se le debe también a él.
 - **[@braito4](https://github.com/braito4)** — ocho propuestas de corrección
   normativa (PR #34 a #41): respuestas parciales de la AEAT, semántica de
   `RechazoPrevio`, validación del registro contra el esquema, control de flujo
