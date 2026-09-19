@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.2.0
+- **Versión**: 2.2.1
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -416,6 +416,29 @@ uno:
   binario.
 
 ## Registro de Cambios
+
+### v2.2.1 (2026-09-19)
+
+Corrección propia del autor del módulo,
+[@garacil](https://github.com/garacil) (Germán Luis Aracil Boned), detectada al
+actualizar a la 2.2.0 una instalación en producción sobre PostgreSQL.
+
+#### La página principal del módulo devolvía un error 500
+
+Desde la 2.1.0, al abrir la entrada de menú «VeriFactu» (`verifactuindex.php`)
+PHP terminaba con `Call to undefined function dol_get_first_day()`. El gráfico
+de facturas por mes se reescribió en esa versión para que funcionase también en
+PostgreSQL, sustituyendo `MONTH()` y `YEAR()` por `dol_get_first_day()` y
+`dol_get_last_day()`; pero esos dos ayudantes viven en `core/lib/date.lib.php`,
+que Dolibarr no carga en todas las páginas, y la página no lo incluía. La
+configuración del módulo seguía abriéndose, así que el fallo se percibía como
+«el módulo ha dejado de funcionar», aunque la validación, el envío a la AEAT y
+la pestaña VeriFactu de la factura no usan esos ayudantes y no estaban
+afectados.
+
+La página carga ahora la librería junto al resto de sus dependencias, y la
+suite de regresión comprueba que cualquier fichero del módulo que use un
+ayudante de `date.lib.php` lo incluya antes de llamarlo.
 
 ### v2.2.0 (2026-09-19)
 
