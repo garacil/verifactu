@@ -1,7 +1,8 @@
 name: Limpiar ramas integradas
 
-# Borra las ramas de trabajo cuyo contenido ya está completo en main. Solo toca
-# las que empiezan por claude/, nunca una rama con commits que main no tenga.
+# Borra las ramas de trabajo cuyo contenido ya está completo en main. Nunca toca
+# una rama con commits que main no tenga, ni las ramas de larga vida listadas en
+# RAMAS_PRESERVADAS.
 
 on:
   push:
@@ -22,14 +23,15 @@ jobs:
           fetch-depth: 0
 
       - name: Borrar las ramas ya integradas
+        env:
+          RAMAS_PRESERVADAS: "main master develop stable"
         run: |
           set -euo pipefail
           borradas=0
           for rama in $(git branch -r --format='%(refname:short)' | sed 's|^origin/||'); do
-            case "$rama" in
-              claude/*) ;;
-              *) continue ;;
-            esac
+            if echo " $RAMAS_PRESERVADAS " | grep -q " $rama "; then
+              continue
+            fi
 
             pendientes=$(git rev-list --count "origin/main..origin/$rama")
             if [ "$pendientes" -ne 0 ]; then
