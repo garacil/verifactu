@@ -302,7 +302,7 @@ oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
 *legacy provider*, por lo que `openssl_pkcs12_read()` falla con
 `error:0308010C: digital envelope routines::unsupported`.
 
-Desde la versión 1.0.5 el módulo:
+Desde la versión 1.1.1 el módulo:
 
 - Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
   en la mayoría de servidores el certificado se acepta sin tocar nada.
@@ -315,7 +315,7 @@ En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
 `exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
 puede invocar el binario `openssl` del sistema.
 
-Desde la versión 1.0.5 esto ya no impide usar certificados: la extracción intenta
+Desde la versión 1.1.1 esto ya no impide usar certificados: la extracción intenta
 **primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
 necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
 falta. En la práctica:
@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.0.5
+- **Versión**: 1.1.1
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -384,7 +384,22 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Registro de Cambios
 
-### v1.0.5 (2026-08-22)
+### v1.1.1 (2026-09-19)
+
+#### Numeración de versión
+
+El número de versión que declaraba el módulo llevaba desde diciembre de 2025
+congelado en `1.0.3`: los paquetes publicados como 1.0.4 y 1.1 seguían
+instalándose y mostrándose en Dolibarr como 1.0.3, porque las etiquetas se
+movieron pero `modVerifactu.class.php` no. Esto importa más allá de lo cosmético,
+porque ese mismo valor es el que se transmite a la AEAT en el campo `Version`
+del bloque `SistemaInformatico` (Art. 15.2.c de la Orden HAC/1177/2024).
+
+Esta versión se numera **1.1.1** —y no 1.0.5— para quedar por encima de la
+etiqueta 1.1 ya publicada, de modo que quien la tenga instalada no vea un
+retroceso al actualizar. El número está ahora unificado en los tres sitios donde
+aparecía descoordinado: la clase del módulo, la declaración responsable y este
+README.
 
 #### Correcciones
 
@@ -488,6 +503,52 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 - `core/modules/modVerifactu.class.php` - Versión del módulo
 - Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
 
+#### Correcciones normativas aportadas por la comunidad
+
+Integradas a partir de las propuestas de [@braito4](https://github.com/braito4),
+verificadas una a una contra el esquema oficial `SuministroInformacion.xsd`, el
+de respuesta `RespuestaSuministro.xsd` y el código de Dolibarr 19.0.3.
+
+- **Respuestas parciales de la AEAT (PR #36)**: un envío `ParcialmenteCorrecto`
+  puede contener líneas con `EstadoRegistro = Incorrecto`. El módulo aceptaba
+  el envío completo mirando solo el estado global, de modo que una factura
+  rechazada quedaba almacenada como enviada. Ahora `isAEATResponseAccepted()`
+  exige que todas las líneas estén aceptadas, tanto en el alta como en la
+  anulación.
+- **`RechazoPrevio` (PR #38)**: el esquema distingue `S` (la AEAT rechazó el
+  registro antes) de `X` (el registro nunca llegó a la AEAT, por ejemplo al
+  acogerse a Veri*factu desde un sistema que no lo usaba). El módulo transmitía
+  siempre `X`.
+- **Validación del registro antes de enviarlo (PR #40)**: tipo de factura,
+  longitudes de `NombreRazonEmisor` y `DescripcionOperacion`, número de
+  destinatarios y de líneas de desglose, encadenamiento y formato de las
+  huellas se comprueban contra los límites del XSD antes de llamar al servicio.
+- **Control de flujo de la AEAT (PR #37)**: se registra el `TiempoEsperaEnvio`
+  que devuelve cada respuesta y lo respeta el reintento automático de
+  pendientes. No se aplica en la validación, donde abortar el envío revierte la
+  factura a borrador, ni en los envíos que el usuario pide explícitamente.
+- **Certificados y identidad fiscal (PR #41)**: se rechaza un certificado fuera
+  de su periodo de validez X.509 con mensaje propio, los *bundles* PEM se
+  escriben con permisos `0600`, y el NIF del obligado tributario queda fijado en
+  cuanto la entidad tiene su primera huella. El certificado sigue pudiendo
+  sustituirse, que es lo que hace falta al renovarlo.
+- **Aislamiento entre entidades MultiCompany (PR #34)**: las consultas de
+  VeriFactu usaban `getEntity('invoice')`, que incluye las entidades con las que
+  se comparten facturas. En la cadena fiscal eso encadena registros de otro
+  obligado tributario. Ahora cada consulta se acota a la entidad activa, igual
+  que la activación del módulo, `integrity.php` y la búsqueda de la vista de
+  consulta.
+- **Columna de fecha de creación (PR #35)**: la vista de consulta seleccionaba
+  `date_creation`, que es una propiedad del objeto `Facture` y no una columna de
+  `llx_facture`; la columna es `datec`.
+
+Quedan fuera de esta versión, para tratarlas con sus autores: las
+comprobaciones de compartición, unicidad de NIF y huella de certificado entre
+entidades del PR #34, que inspeccionan la estructura interna del módulo
+MultiCompany y bloquean activación y validación; y el PR #39, que impide que un
+registro de anulación sea el primero de la cadena, algo que el esquema oficial
+admite explícitamente.
+
 #### Compatibilidad verificada
 
 Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento:
@@ -498,11 +559,17 @@ Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento
 | Dolibarr 17.0.2 + PHP 8.2 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 8.4 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
 | Dolibarr 17.0.2 + PHP 7.4 (mínimo declarado) | 20/20 comprobaciones en vivo |
-| Suite de regresión (PHP 7.4, 8.2 y 8.4) | 65/65 |
+| Dolibarr 19.0.3 + PHP 8.4 (fuente oficial) | 69/69, constantes y hooks contrastados |
+| Suite de regresión completa (9 ficheros) | 100% |
 
-En ambas versiones se activa el módulo, se dispara el hook `beforePDFCreation`
-con el objeto que realmente pasa cada una, se generan los QR y se comprueban las
+En todas ellas se activa el módulo, se dispara el hook `beforePDFCreation` con
+el objeto que realmente pasa cada una, se generan los QR y se comprueban las
 constantes de tipo de factura contra la clase `Facture` real.
+
+Sobre Dolibarr 19.0.3 se ha contrastado además el esquema de `llx_facture`, el
+objeto que recibe `beforePDFCreation` (también ahí es el modelo PDF, así que el
+fallo de la issue #31 se daba igualmente) y que las 186 funciones del núcleo que
+invoca el módulo existen en esa rama.
 
 El reintento con `openssl pkcs12 -legacy` está condicionado a que el binario sea
 OpenSSL 3 o superior: en servidores con OpenSSL 1.1.1 o LibreSSL, donde ese

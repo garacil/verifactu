@@ -489,6 +489,7 @@ function prepareLocalCertificate(
 
 		if ($privateKeyPem !== '') {
 			file_put_contents($bundleFile, trim($native['public_cert_pem']) . "\n" . trim($privateKeyPem) . "\n");
+			@chmod($bundleFile, 0600);
 			return $bundleFile;
 		}
 	}
@@ -555,6 +556,7 @@ function prepareLocalCertificate(
 
 	// Combine into a single .pem
 	file_put_contents($bundleFile, file_get_contents($certOut) . "\n" . file_get_contents($keyOut));
+	@chmod($bundleFile, 0600);
 
 	// Delete temporary files
 	unlink($certOut);
@@ -1211,6 +1213,19 @@ function validateCertificateAndKey($certPath, $certPassphrase = '')
 	if ($cert === false) {
 		dol_syslog("VERIFACTU: Error reading X.509 certificate", LOG_ERR);
 		$GLOBALS['verifactu_cert_error'] = "Error reading X.509 certificate - invalid format";
+		return false;
+	}
+
+	// A matching private key is not enough: reject a certificate outside its
+	// X.509 validity window, which AEAT would refuse at handshake time.
+	$certInfo = openssl_x509_parse($cert);
+	$now = dol_now();
+	$validFrom = isset($certInfo['validFrom_time_t']) ? (int) $certInfo['validFrom_time_t'] : 0;
+	$validTo = isset($certInfo['validTo_time_t']) ? (int) $certInfo['validTo_time_t'] : 0;
+	if (($validFrom > 0 && $now < $validFrom) || ($validTo > 0 && $now > $validTo)) {
+		openssl_x509_free($cert);
+		dol_syslog("VERIFACTU: Certificate is outside its X.509 validity period", LOG_ERR);
+		$GLOBALS['verifactu_cert_error'] = $langs->trans('VERIFACTU_CERT_ERROR_EXPIRED');
 		return false;
 	}
 

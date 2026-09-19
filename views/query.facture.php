@@ -254,7 +254,8 @@ $consultaQuery->setFiscalPeriod($search_year, $search_month);
 // If a specific invoice is specified, add post-query filter
 if ($search_facture) {
 	// Search for the real invoice date in database to improve search
-	$sql = "SELECT date_creation, datef FROM " . MAIN_DB_PREFIX . "facture WHERE ref = '" . $db->escape($search_facture) . "'";
+	$sql = "SELECT datec AS date_creation, datef FROM " . MAIN_DB_PREFIX . "facture WHERE ref = '" . $db->escape($search_facture) . "'";
+	$sql .= " AND entity = " . ((int) $conf->entity);
 	$result = $db->query($sql);
 
 	$fechaFactura = null;

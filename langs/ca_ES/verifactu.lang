@@ -613,3 +613,6 @@ verifactu_INCIDENCIATooltip = Indica si hi va haver incidència tècnica (sense 
 VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Error: la contrasenya del certificat no és correcta. Comproveu-la i torneu-ho a provar.
 VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Error: el certificat està xifrat amb un algorisme antic (RC2-40-CBC / PBE-SHA1-3DES) que OpenSSL 3 desactiva per defecte. Això és habitual en certificats .p12 de la FNMT. La contrasenya pot ser correcta. Solucions: activar el proveïdor "legacy" d'OpenSSL al servidor (secció [provider_sect] de /etc/ssl/openssl.cnf) o tornar a exportar el certificat amb un algorisme modern.
 VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Error: no s'ha pogut extreure el certificat públic del fitxer. Reviseu el registre d'esdeveniments de Dolibarr per veure el detall de l'error d'OpenSSL.
+VERIFACTU_AEAT_WAIT_REQUIRED=L'AEAT requereix esperar %s segons abans del següent enviament VeriFactu.
+VERIFACTU_CERT_ERROR_EXPIRED = Error: el certificat és fora del seu període de validesa. Comproveu-ne les dates d'emissió i caducitat i, si ha caducat, renoveu-lo i pugeu el nou.
+VERIFACTU_TAX_IDENTITY_LOCKED = No es pot modificar el NIF de l’obligat tributari perquè aquesta entitat ja conté registres VeriFactu encadenats. El certificat sí que es pot substituir.

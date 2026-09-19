@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '1.0.5',
+		'version' => '1.1.1',
 	];
 
 	// Bind the global before including: the declaration file assigns
@@ -165,6 +165,51 @@ function getDeclaredSystemIdentity()
 	$identity['version'] = substr($identity['version'], 0, 50);
 
 	return $identity;
+}
+
+/**
+ * Normalizes a taxpayer identifier before comparing it.
+ *
+ * @param string $taxId Taxpayer identifier
+ * @return string Normalized identifier, uppercase and without separators
+ */
+function normalizeVerifactuTaxIdentifier($taxId)
+{
+	return strtoupper(preg_replace('/[^A-Z0-9]/i', '', trim((string) $taxId)));
+}
+
+/**
+ * Checks whether an entity already holds VeriFactu fiscal records.
+ *
+ * Once the first fingerprint exists, the taxpayer that owns the chain can no
+ * longer change: every record is chained under that identity.
+ *
+ * @param int|null $entity Entity to check, current entity by default
+ * @return bool            True when at least one fingerprint was generated
+ */
+function hasVerifactuFiscalRecords($entity = null)
+{
+	global $conf, $db;
+
+	$entity = ($entity === null ? (int) $conf->entity : (int) $entity);
+	$sql = "SELECT f.rowid";
+	$sql .= " FROM " . MAIN_DB_PREFIX . "facture AS f";
+	$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields AS fe ON fe.fk_object = f.rowid";
+	$sql .= " WHERE f.entity = " . $entity;
+	$sql .= " AND fe.verifactu_huella IS NOT NULL AND fe.verifactu_huella <> ''";
+	$sql .= $db->plimit(1);
+	$resql = $db->query($sql);
+	if (!$resql) {
+		// Fail closed: the fiscal identity must not change while the state of
+		// the chain cannot be verified.
+		dol_syslog(__FUNCTION__ . ': unable to inspect the fiscal chain: ' . $db->lasterror(), LOG_ERR);
+		return true;
+	}
+
+	$hasRecords = (bool) $db->fetch_object($resql);
+	$db->free($resql);
+
+	return $hasRecords;
 }
 
 /**

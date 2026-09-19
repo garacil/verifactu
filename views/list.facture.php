@@ -387,7 +387,8 @@ if (in_array(GETPOST('EXECUTEVERIFACTU'), array('Alta', 'Mod', 'Baja')) && count
 				continue;
 			}
 
-			execVERIFACTUCall($staticFacture, $actionVERIFACTU);
+			// Mass sending is an explicit user action, so it is not throttled either.
+			execVERIFACTUCall($staticFacture, $actionVERIFACTU, false);
 		}
 	} catch (\Throwable $e) {
 		// Captura y muestra información detallada del error
@@ -748,7 +749,8 @@ $reshook = $hookmanager->executeHooks('printFieldListFrom', $parameters, $object
 $sql .= $hookmanager->resPrint;
 
 $sql .= ' WHERE f.fk_soc = s.rowid';
-$sql .= ' AND f.entity IN (' . getEntity('invoice') . ')';
+// VeriFactu data is per legal entity, never shared across entities.
+$sql .= ' AND f.entity = ' . ((int) $conf->entity);
 if (empty($user->rights->societe->client->voir) && !$socid) {
 	$sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = " . ((int) $user->id);
 }

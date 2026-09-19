@@ -222,7 +222,7 @@ class Invoice
      * @param string $date Issue date
      * @param string $taxId Issuer tax ID
      * @param string $name Issuer name
-     * @param bool $priorRejection Whether correcting a rejection
+     * @param bool|null $priorRejection True when AEAT rejected the record, null when it was never submitted
      * @return self
      */
     public static function createSubsanacion(
@@ -230,12 +230,12 @@ class Invoice
         string $date,
         string $taxId,
         string $name,
-        bool $priorRejection = false
+        ?bool $priorRejection = false
     ): self {
         $instance = new self($serial, $date, $taxId, $name);
         $instance->setAsCorrection(true);
-        if ($priorRejection) {
-            $instance->setAsPreviousRejection(true);
+        if ($priorRejection !== false) {
+            $instance->setAsPreviousRejection($priorRejection);
         }
         return $instance;
     }
@@ -727,7 +727,9 @@ class Invoice
             'IDEmisorFactura' => $prevTaxId,
             'NumSerieFactura' => $prevSerial,
             'FechaExpedicionFactura' => $prevDate,
-            'Huella' => $prevHash,
+            // Fingerprints are always generated uppercase, so normalizing here
+            // only protects the chain from a stored value in another case.
+            'Huella' => strtoupper(trim($prevHash)),
         ];
         return $this;
     }
@@ -752,14 +754,19 @@ class Invoice
     /**
      * Marks document as correction of prior rejection.
      *
-     * @param bool $isPrior Prior rejection flag
+     * Per SuministroInformacion.xsd (RechazoPrevioType), 'S' means AEAT rejected
+     * the record before, while 'X' means the record never reached AEAT at all
+     * (for instance when moving an existing SIF to Veri*factu). They are not
+     * interchangeable, so a null flag selects the second case explicitly.
+     *
+     * @param bool|null $isPrior True when AEAT rejected it, null when it was never submitted
      * @return self
      */
-    public function setAsPreviousRejection(bool $isPrior = true): self
+    public function setAsPreviousRejection(?bool $isPrior = true): self
     {
-        $this->statusFlags['isPriorRejection'] = $isPrior;
-        if ($isPrior) {
-            $this->payload['RechazoPrevio'] = 'X';
+        $this->statusFlags['isPriorRejection'] = ($isPrior !== false);
+        if ($isPrior !== false) {
+            $this->payload['RechazoPrevio'] = ($isPrior === true ? 'S' : 'X');
             $this->setAsCorrection(true);
         } else {
             unset($this->payload['RechazoPrevio']);
@@ -1070,20 +1077,66 @@ class Invoice
 
         $idFields = ['NumSerieFactura', 'FechaExpedicionFactura', 'IDEmisorFactura'];
         foreach ($idFields as $field) {
-            if (!isset($this->payload['IDFactura'][$field])) {
+            if (!isset($this->payload['IDFactura'][$field]) || $this->payload['IDFactura'][$field] === '') {
                 throw new \InvalidArgumentException("IDFactura incomplete");
             }
         }
 
-        $simplifiedTypes = [self::TYPE_SIMPLIFIED, self::TYPE_CREDIT_NOTE_SIMPLIFIED];
-        if (!in_array($this->payload['TipoFactura'], $simplifiedTypes, true)) {
-            if (empty($this->payload['Destinatarios']['IDDestinatario'] ?? [])) {
-                throw new \InvalidArgumentException("Must have at least one recipient");
-            }
+        // Limits below come from SuministroInformacion.xsd, so an invalid record
+        // is rejected here instead of by the AEAT web service.
+        $allowedTypes = [
+            self::TYPE_STANDARD,
+            self::TYPE_SIMPLIFIED,
+            self::TYPE_SUBSTITUTION,
+            self::TYPE_CREDIT_NOTE_LEGAL,
+            self::TYPE_CREDIT_NOTE_80_3,
+            self::TYPE_CREDIT_NOTE_80_4,
+            self::TYPE_CREDIT_NOTE_OTHER,
+            self::TYPE_CREDIT_NOTE_SIMPLIFIED,
+        ];
+        if (!in_array($this->payload['TipoFactura'], $allowedTypes, true)) {
+            throw new \InvalidArgumentException("Invalid invoice type");
+        }
+        if (mb_strlen($this->payload['NombreRazonEmisor']) > 120) {
+            throw new \InvalidArgumentException("Issuer name cannot exceed 120 characters");
+        }
+        if (mb_strlen($this->payload['DescripcionOperacion']) > 500) {
+            throw new \InvalidArgumentException("Operation description cannot exceed 500 characters");
         }
 
-        if (empty($this->payload['Desglose']['DetalleDesglose'] ?? [])) {
+        $simplifiedTypes = [self::TYPE_SIMPLIFIED, self::TYPE_CREDIT_NOTE_SIMPLIFIED];
+        $recipientCount = count($this->recipientList);
+        if (in_array($this->payload['TipoFactura'], $simplifiedTypes, true)) {
+            if ($recipientCount > 0) {
+                throw new \InvalidArgumentException("Simplified invoices cannot have recipients");
+            }
+        } elseif ($recipientCount === 0) {
+            throw new \InvalidArgumentException("Must have at least one recipient");
+        }
+        if ($recipientCount > 1000) {
+            throw new \InvalidArgumentException("An invoice cannot have more than 1000 recipients");
+        }
+
+        $breakdownCount = count($this->taxEntries);
+        if ($breakdownCount === 0) {
             throw new \InvalidArgumentException("Must have at least one tax breakdown detail");
+        }
+        if ($breakdownCount > 12) {
+            throw new \InvalidArgumentException("An invoice cannot have more than 12 tax breakdown details");
+        }
+
+        $chain = $this->payload['Encadenamiento'] ?? [];
+        if (empty($chain['PrimerRegistro']) && empty($chain['RegistroAnterior'])) {
+            throw new \InvalidArgumentException("Invoice must be the first record or link to a previous record");
+        }
+        if (!empty($chain['RegistroAnterior'])) {
+            $previousHash = $chain['RegistroAnterior']['Huella'] ?? '';
+            if (!preg_match('/^[0-9A-F]{64}$/', $previousHash)) {
+                throw new \InvalidArgumentException("Previous fingerprint must be a 64-character uppercase SHA-256 hash");
+            }
+        }
+        if (!empty($this->payload['Huella']) && !preg_match('/^[0-9A-F]{64}$/', $this->payload['Huella'])) {
+            throw new \InvalidArgumentException("Fingerprint must be a 64-character uppercase SHA-256 hash");
         }
 
         return true;

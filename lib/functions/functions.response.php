@@ -25,6 +25,78 @@
  */
 
 /**
+ * Stores the instant from which AEAT accepts another submission.
+ *
+ * Every response carries TiempoEsperaEnvio (RespuestaSuministro.xsd), the number
+ * of seconds AEAT asks the system to wait before submitting again.
+ *
+ * @param object $response AEAT response
+ * @return int Number of seconds requested by AEAT
+ */
+function registerAEATWaitTime($response)
+{
+	global $conf, $db;
+
+	$waitSeconds = is_object($response) ? (int) ($response->TiempoEsperaEnvio ?? 0) : 0;
+	if ($waitSeconds <= 0) {
+		return 0;
+	}
+	if (!function_exists('dolibarr_set_const')) {
+		require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
+	}
+	dolibarr_set_const($db, 'VERIFACTU_NEXT_SEND_AT', (string) (dol_now() + $waitSeconds), 'chaine', 0, '', $conf->entity);
+
+	return $waitSeconds;
+}
+
+/**
+ * Returns the AEAT throttling delay still pending for the active entity.
+ *
+ * @return int Remaining seconds, zero when a submission is allowed right away
+ */
+function getAEATWaitTimeRemaining()
+{
+	return max(0, getDolGlobalInt('VERIFACTU_NEXT_SEND_AT') - dol_now());
+}
+
+/**
+ * Checks whether an AEAT response accepted every submitted record.
+ *
+ * RespuestaSuministro.xsd defines EstadoEnvio as Correcto, ParcialmenteCorrecto
+ * or Incorrecto, and EstadoRegistro per line as Correcto, AceptadoConErrores or
+ * Incorrecto. A globally partial response therefore carries both accepted and
+ * rejected lines, and a rejected record must never be stored as sent.
+ *
+ * @param object $response AEAT response
+ * @return bool True when every submitted record was accepted
+ */
+function isAEATResponseAccepted($response)
+{
+	if (!is_object($response) || empty($response->EstadoEnvio)) {
+		return false;
+	}
+	if ($response->EstadoEnvio === 'Correcto') {
+		return true;
+	}
+	if ($response->EstadoEnvio !== 'ParcialmenteCorrecto' || !isset($response->RespuestaLinea)) {
+		return false;
+	}
+
+	$lines = is_array($response->RespuestaLinea) ? $response->RespuestaLinea : array($response->RespuestaLinea);
+	if (empty($lines)) {
+		return false;
+	}
+	foreach ($lines as $line) {
+		$status = is_object($line) ? ($line->EstadoRegistro ?? '') : '';
+		if (!in_array($status, array('Correcto', 'AceptadoConErrores'), true)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Saves VeriFactu error data using an independent connection
  * to prevent data loss in case of transaction rollback
  *

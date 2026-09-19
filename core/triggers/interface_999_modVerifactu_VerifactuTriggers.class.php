@@ -376,7 +376,10 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 			// DO NOT use transaction here - let validate() function handle main transaction
 			dol_syslog("VERIFACTU TRIGGER: About to call execVERIFACTUCall for invoice id=" . $object->id . " ref=" . $object->ref . " newref=" . ($object->newref ?? 'NULL') . " status=" . $object->status, LOG_DEBUG);
 
-			$res = execVERIFACTUCall($object);
+			// Validation never enforces the AEAT wait time: returning false here
+			// reverts the invoice to draft, and a throttling window must not undo
+			// an issued invoice.
+			$res = execVERIFACTUCall($object, 'Alta', false);
 
 			dol_syslog("VERIFACTU TRIGGER: execVERIFACTUCall returned: " . var_export($res, true) . " for invoice " . ($object->newref ?? $object->ref), LOG_DEBUG);
 
@@ -465,7 +468,7 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 		$sql = "SELECT COUNT(*) as count FROM " . MAIN_DB_PREFIX . "facture f ";
 		$sql .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object ";
 		$sql .= "WHERE fk_soc = " . $object->id . " AND fe.verifactu_csv_factura IS NOT NULL AND fe.verifactu_huella IS NOT NULL";
-		$sql .= "  AND f.entity IN (" . getEntity('invoice') . ")";
+		$sql .= "  AND f.entity = " . ((int) $conf->entity);
 
 		$resql = $this->db->query($sql);
 		if ($resql) {
