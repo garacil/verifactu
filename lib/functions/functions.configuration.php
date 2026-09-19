@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '2.0.0',
+		'version' => '2.1.0',
 	];
 
 	// Bind the global before including: the declaration file assigns
@@ -158,11 +158,27 @@ function getDeclaredSystemIdentity()
 		}
 	}
 
-	// Enforce the AEAT schema limits: an oversized value is rejected by the
-	// webservice, so truncate rather than let the submission fail.
-	$identity['name'] = substr($identity['name'], 0, 30);
-	$identity['id'] = substr($identity['id'], 0, 2);
-	$identity['version'] = substr($identity['version'], 0, 50);
+	// Enforce the AEAT schema limits. An oversized value is rejected by the
+	// webservice, so it is cut rather than left to fail the submission, but
+	// never in silence: what is declared and what is transmitted must match
+	// (Art. 15.2 Orden HAC/1177/2024), and a cut value no longer does.
+	// mb_substr counts characters, as the schema does, and never splits a
+	// multibyte character in half.
+	$schemaLimits = ['name' => 30, 'id' => 2, 'version' => 50];
+	foreach ($schemaLimits as $field => $limit) {
+		if (mb_strlen($identity[$field]) <= $limit) {
+			continue;
+		}
+
+		dol_syslog(
+			"VERIFACTU: the declared system " . $field . " is " . mb_strlen($identity[$field])
+			. " characters long and the AEAT schema allows " . $limit . ". It is transmitted as '"
+			. mb_substr($identity[$field], 0, $limit) . "', which no longer matches conf/declaracion_responsable.conf.php."
+			. " Fix the declaration so both values are identical.",
+			LOG_ERR
+		);
+		$identity[$field] = mb_substr($identity[$field], 0, $limit);
+	}
 
 	return $identity;
 }

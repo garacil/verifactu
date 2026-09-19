@@ -616,3 +616,6 @@ VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Error: no s'ha pogut extreure el certif
 VERIFACTU_AEAT_WAIT_REQUIRED=L'AEAT requereix esperar %s segons abans del següent enviament VeriFactu.
 VERIFACTU_CERT_ERROR_EXPIRED = Error: el certificat és fora del seu període de validesa. Comproveu-ne les dates d'emissió i caducitat i, si ha caducat, renoveu-lo i pugeu el nou.
 VERIFACTU_TAX_IDENTITY_LOCKED = No es pot modificar el NIF de l’obligat tributari perquè aquesta entitat ja conté registres VeriFactu encadenats. El certificat sí que es pot substituir.
+VERIFACTU_CHAIN_READ_FAILED = No s'ha pogut llegir la cadena VeriFactu per obtenir el registre anterior, per la qual cosa la factura no s'ha enviat. Consulteu el registre d'esdeveniments de Dolibarr per veure l'error de base de dades.
+VERIFACTU_CHAIN_LOCK_BUSY = S'està encadenant una altra factura en aquest moment i ha vençut el temps d'espera. Torneu-ho a provar d'aquí a uns segons: la cadena és estrictament seqüencial i no es poden encadenar dues factures alhora.
+VERIFACTU_PENDING_SUBMISSION_INFO = La factura %s s'ha validat amb el registre VeriFactu pendent d'enviament, perquè l'enviament directe en la validació està desactivat. S'enviarà des de la cua de reintents.
