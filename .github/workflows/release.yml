@@ -1,0 +1,99 @@
+name: Publicar versión
+
+# Crea la etiqueta y la publicación de una versión a partir de lo que ya está en
+# main: comprueba que el número declarado coincide en los tres sitios de los que
+# depende el campo Version que se transmite a la AEAT, y toma las notas del
+# registro de cambios del README para no mantener el texto por duplicado.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión a publicar, sin prefijo (por ejemplo 2.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar que la versión coincide con la declarada
+        run: |
+          set -euo pipefail
+          version='${{ inputs.version }}'
+          modulo=$(sed -n "s/.*verifactu_version = '\([0-9.]*\)'.*/\1/p" core/modules/modVerifactu.class.php | head -1)
+          declaracion=$(sed -n "s/.*'version' => '\([0-9.]*\)',.*/\1/p" conf/declaracion_responsable.conf.php | head -1)
+          respaldo=$(sed -n "s/.*'version' => '\([0-9.]*\)',.*/\1/p" lib/functions/functions.configuration.php | head -1)
+
+          echo "Solicitada:             $version"
+          echo "modVerifactu.class.php: $modulo"
+          echo "declaracion_responsable: $declaracion"
+          echo "getDeclaredSystemIdentity: $respaldo"
+
+          for declarada in "$modulo" "$declaracion" "$respaldo"; do
+            if [ "$declarada" != "$version" ]; then
+              echo "::error::La versión declarada ($declarada) no coincide con la solicitada ($version). Ese número se transmite a la AEAT en el campo Version, así que no se publica hasta que cuadre."
+              exit 1
+            fi
+          done
+
+      - name: Comprobar que la etiqueta no existe
+        run: |
+          set -euo pipefail
+          if git rev-parse "refs/tags/${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "::error::La etiqueta ${{ inputs.version }} ya existe."
+            exit 1
+          fi
+
+      - name: Pasar la suite de regresión
+        run: |
+          set -euo pipefail
+          fallos=0
+          for fichero in tests/*.php; do
+            if php "$fichero" > /dev/null 2>&1; then
+              echo "OK    $fichero"
+            else
+              echo "FALLA $fichero"
+              fallos=$((fallos + 1))
+            fi
+          done
+          if [ "$fallos" -ne 0 ]; then
+            echo "::error::$fallos ficheros de prueba fallan; no se publica."
+            exit 1
+          fi
+
+      - name: Extraer las notas del registro de cambios
+        run: |
+          set -euo pipefail
+          awk -v version="### v${{ inputs.version }} " '
+            index($0, version) == 1 { dentro = 1; next }
+            dentro && /^### v/ { exit }
+            dentro { print }
+          ' README.md > NOTAS_VERSION.md
+
+          if [ ! -s NOTAS_VERSION.md ]; then
+            echo "::error::No hay entrada '### v${{ inputs.version }}' en el registro de cambios del README."
+            exit 1
+          fi
+          echo "Notas extraídas: $(wc -l < NOTAS_VERSION.md) líneas."
+
+      - name: Crear la etiqueta y publicar la versión
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ inputs.version }}" -m "VeriFactu para Dolibarr ${{ inputs.version }}"
+          git push origin "refs/tags/${{ inputs.version }}"
+          gh release create "${{ inputs.version }}" \
+            --title "VeriFactu para Dolibarr ${{ inputs.version }}" \
+            --notes-file NOTAS_VERSION.md
