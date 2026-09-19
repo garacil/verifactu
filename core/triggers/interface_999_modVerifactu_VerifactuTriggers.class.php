@@ -161,20 +161,30 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
 					break;
 				case $object::TYPE_REPLACEMENT:
-					// Corrective invoice -> R2 (Art. 80.3 LIVA) - Doli doesn't allow selecting specific type
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_80_3;
+					// Replacement invoice -> R1 (Corrective, Art. 80.1 and 80.2 LIVA
+					// and errors in law). Kept in sync with functions.submission.php,
+					// which transmits R1 by substitution for this Dolibarr type:
+					// storing R2 here made the VeriFactu tab show a type that was
+					// never the one sent to AEAT.
+					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_LEGAL;
 					break;
 				case $object::TYPE_CREDIT_NOTE:
-					// Credit note invoice -> R2 (Corrective for total or partial return Art. 80.3 LIVA)
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_80_3;
+					// Credit note invoice -> R1 (Corrective, Art. 80.1 and 80.2 LIVA
+					// and errors in law). Kept in sync with functions.submission.php,
+					// which transmits R1 by differences for non-TakePOS credit notes.
+					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_LEGAL;
 					break;
 				case $object::TYPE_DEPOSIT:
 					// Deposit invoice -> F1 (Considered normal "Invoice" - advance payment)
 					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
 					break;
 				case $object::TYPE_PROFORMA:
-					// Proforma invoice -> F1 (Considered normal invoice)
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
+					// Proforma invoice -> no VeriFactu type at all.
+					// A proforma is not a legally issued invoice: it creates no tax
+					// obligation and must not produce a billing record
+					// (Art. 6 RD 1007/2023). It is excluded from the whole
+					// VeriFactu flow by isVerifactuApplicableInvoice().
+					$object->array_options['options_verifactu_factura_tipo'] = '';
 					break;
 			}
 		}
@@ -226,6 +236,15 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 		dol_include_once('/verifactu/class/verifactu.utils.php');
 
 		dol_syslog("VERIFACTU TRIGGER billValidate START: Invoice id=" . $object->id . " ref=" . $object->ref . " newref=" . ($object->newref ?? 'NULL') . " status=" . $object->status . " thirdparty_id=" . $object->socid, LOG_DEBUG);
+
+		// Proforma invoices create no tax obligation and are not legally issued
+		// invoices, so they must not generate a VeriFactu billing record
+		// (Art. 6 RD 1007/2023). They still validate normally in Dolibarr, so we
+		// leave before any VeriFactu processing instead of failing the validation.
+		if (!isVerifactuApplicableInvoice($object)) {
+			dol_syslog("VERIFACTU TRIGGER billValidate: Invoice " . $object->ref . " is a proforma, skipped by VeriFactu", LOG_INFO);
+			return 0;
+		}
 
 		// Verify invoice reference is correct
 		$object->fetch_thirdparty();

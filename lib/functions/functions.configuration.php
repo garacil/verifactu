@@ -110,6 +110,64 @@ function calculateVerifactuIntegrityChecksums($moduleDirectory)
 }
 
 /**
+ * Gets the identity of this billing system as declared in the responsible declaration
+ *
+ * Art. 15.2 of Orden HAC/1177/2024 requires the software identity declared in the
+ * "declaracion responsable" to be exactly the one transmitted to AEAT in every
+ * billing record. Reading both from the same source removes any chance of drift.
+ *
+ * The values must fit the official AEAT schema (SuministroInformacion.xsd,
+ * SistemaInformatico block):
+ *   - NombreSistemaInformatico : sf:TextMax30Type  (max 30 chars)
+ *   - IdSistemaInformatico     : sf:TextMax2Type   (max  2 chars)
+ *   - Version                  : sf:TextMax50Type  (max 50 chars)
+ *
+ * @return array{name: string, id: string, version: string} Declared system identity
+ */
+function getDeclaredSystemIdentity()
+{
+	// Defaults kept in sync with conf/declaracion_responsable.conf.php so the
+	// function stays usable even if the declaration file cannot be loaded.
+	$identity = [
+		'name' => 'Dolibarr Verifactu Module',
+		'id' => 'DV',
+		'version' => '1.0.5',
+	];
+
+	// Bind the global before including: the declaration file assigns
+	// $declaracionResponsable at file scope, which inside a function would
+	// otherwise land in the local scope and be lost.
+	global $declaracionResponsable;
+
+	$declarationFile = dirname(__DIR__, 2) . '/conf/declaracion_responsable.conf.php';
+	if (is_readable($declarationFile)) {
+		require_once $declarationFile;
+
+		if (!empty($declaracionResponsable['sistema'])) {
+			$system = $declaracionResponsable['sistema'];
+
+			if (!empty($system['nombre_sistema_informatico'])) {
+				$identity['name'] = $system['nombre_sistema_informatico'];
+			}
+			if (!empty($system['id_sistema_informatico'])) {
+				$identity['id'] = $system['id_sistema_informatico'];
+			}
+			if (!empty($system['version'])) {
+				$identity['version'] = $system['version'];
+			}
+		}
+	}
+
+	// Enforce the AEAT schema limits: an oversized value is rejected by the
+	// webservice, so truncate rather than let the submission fail.
+	$identity['name'] = substr($identity['name'], 0, 30);
+	$identity['id'] = substr($identity['id'], 0, 2);
+	$identity['version'] = substr($identity['version'], 0, 50);
+
+	return $identity;
+}
+
+/**
  * Gets the billing system configuration for AEAT
  *
  * @return array System configuration array
@@ -122,13 +180,17 @@ function getSystemConfig()
 	$issuerNif = $conf->global->VERIFACTU_HOLDER_NIF ?? '';
 	$installationNumber = $dolibarr_main_instance_unique_id . '_' . $conf->entity;
 
+	$identity = getDeclaredSystemIdentity();
+
 	return [
 		'NombreRazon' => $issuerName,
 		'NIF' => $issuerNif,
-		'NombreSistemaInformatico' => 'Dolibarr Verifactu Module',
-		'IdSistemaInformatico' => 'DV',
-		'Version' => (defined('DOL_VERSION') ? DOL_VERSION : '1.0.0'),
-		'NumeroInstalacion' => $installationNumber,
+		'NombreSistemaInformatico' => $identity['name'],
+		'IdSistemaInformatico' => $identity['id'],
+		// The module version, not DOL_VERSION: Art. 15.2.c) refers to the version
+		// of the billing system being declared, which is this module.
+		'Version' => $identity['version'],
+		'NumeroInstalacion' => substr($installationNumber, 0, 100),
 		'TipoUsoPosibleSoloVerifactu' => 'S',
 		'TipoUsoPosibleMultiOT' => 'N',
 		'IndicadorMultiplesOT' => 'N',

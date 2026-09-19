@@ -290,6 +290,77 @@ Si el certificado no es reconocido:
 - Comprobar que la contraseña es correcta
 - Asegurarse de que el certificado es de persona jurídica
 
+### Certificados FNMT `.p12` rechazados con OpenSSL 3
+
+Si al subir un `.p12` de la **FNMT** (habitual en autónomos y personas físicas) el
+módulo responde que la contraseña no es correcta aunque sí lo sea, lo más probable
+es que el problema no sea la contraseña sino el cifrado del contenedor PKCS#12.
+
+La FNMT ha protegido históricamente estos ficheros con algoritmos **legacy**
+(`RC2-40-CBC` y `PBE-SHA1-3DES`). **OpenSSL 3** —el que traen Debian 12 y la imagen
+oficial `dolibarr/dolibarr`— desactiva estos algoritmos salvo que se active el
+*legacy provider*, por lo que `openssl_pkcs12_read()` falla con
+`error:0308010C: digital envelope routines::unsupported`.
+
+Desde la versión 1.0.5 el módulo:
+
+- Reintenta automáticamente la extracción con `openssl pkcs12 -legacy`, de modo que
+  en la mayoría de servidores el certificado se acepta sin tocar nada.
+- Distingue en el mensaje de error entre *contraseña incorrecta* y *algoritmo de
+  cifrado legacy no soportado*, en lugar de culpar siempre a la contraseña.
+
+### Hosting compartido: `exec()` y `proc_open()` desactivados
+
+En muchos alojamientos compartidos (Loading.es, Hostinger y similares) tanto
+`exec()` como `proc_open()` están en `disable_functions`, por lo que el módulo no
+puede invocar el binario `openssl` del sistema.
+
+Desde la versión 1.0.5 esto ya no impide usar certificados: la extracción intenta
+**primero** las funciones OpenSSL propias de PHP (`openssl_pkcs12_read()`), que no
+necesitan lanzar ningún proceso, y solo recurre al binario externo cuando hace
+falta. En la práctica:
+
+| Certificado | Hosting normal | Hosting compartido sin `proc_open` |
+|---|---|---|
+| Cifrado moderno | funciona | **funciona** |
+| Cifrado legacy (FNMT antiguo) | funciona (vía `-legacy`) | no es posible |
+
+El único caso que no tiene solución desde el módulo es un certificado con cifrado
+legacy en un servidor sin acceso al binario `openssl` ni a `openssl.cnf`: ahí hay
+que reexportar el certificado con un algoritmo moderno (opción B más abajo) desde
+otra máquina.
+
+### Si el certificado legacy sigue fallando
+
+Si el binario `openssl` del servidor no tiene el proveedor legacy disponible, hay
+dos soluciones:
+
+**Opción A — activar el *legacy provider* en el servidor.** Editar
+`/etc/ssl/openssl.cnf` y dejar la sección de proveedores así:
+
+```ini
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+
+[default_sect]
+activate = 1
+
+[legacy_sect]
+activate = 1
+```
+
+**Opción B — reexportar el certificado con un algoritmo moderno**, en una máquina
+donde sí se pueda abrir:
+
+```bash
+openssl pkcs12 -legacy -in certificado_fnmt.p12 -nodes -out temporal.pem -password pass:TU_CLAVE
+openssl pkcs12 -export -in temporal.pem -out certificado_moderno.p12 -password pass:TU_CLAVE
+rm temporal.pem
+```
+
+Después subir `certificado_moderno.p12` desde la pestaña **Certificados**.
+
 ### Pantalla en Blanco
 
 Si aparece una pantalla en blanco al ver facturas:
@@ -305,13 +376,141 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 1.0.4
+- **Versión**: 1.0.5
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
 - **Dedicado a**: Mi compañero y amigo Ildefonso González Rodríguez
 
 ## Registro de Cambios
+
+### v1.0.5 (2026-08-22)
+
+#### Correcciones
+
+- **Fatal error en el informe de pagos (issue #31)**: `beforePDFCreation()` daba
+  `Call to undefined method pdf_paiement_fourn::fetch_optionals()` al generar el
+  informe de pagos de facturas de cliente o de proveedor. Ese hook no lo disparan
+  solo los modelos PDF de factura: los modelos de informe (`pdf_paiement`,
+  `pdf_paiement_fourn`) también lo lanzan, y lo que pasan como `$object` no es una
+  factura. En Dolibarr 22.x pasan el propio modelo PDF, que extiende
+  `CommonDocGenerator` y no tiene `fetch_optionals()`; en Dolibarr 17.x pasan una
+  variable `$object` que nunca se asigna en `write_file()`, es decir `null`. En
+  ambos casos la llamada sin comprobación era un error fatal. Añadido un guard
+  que sale limpiamente cuando el objeto no es un objeto de negocio. De paso, se
+  deja de acceder al extrafield cuando no existe, lo que además eliminaba un
+  warning de PHP 8.
+
+- **TypeError en el QR con PHP 8 (issue #32)**: `QRGenerator::renderQrCode()`
+  declaraba `int $outputType`, pero las constantes `QRCode::OUTPUT_IMAGE_PNG` y
+  `QRCode::OUTPUT_MARKUP_SVG` de `chillerlan/php-qrcode` son *strings*. Con
+  `declare(strict_types=1)`, PHP 8 rechazaba toda llamada y rompía la pestaña
+  VeriFactu y la vista de factura (el QR del PDF no se veía afectado porque usa
+  `TCPDF::write2DBarcode()`). Corregido el tipo del parámetro a `string`.
+
+- **Certificados en hosting compartido (feedback del PR #42)**: en alojamientos
+  donde `exec()` y `proc_open()` están ambos en `disable_functions` el módulo no
+  podía leer el certificado en absoluto, y por tanto no podía comunicarse con la
+  AEAT. La extracción usa ahora **primero** las funciones OpenSSL propias de PHP
+  (`openssl_pkcs12_read()`), que no lanzan ningún proceso, y solo recurre al
+  binario externo cuando hace falta (contenedores legacy). Se ha eliminado
+  también el requisito duro de `proc_open` en la conversión a PEM. Los
+  certificados con cifrado moderno funcionan ya de forma transparente en esos
+  servidores; los legacy siguen necesitando el binario, lo que se comunica con un
+  mensaje explícito.
+
+- **Certificados FNMT `.p12` con cifrado legacy (issue #33)**: los contenedores
+  PKCS#12 protegidos con `RC2-40-CBC` / `PBE-SHA1-3DES` —los habituales de la
+  FNMT— fallaban bajo OpenSSL 3 y el módulo lo notificaba como *"Verifique la
+  contraseña"*, que es engañoso. Ahora la extracción reintenta automáticamente
+  con `openssl pkcs12 -legacy` y el mensaje de error distingue entre contraseña
+  incorrecta, algoritmo legacy no soportado y fallo genérico. Documentado en la
+  sección de resolución de problemas.
+
+- **Identidad del sistema declarada vs. transmitida (issue #30, puntos 1 y 6)**:
+  la declaración responsable declaraba `IdSistemaInformatico` =
+  `VERIFACTU-DOLIBARR-OSS` y nombre `VeriFactu para Dolibarr ERP/CRM`, mientras
+  que a la AEAT se enviaban `DV` y `Dolibarr Verifactu Module`. El Art. 15.2
+  de la Orden HAC/1177/2024 exige que coincidan. Se ha unificado tomando como
+  válidos los valores que admite el esquema oficial: `SuministroInformacion.xsd`
+  define `IdSistemaInformatico` como `sf:TextMax2Type` (máximo 2 caracteres) y
+  `NombreSistemaInformatico` como `sf:TextMax30Type` (máximo 30), por lo que los
+  valores largos que se declaraban serían rechazados por el webservice.
+  `getSystemConfig()` lee ahora la identidad de la propia declaración
+  responsable, de modo que ya no pueden divergir, y aplica los límites del
+  esquema. Además el campo `Version` transmitía `DOL_VERSION` (la versión de
+  Dolibarr) en lugar de la del módulo, que es lo que exige el Art. 15.2.c.
+
+- **Hash de integridad incompleto (issue #30, punto 2)**: la lista
+  `ficheros_verificados` referenciaba `interface_99_...` en vez de
+  `interface_999_...` y `class/verifactu.class.php`, que no existe. Como
+  `calcularHashModuloVerifactu()` ignoraba en silencio los ficheros ausentes, el
+  trigger principal quedaba fuera del cálculo de integridad. Corregida la lista,
+  ampliada con los ficheros críticos de hash, envío y anulación, y ahora la
+  función registra los ficheros no encontrados en
+  `integridad.ficheros_no_encontrados` y en el log en lugar de callarlos.
+
+- **Facturas proforma enviadas a la AEAT como F1 (issue #30, punto 3)**: una
+  proforma no es una factura expedida legalmente y no debe generar registro de
+  facturación (Art. 6 RD 1007/2023). Nueva función
+  `isVerifactuApplicableInvoice()` que las excluye tanto en el trigger de
+  validación como en `execVERIFACTUCall()`, con lo que quedan fuera de todas las
+  vías de envío (validación, pestaña VeriFactu, listado, envío masivo y
+  reintentos). Las proformas siguen validándose con normalidad en Dolibarr.
+
+- **Tipo rectificativo divergente (issue #30, punto 5)**: `billCreate()`
+  almacenaba R2 para abonos y facturas de sustitución, pero el envío transmitía
+  R1. La pestaña VeriFactu mostraba por tanto un tipo que nunca era el enviado.
+  Unificado a R1, que es lo que realmente se transmite.
+
+#### Seguridad
+
+- La contraseña del certificado ya no se interpola en la línea de comandos de
+  `openssl`. Las llamadas usan `proc_open` con argumentos en array y pasan la
+  contraseña por variable de entorno (`-password env:`), lo que elimina la
+  posibilidad de inyección de comandos a través de la contraseña y evita que
+  quede visible en la lista de procesos del servidor.
+
+- `prepareLocalCertificate()` ya no hace `die()` ante un fallo de extracción
+  (tumbaba la petición entera): lanza una excepción que el llamador convierte en
+  el mensaje de error habitual del módulo.
+
+#### Archivos Modificados
+- `class/actions_verifactu.class.php` - Guard en `beforePDFCreation()`
+- `lib/newfenix/src/QRGenerator.php` - Tipo del parámetro `$outputType`
+- `lib/functions/functions.certificates.php` - Reintento `-legacy`, clasificación de errores y llamadas seguras a OpenSSL
+- `admin/managecertificates.php` - Mensajes de error diferenciados
+- `lib/functions/functions.configuration.php` - `getDeclaredSystemIdentity()` y `getSystemConfig()`
+- `lib/functions/functions.compatibility.php` - Nueva función `isVerifactuApplicableInvoice()`
+- `lib/functions/functions.submission.php` - Exclusión de proformas
+- `core/triggers/interface_999_modVerifactu_VerifactuTriggers.class.php` - Exclusión de proformas y tipos rectificativos
+- `conf/declaracion_responsable.conf.php` - Identidad del sistema y lista de integridad
+- `core/modules/modVerifactu.class.php` - Versión del módulo
+- Todos los archivos de idioma (es_ES, en_US, ca_ES, eu_ES, gl_ES)
+
+#### Compatibilidad verificada
+
+Los cambios se han verificado sobre instalaciones reales, no solo en aislamiento:
+
+| Entorno | Resultado |
+|---|---|
+| Dolibarr 22.0.5 + PHP 8.4 + PostgreSQL 16 | 22/22 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 8.2 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 8.4 + PostgreSQL 16 | 20/20 comprobaciones en vivo |
+| Dolibarr 17.0.2 + PHP 7.4 (mínimo declarado) | 20/20 comprobaciones en vivo |
+| Suite de regresión (PHP 7.4, 8.2 y 8.4) | 65/65 |
+
+En ambas versiones se activa el módulo, se dispara el hook `beforePDFCreation`
+con el objeto que realmente pasa cada una, se generan los QR y se comprueban las
+constantes de tipo de factura contra la clase `Facture` real.
+
+El reintento con `openssl pkcs12 -legacy` está condicionado a que el binario sea
+OpenSSL 3 o superior: en servidores con OpenSSL 1.1.1 o LibreSSL, donde ese
+modificador no existe, no se añade (añadirlo convertiría una extracción correcta
+en un error de "opción desconocida").
+
+#### Tests
+- `tests/IssueFixesTest.php` - 65 tests de regresión para los issues #30, #31, #32 y #33
 
 ### v1.0.4 (2026-03-04)
 

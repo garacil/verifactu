@@ -608,3 +608,8 @@ verifactu_OPERACION_Exenta = Eragiketa Salbuetsia
 verifactu_OPERACION_ExentaTooltip = Salbueste mota (E1-E6) eragiketa BEZ/IGIC/IPSI-tik salbuetsita dagoenean.
 verifactu_INCIDENCIA = Intzidentzia
 verifactu_INCIDENCIATooltip = Intzidentzia teknikoa izan zen adierazten du (argindarik gabe, internetik gabe, sistemaren hutsegitea). Lehenetsita "N".
+
+# Ziurtagiriak kargatzeko erroreak
+VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Errorea: ziurtagiriaren pasahitza ez da zuzena. Egiaztatu eta saiatu berriro.
+VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Errorea: ziurtagiria algoritmo zahar batekin zifratuta dago (RC2-40-CBC / PBE-SHA1-3DES) eta OpenSSL 3-k lehenetsita desaktibatzen du. Hori ohikoa da FNMTren .p12 ziurtagirietan. Pasahitza zuzena izan daiteke. Konponbideak: OpenSSLren "legacy" hornitzailea aktibatu zerbitzarian (/etc/ssl/openssl.cnf fitxategiko [provider_sect] atala) edo ziurtagiria algoritmo moderno batekin berriro esportatu.
+VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Errorea: ezin izan da ziurtagiri publikoa fitxategitik atera. Begiratu Dolibarr-en gertaeren erregistroa OpenSSL errorearen xehetasunak ikusteko.
