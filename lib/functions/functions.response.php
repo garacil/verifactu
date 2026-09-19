@@ -25,6 +25,43 @@
  */
 
 /**
+ * Checks whether an AEAT response accepted every submitted record.
+ *
+ * RespuestaSuministro.xsd defines EstadoEnvio as Correcto, ParcialmenteCorrecto
+ * or Incorrecto, and EstadoRegistro per line as Correcto, AceptadoConErrores or
+ * Incorrecto. A globally partial response therefore carries both accepted and
+ * rejected lines, and a rejected record must never be stored as sent.
+ *
+ * @param object $response AEAT response
+ * @return bool True when every submitted record was accepted
+ */
+function isAEATResponseAccepted($response)
+{
+	if (!is_object($response) || empty($response->EstadoEnvio)) {
+		return false;
+	}
+	if ($response->EstadoEnvio === 'Correcto') {
+		return true;
+	}
+	if ($response->EstadoEnvio !== 'ParcialmenteCorrecto' || !isset($response->RespuestaLinea)) {
+		return false;
+	}
+
+	$lines = is_array($response->RespuestaLinea) ? $response->RespuestaLinea : array($response->RespuestaLinea);
+	if (empty($lines)) {
+		return false;
+	}
+	foreach ($lines as $line) {
+		$status = is_object($line) ? ($line->EstadoRegistro ?? '') : '';
+		if (!in_array($status, array('Correcto', 'AceptadoConErrores'), true)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Saves VeriFactu error data using an independent connection
  * to prevent data loss in case of transaction rollback
  *

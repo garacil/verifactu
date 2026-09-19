@@ -134,7 +134,7 @@ function createCancellationByType($cancellationType, $invoiceNumber, $invoiceDat
 function processCancellationResponse($response, $facture, $invoiceNumber, $langs)
 {
 	if ($response) {
-		if (isset($response->EstadoEnvio) && in_array($response->EstadoEnvio, ['Correcto', 'ParcialmenteCorrecto'])) {
+		if (isAEATResponseAccepted($response)) {
 			return processCancellationSuccess($response, $facture, $invoiceNumber, $langs);
 		} else {
 			return processCancellationError($response, $facture, $invoiceNumber, $langs);
