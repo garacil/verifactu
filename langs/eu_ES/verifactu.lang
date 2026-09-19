@@ -614,3 +614,5 @@ VERIFACTU_CERT_ERROR_WRONG_PASSWORD = Errorea: ziurtagiriaren pasahitza ez da zu
 VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM = Errorea: ziurtagiria algoritmo zahar batekin zifratuta dago (RC2-40-CBC / PBE-SHA1-3DES) eta OpenSSL 3-k lehenetsita desaktibatzen du. Hori ohikoa da FNMTren .p12 ziurtagirietan. Pasahitza zuzena izan daiteke. Konponbideak: OpenSSLren "legacy" hornitzailea aktibatu zerbitzarian (/etc/ssl/openssl.cnf fitxategiko [provider_sect] atala) edo ziurtagiria algoritmo moderno batekin berriro esportatu.
 VERIFACTU_CERT_ERROR_EXTRACTION_FAILED = Errorea: ezin izan da ziurtagiri publikoa fitxategitik atera. Begiratu Dolibarr-en gertaeren erregistroa OpenSSL errorearen xehetasunak ikusteko.
 VERIFACTU_AEAT_WAIT_REQUIRED=AEATek %s segundo itxarotea eskatzen du hurrengo VeriFactu bidalketa baino lehen.
+VERIFACTU_CERT_ERROR_EXPIRED = Errorea: ziurtagiria bere baliozkotasun-eperik kanpo dago. Egiaztatu jaulkipen- eta iraungitze-datak eta, iraungi bada, berritu eta igo berria.
+VERIFACTU_TAX_IDENTITY_LOCKED = Ezin da zergapekoaren IFZ aldatu, entitate honek kateatutako VeriFactu erregistroak baititu jada. Ziurtagiria bai, ordezka daiteke.
