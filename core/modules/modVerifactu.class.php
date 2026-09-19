@@ -77,8 +77,8 @@ class modVerifactu extends DolibarrModules
 		$this->editor_url = '';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.0.0';
-		$this->verifactu_version = '2.0.0';
+		$this->version = '2.1.0';
+		$this->verifactu_version = '2.1.0';
 		$this->verifactu_version_date = '19/09/2026';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = '';

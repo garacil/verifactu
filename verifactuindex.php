@@ -117,20 +117,27 @@ if ($resqlErrors) {
 
 // Get invoices by month for current year (for bar chart)
 $currentYear = date('Y');
-$sqlByMonth = "SELECT MONTH(f.datef) as month, COUNT(*) as total";
+// The month is resolved in PHP over a plain date range: MONTH() and YEAR() only
+// exist in MySQL and Dolibarr does not translate them, so this chart was empty
+// on PostgreSQL.
+$sqlByMonth = "SELECT f.datef";
 $sqlByMonth .= " FROM " . MAIN_DB_PREFIX . "facture f";
 $sqlByMonth .= " INNER JOIN " . MAIN_DB_PREFIX . "facture_extrafields fe ON f.rowid = fe.fk_object";
 $sqlByMonth .= " WHERE fe.verifactu_estado IS NOT NULL AND fe.verifactu_estado != ''";
-$sqlByMonth .= " AND YEAR(f.datef) = " . $currentYear;
+$sqlByMonth .= " AND f.datef >= '" . $db->idate(dol_get_first_day($currentYear, 1)) . "'";
+$sqlByMonth .= " AND f.datef <= '" . $db->idate(dol_get_last_day($currentYear, 12)) . "'";
 $sqlByMonth .= " AND f.entity = " . ((int) $conf->entity);
-$sqlByMonth .= " GROUP BY MONTH(f.datef)";
-$sqlByMonth .= " ORDER BY MONTH(f.datef)";
 
 $resqlByMonth = $db->query($sqlByMonth);
 $invoicesByMonth = array_fill(1, 12, 0);
 if ($resqlByMonth) {
 	while ($obj = $db->fetch_object($resqlByMonth)) {
-		$invoicesByMonth[intval($obj->month)] = intval($obj->total);
+		$invoiceTimestamp = $db->jdate($obj->datef);
+		if (empty($invoiceTimestamp)) {
+			continue;
+		}
+		$month = (int) date('n', $invoiceTimestamp);
+		$invoicesByMonth[$month]++;
 	}
 	$db->free($resqlByMonth);
 }

@@ -376,7 +376,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.0.0
+- **Versión**: 2.1.0
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -393,9 +393,10 @@ uno:
   referencia al articulado punto por punto. De ahí salieron la identidad del
   sistema informático declarada y transmitida, el hash de integridad que dejaba
   ficheros fuera, la exclusión de las proformas y el tipo rectificativo que se
-  mostraba distinto del que se enviaba. Su análisis de la condición de carrera
-  en el encadenamiento sigue abierto y es la base de la cola de envío que se
-  está diseñando.
+  mostraba distinto del que se enviaba. Y en la 2.1.0, su análisis de la
+  condición de carrera en el encadenamiento y del envío no garantizado en la
+  validación: al ir a resolverlo apareció además que la cadena no se construía
+  en absoluto sobre PostgreSQL, así que ese hallazgo se le debe también a él.
 - **[@braito4](https://github.com/braito4)** — ocho propuestas de corrección
   normativa (PR #34 a #41): respuestas parciales de la AEAT, semántica de
   `RechazoPrevio`, validación del registro contra el esquema, control de flujo
@@ -415,6 +416,88 @@ uno:
   binario.
 
 ## Registro de Cambios
+
+### v2.1.0 (2026-09-19)
+
+Corrige el punto 4 de la issue #30, planteado por
+[@hisie](https://github.com/hisie), y un defecto que apareció al verificarlo y
+que afecta a toda instalación sobre PostgreSQL.
+
+#### La cadena no se construía en PostgreSQL
+
+`getLastInvoiceHash()` leía el registro anterior con
+`DATE_FORMAT(f.datef, '%d-%m-%Y')`. Esa función **solo existe en MySQL** y
+Dolibarr no la traduce: `convertSQLFromMysql()` no la contempla, de modo que en
+PostgreSQL la consulta falla con `function date_format(date, unknown) does not
+exist`.
+
+El fallo era silencioso. La función solo comprobaba si había filas, así que un
+error de consulta y una cadena vacía eran indistinguibles: devolvía `null` y
+**cada factura se encadenaba como primer registro**, incumpliendo el Art. 13 de
+la Orden HAC/1177/2024.
+
+- La fecha se formatea ahora en PHP con `$db->jdate()`, con el mismo formato
+  `d-m-Y` que se usa al construir el envío, de modo que ambos extremos de la
+  cadena llevan la misma cadena de fecha.
+- Un error de lectura lanza una excepción en lugar de pasar por «no hay registro
+  anterior». Es preferible no enviar a enviar con la cadena rota.
+- El panel tenía el mismo problema con `MONTH()` y `YEAR()`: el gráfico mensual
+  quedaba vacío en PostgreSQL. Ahora filtra por rango de fechas y agrupa en PHP,
+  sin funciones específicas de ningún motor.
+
+Si tu instalación usa PostgreSQL, conviene revisar los registros ya enviados:
+es posible que se remitieran como primer registro de cadena.
+
+#### Condición de carrera en el encadenamiento
+
+Entre leer la huella anterior y guardar la nueva hay una llamada al servicio de
+la AEAT que dura segundos. Dos validaciones simultáneas leían el mismo registro
+anterior y encadenaban ambas facturas sobre él.
+
+La sección crítica se serializa ahora con un bloqueo de sesión de base de datos:
+`GET_LOCK()` en MySQL y un *advisory lock* en PostgreSQL, por entidad y entorno,
+con espera configurable en `VERIFACTU_CHAIN_LOCK_TIMEOUT` (30 segundos por
+defecto). El bloqueo vive en la sesión de base de datos, así que se libera solo
+si el proceso muere, y se libera igualmente cuando el envío lanza una excepción.
+
+#### El registro existe siempre que se valida una factura
+
+Con `VERIFACTU_DIRECT_CALL_ON_VALIDATE` desactivado y una factura que no venía
+de TakePOS, la validación terminaba sin dejar ningún rastro VeriFactu. Ese
+indicador decide **cómo** se remite el registro, no **si** existe: el Art. 6 del
+RD 1007/2023 lo exige en el momento de la expedición.
+
+Ahora la factura queda marcada como pendiente, con `Incidencia = 'S'`, y la cola
+de reintentos la recoge, igual que ocurre cuando falla la conexión.
+
+#### La identidad declarada ya no se recorta en silencio
+
+`getDeclaredSystemIdentity()` aplicaba los límites del esquema con `substr()`
+sin avisar, de modo que una declaración responsable con valores demasiado largos
+volvía a transmitir algo distinto de lo declarado, que es justo lo que corrigió
+la 2.0.0. El recorte se registra ahora en el log como error, y se hace con
+`mb_substr()` para contar caracteres, como hace el esquema, sin partir por la
+mitad un carácter multibyte.
+
+#### Sobre la parametrización de la declaración responsable
+
+La segunda parte pendiente de la issue #30 —configurar los datos del productor
+desde la pantalla de administración— no se implementa, y no por descuido: en
+multiempresa, lo que identifica al obligado tributario ante la AEAT
+(`VERIFACTU_HOLDER_NIF` y `VERIFACTU_HOLDER_COMPANY_NAME`) ya es configuración
+por entidad, porque Dolibarr carga `llx_const` con `WHERE entity IN (0, n)`. Lo
+que quedaría por parametrizar son los datos del **productor del software**, que
+es quien suscribe la declaración responsable; quien redistribuya el módulo bajo
+su nombre edita `conf/declaracion_responsable.conf.php`, que existe para eso.
+
+#### Verificación
+
+| Comprobación | Resultado |
+|---|---|
+| Consulta de la cadena, antigua y nueva, contra PostgreSQL 16 real | la antigua falla, la nueva devuelve el registro |
+| `convertSQLFromMysql()` de Dolibarr 19.0.3 sobre la consulta antigua | deja `DATE_FORMAT` sin traducir |
+| Exclusión mutua del *advisory lock* con dos sesiones concurrentes | la segunda espera hasta que la primera libera |
+| Suite de regresión completa | 10 ficheros, 100% |
 
 ### v2.0.0 (2026-09-19)
 

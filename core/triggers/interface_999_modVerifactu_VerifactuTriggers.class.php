@@ -451,7 +451,27 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 				return -1; // Block validation - invoice has been reverted to draft
 			}
 		}
-		return 1; // VeriFactu not executed, continue normally
+
+		// Reaching this point means direct submission is disabled for this
+		// invoice. The flag decides HOW the record reaches AEAT, never WHETHER
+		// it exists: Art. 6 RD 1007/2023 requires the billing record at issue
+		// time. The invoice is therefore left marked as pending, with the
+		// incident flag the regulation expects, and the retry queue picks it up
+		// instead of the validation ending with no VeriFactu trace at all.
+		$pendingBadge = '<div class="center"><span class="badge badge-status1 classfortooltip badge-status" attr-status="' . $langs->transnoentities('VERIFACTU_STATUS_PENDING_SERVICE') . '">' . $langs->transnoentities('VERIFACTU_STATUS_PENDING_SERVICE') . '</span></div>';
+		$object->array_options['options_verifactu_estado'] = $pendingBadge;
+		$object->array_options['options_verifactu_error'] = 'PENDING_SUBMISSION';
+		$object->array_options['options_verifactu_incidencia'] = 'S';
+		$object->array_options['options_verifactu_ultimafecha_modificacion'] = dol_now();
+		$object->updateExtraField('verifactu_estado');
+		$object->updateExtraField('verifactu_error');
+		$object->updateExtraField('verifactu_incidencia');
+		$object->updateExtraField('verifactu_ultimafecha_modificacion');
+
+		dol_syslog("VERIFACTU TRIGGER billValidate: direct submission disabled for " . ($object->newref ?? $object->ref) . ", invoice left pending for the retry queue", LOG_WARNING);
+		setEventMessage($langs->trans('VERIFACTU_PENDING_SUBMISSION_INFO', $object->newref ?? $object->ref), 'warnings');
+
+		return 1;
 	}
 	public function companyModify($action, $object, User $user, Translate $langs, Conf $conf)
 	{

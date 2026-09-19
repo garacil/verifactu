@@ -151,7 +151,10 @@ class VerifactuUtils
 		$sql .= " WHERE f.entity = " . ((int) $conf->entity);
 		$sql .= " AND f.fk_statut > 0"; // Only validated invoices
 		$sql .= " AND f.ref NOT LIKE '%PROV%'"; // Exclude provisional invoices
-		$sql .= " AND (fe.verifactu_error LIKE '%NO_INTERNET_CONNECTION%' OR fe.verifactu_error LIKE '%SERVICE_UNAVAILABLE%')"; // With connection error
+		// PENDING_SUBMISSION marks invoices validated while direct submission was
+		// disabled: their record exists and is waiting to be sent, like the ones
+		// held back by a connection problem.
+		$sql .= " AND (fe.verifactu_error LIKE '%NO_INTERNET_CONNECTION%' OR fe.verifactu_error LIKE '%SERVICE_UNAVAILABLE%' OR fe.verifactu_error LIKE '%PENDING_SUBMISSION%')";
 		$sql .= " AND (fe.verifactu_huella IS NULL OR fe.verifactu_huella = '')"; // No fingerprint (not sent)
 		$sql .= " ORDER BY f.datef ASC, f.rowid ASC"; // From oldest to newest
 
@@ -252,8 +255,8 @@ class VerifactuUtils
 		$facture->fetch_optionals();
 		$currentError = $facture->array_options['options_verifactu_error'] ?? '';
 
-		// Clear both NO_INTERNET_CONNECTION and SERVICE_UNAVAILABLE
-		$cleanedError = str_replace(array('NO_INTERNET_CONNECTION', 'SERVICE_UNAVAILABLE'), '', $currentError);
+		// Clear NO_INTERNET_CONNECTION, SERVICE_UNAVAILABLE and PENDING_SUBMISSION
+		$cleanedError = str_replace(array('NO_INTERNET_CONNECTION', 'SERVICE_UNAVAILABLE', 'PENDING_SUBMISSION'), '', $currentError);
 		$cleanedError = trim(str_replace(array('  ', '\n\n'), array(' ', '\n'), $cleanedError));
 
 		// If empty, set to NULL

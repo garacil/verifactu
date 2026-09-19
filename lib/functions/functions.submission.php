@@ -196,19 +196,30 @@ function execVERIFACTUCall(Facture $facture, $actionVERIFACTU = 'Alta', $enforce
 		);
 		$manager->setSchemasDir($conf->verifactu->multidir_output[$conf->entity] . '/schemas');
 
+		// Reading the previous fingerprint, submitting and storing the new one is
+		// a single critical section: two concurrent validations would otherwise
+		// chain both invoices onto the same previous record.
+		if (!acquireVerifactuChainLock()) {
+			throw new Exception($langs->trans('VERIFACTU_CHAIN_LOCK_BUSY'));
+		}
+
 		$response = false;
-		switch ($actionVERIFACTU) {
-			case 'Alta':
-				$response = handleInvoiceCreationOrSubsanation($manager, $facture, $certOptions, $issuerNif, $issuerName, $systemConfig);
-				break;
-			case 'Mod':
-				$response = handleInvoiceCreationOrSubsanation($manager, $facture, $certOptions, $issuerNif, $issuerName, $systemConfig, true);
-				break;
-			case 'Baja':
-				// Get cancellation type from POST or use default
-				$cancellationType = GETPOST('tipo_anulacion', 'alpha') ?: 'normal';
-				$response = handleInvoiceCancellation($manager, $facture, $certOptions, $issuerNif, $issuerName, $cancellationType);
-				break;
+		try {
+			switch ($actionVERIFACTU) {
+				case 'Alta':
+					$response = handleInvoiceCreationOrSubsanation($manager, $facture, $certOptions, $issuerNif, $issuerName, $systemConfig);
+					break;
+				case 'Mod':
+					$response = handleInvoiceCreationOrSubsanation($manager, $facture, $certOptions, $issuerNif, $issuerName, $systemConfig, true);
+					break;
+				case 'Baja':
+					// Get cancellation type from POST or use default
+					$cancellationType = GETPOST('tipo_anulacion', 'alpha') ?: 'normal';
+					$response = handleInvoiceCancellation($manager, $facture, $certOptions, $issuerNif, $issuerName, $cancellationType);
+					break;
+			}
+		} finally {
+			releaseVerifactuChainLock();
 		}
 
 		if ($response) {
