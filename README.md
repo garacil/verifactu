@@ -85,6 +85,48 @@ El módulo descarga y cachea localmente los esquemas WSDL y XSD necesarios para 
 - En **Configuración > Módulos > VeriFactu > Configuración** se muestra el estado de los esquemas
 - Usar el botón **Descargar/Actualizar esquemas** para forzar la re-descarga si la AEAT actualiza los esquemas
 
+### Fecha de operación
+
+Cuando la fecha en que se efectúa una operación es distinta de la fecha en que
+se expide la factura, la que determina el devengo del IVA es la primera. Es el
+caso de una factura emitida en enero por un servicio prestado en diciembre.
+
+En **Configuración → Transmitir la fecha de operación** se habilita el envío de
+ese dato a la AEAT en el campo `FechaOperacion`. Al activarlo:
+
+- Se habilita el campo de fecha **Impuestos** en la factura, que es de donde se
+  toma (Dolibarr lo controla con la constante `INVOICE_POINTOFTAX_DATE`).
+- La fecha solo se transmite **cuando difiere de la fecha de factura**. Si ambas
+  coinciden, el registro sale igual que antes.
+
+![Opción de fecha de operación](doc/img/config-fecha-operacion.png)
+
+Rellenando ese campo, la factura se expide con su fecha y el IVA se imputa al
+periodo de la operación:
+
+![Factura con fecha de operación](doc/img/ficha-fecha-operacion.png)
+
+La fecha de operación no interviene en la huella ni en el código QR, así que
+informarla no afecta al encadenamiento.
+
+### Presentación de la ficha y de los listados
+
+Los bloques **Datos VeriFactu** y **Campos fiscales** aparecen plegados en la
+ficha de la factura. Se despliegan con un clic y Dolibarr recuerda la elección.
+
+En los listados, las columnas de detalle fiscal están disponibles en el selector
+de columnas, pero no se muestran de entrada: a la vista queda el estado
+VeriFactu. Cada usuario activa las que necesite.
+
+El distintivo de estado junto al número de factura se controla con la constante
+`VERIFACTU_STATUS_BADGE_ON_REF`:
+
+| Valor | Efecto |
+|---|---|
+| `card` | Por defecto. En la ficha de la factura sí, en los listados no |
+| `always` | En todas partes, como hasta la versión 2.2.0 |
+| `never` | No se muestra |
+
 ## Uso
 
 ### Envío de Facturas
@@ -380,7 +422,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.2.2
+- **Versión**: 2.2.3
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -420,6 +462,73 @@ uno:
   binario.
 
 ## Registro de Cambios
+
+### v2.2.3 (2026-09-24)
+
+Atiende la issue #51, propuesta por
+[@xabitrigo](https://github.com/xabitrigo), y las observaciones sobre la
+interfaz que planteó en el mismo hilo.
+
+#### Fecha de operación
+
+La fecha en que se efectúa la operación es la que determina el devengo del IVA,
+mientras que la fecha de expedición es la que ordena la numeración de las
+facturas (Art. 10.1.d del RD 1007/2023, Art. 6.1.f del RD 1619/2012). Hasta
+ahora el módulo solo transmitía la de expedición.
+
+`SuministroInformacion.xsd` declara `FechaOperacion` como opcional, de tipo
+`sf:fecha` —el mismo formato `dd-mm-aaaa` de `FechaExpedicionFactura`— y la sitúa
+justo antes de `DescripcionOperacion`, que es donde se inserta. **No interviene
+en la huella**, que se calcula sobre `IDEmisorFactura`, `NumSerieFactura`,
+`FechaExpedicionFactura`, `TipoFactura`, `CuotaTotal`, `ImporteTotal`, la huella
+anterior y `FechaHoraHusoGenRegistro`; se ha comprobado generando el registro con
+y sin ella.
+
+Se toma de `date_pointoftax`, el campo «Impuestos» que Dolibarr muestra en la
+factura, y **solo se transmite cuando difiere de la fecha de expedición**.
+
+Hay una opción nueva en la configuración del módulo, **Transmitir la fecha de
+operación**, desactivada por defecto porque cambia lo que se remite a la AEAT. Al
+activarla se habilita también `INVOICE_POINTOFTAX_DATE`, la constante de Dolibarr
+que muestra ese campo en la factura y que de otro modo hay que fijar a mano.
+
+#### La ficha de factura ya no queda sepultada
+
+Los separadores de los bloques fiscales se declaraban desplegados, de modo que
+ocupaban **730 px de los 1870** de la página y las líneas de factura quedaban
+fuera de la vista. Dolibarr admite separadores plegados —la clave `2` del array
+de opciones, que `showSeparator()` interpreta—, así que pasan a declararse así.
+La página baja a **1209 px** y quien los despliegue mantiene su preferencia,
+porque el propio núcleo la guarda en una cookie.
+
+#### Los listados vuelven a caber en la pantalla
+
+El módulo añadía **16 columnas** a los listados de facturas, casi todas vacías,
+que dejaban la tabla en **8153 px de ancho**. Con la visibilidad en negativo
+—patrón del propio Dolibarr— la columna sigue disponible en el selector de
+columnas pero no aparece marcada: el listado baja a **2190 px y 15 columnas**,
+con el estado VeriFactu a la vista.
+
+El distintivo de estado que se pegaba a cada número de factura lo gobierna ahora
+`VERIFACTU_STATUS_BADGE_ON_REF`: `card` por defecto (en la ficha sí, en los
+listados no), `always` para el comportamiento anterior y `never` para retirarlo.
+
+Una instalación que actualice recibe estos mismos ajustes: `addExtraField()` no
+reescribe un campo que ya existe, así que `alignExtraFieldDisplay()` los aplica
+sobre los campos ya creados, respetando los que el administrador haya cambiado
+por su cuenta.
+
+#### Verificación
+
+Sobre una instalación real de **Dolibarr 19.0.3 con PostgreSQL 16**, con el
+módulo activado y facturas de prueba:
+
+| Comprobación | Antes | Después |
+|---|---|---|
+| Alto de la ficha de factura | 1870 px | 1209 px |
+| Ancho del listado de facturas | 8153 px | 2190 px |
+| Columnas por fila en el listado | 30 | 15 |
+| `FechaOperacion` en el registro | no existía | se transmite y no altera la huella |
 
 ### v2.2.2 (2026-09-19)
 

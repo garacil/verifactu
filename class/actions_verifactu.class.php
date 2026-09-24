@@ -95,9 +95,30 @@ class ActionsVerifactu
 		dol_include_once('/core/class/html.form.class.php');
 		$form = new Form($db);
 
+		// This hook fires wherever an invoice link is printed, lists included, so
+		// the badge ends up glued to every invoice number. It is worth having on
+		// the invoice card, where it is the status of the record at hand, and it
+		// is noise on a list that already carries its own VeriFactu status
+		// column. VERIFACTU_STATUS_BADGE_ON_REF governs it: 'card' by default,
+		// 'always' to keep the previous behaviour, 'never' to drop it.
 		if ($object instanceof Facture) {
+			// The hook context is always 'invoicedao' here, so the page being
+			// rendered is what tells a card from a list.
+			$badgeMode = $conf->global->VERIFACTU_STATUS_BADGE_ON_REF ?? 'card';
+			$script = basename($_SERVER['PHP_SELF'] ?? '');
+			$onCard = ($script === 'card.php' || strpos($script, 'tabVERIFACTU') === 0);
+
+			if ($badgeMode === 'never' || ($badgeMode === 'card' && !$onCard)) {
+				return 0;
+			}
+
 			$object->fetch_optionals();
-			$this->resprints = '<div style="display: inline-block; padding-left: 5px;">' . (img_object('', 'verifactu@verifactu', 'width="20"') . '<div style="display: inline-block; padding-left: 5px;">' . $object->array_options['options_verifactu_estado'] . '</div>') . '</div>';
+			$status = $object->array_options['options_verifactu_estado'] ?? '';
+			if (empty($status)) {
+				return 0;
+			}
+
+			$this->resprints = '<div style="display: inline-block; padding-left: 5px;">' . (img_object('', 'verifactu@verifactu', 'width="20"') . '<div style="display: inline-block; padding-left: 5px;">' . $status . '</div>') . '</div>';
 		}
 
 		return 0;

@@ -221,6 +221,13 @@ if ($basicFieldsComplete) {
 	$item->setAsSelect(array('verifactu' => 'Verifactu'));
 	$item->helpText = $langs->transnoentities('VERIFACTU_MODE_HELP');
 
+	// Operation date. Enabling it here also turns on INVOICE_POINTOFTAX_DATE,
+	// the Dolibarr setting that shows the field on the invoice, which otherwise
+	// has to be set by hand as a hidden constant.
+	$item = $formSetup->newItem('VERIFACTU_USE_OPERATION_DATE');
+	$item->setAsYesNo();
+	$item->helpText = $langs->transnoentities('VERIFACTU_USE_OPERATION_DATE_HELP');
+
 	$item = $formSetup->newItem('VERIFACTU_HOLDER_REPRESENTATIVE_NIF');
 	$item->defaultFieldValue = $mysoc->idprof2;
 	$item->cssClass = 'minwidth500';
@@ -421,6 +428,16 @@ if ($action == 'update' && !empty($user->admin)) {
 		setEventMessages($langs->trans('VERIFACTU_TAX_IDENTITY_ALREADY_USED', $conflictEntity), null, 'errors');
 		$action = '';
 		$error++;
+	}
+}
+
+// The operation date is only usable if Dolibarr shows its field on the invoice,
+// which depends on a constant the user would otherwise have to set by hand.
+// Keeping both in step is the whole point of offering the option here.
+if ($action == 'update' && !empty($user->admin)) {
+	$useOperationDate = GETPOST('VERIFACTU_USE_OPERATION_DATE', 'alphanohtml');
+	if ($useOperationDate !== '') {
+		dolibarr_set_const($db, 'INVOICE_POINTOFTAX_DATE', (empty($useOperationDate) ? '0' : '1'), 'chaine', 0, '', $conf->entity);
 	}
 }
 

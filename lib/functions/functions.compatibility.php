@@ -127,3 +127,37 @@ function isVerifactuApplicableInvoice($invoice)
 
 	return (int) $invoice->type !== (int) $proformaType;
 }
+
+/**
+ * Returns the operation date of an invoice, formatted for AEAT.
+ *
+ * Dolibarr keeps it in llx_facture.date_pointoftax, shown on the invoice card
+ * when INVOICE_POINTOFTAX_DATE is enabled. It is only relevant when it differs
+ * from the issue date: FechaOperacion is optional in the schema and informing
+ * it with the same value as FechaExpedicionFactura adds nothing.
+ *
+ * @param  Facture $facture Invoice
+ * @return string           Operation date as dd-mm-yyyy, empty when there is none to send
+ */
+function getVerifactuOperationDate($facture)
+{
+	global $conf;
+
+	// Off by default: informing FechaOperacion changes what is transmitted, so
+	// each installation decides. The setting lives in the module configuration
+	// screen, which also turns on the Dolibarr field the date comes from.
+	if (empty($conf->global->VERIFACTU_USE_OPERATION_DATE)) {
+		return '';
+	}
+
+	if (!is_object($facture) || empty($facture->date_pointoftax)) {
+		return '';
+	}
+
+	// Same formatting the submission uses for the issue date, so both dates are
+	// built identically.
+	$operationDate = date('d-m-Y', $facture->date_pointoftax);
+	$issueDate = date('d-m-Y', $facture->date);
+
+	return ($operationDate === $issueDate ? '' : $operationDate);
+}

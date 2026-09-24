@@ -776,3 +776,5 @@ ERROR_FETCHING_INVOICE = No se pudo cargar la factura %s desde la base de datos
 VERIFACTU_HOLDER_COMPANY_NAME_HELP = Razón social del obligado tributario tal como debe constar en los registros de facturación (NombreRazon).
 VERIFACTU_HOLDER_NIF_HELP = NIF del obligado tributario que emite las facturas. Queda bloqueado en cuanto exista la primera huella encadenada.
 VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP = NIF del representante legal, a título informativo. No se transmite a la AEAT.
+VERIFACTU_USE_OPERATION_DATE = Transmitir la fecha de operación
+VERIFACTU_USE_OPERATION_DATE_HELP = Cuando la fecha en que se efectúa la operación es distinta de la fecha de expedición de la factura, se transmite a la AEAT en el campo FechaOperacion. Esa fecha es la que determina el devengo del IVA, mientras que la de expedición es la que ordena la numeración. Al activarlo se habilita también el campo de fecha «Impuestos» de Dolibarr en la factura, que es de donde se toma. Solo afecta al registro cuando ambas fechas difieren.

@@ -77,8 +77,8 @@ class modVerifactu extends DolibarrModules
 		$this->editor_url = '';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.2.2';
-		$this->verifactu_version = '2.2.2';
+		$this->version = '2.2.3';
+		$this->verifactu_version = '2.2.3';
 		$this->verifactu_version_date = '19/09/2026';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = '';
@@ -581,7 +581,7 @@ class modVerifactu extends DolibarrModules
 			0,
 			0,
 			'',
-			array('options' => array('1' => null)),
+			array('options' => array('2' => null)),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
 			5,
@@ -624,7 +624,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_ERRORTooltip',
 			'',
 			'',
@@ -644,7 +644,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_INVOICE_CSVTooltip',
 			'',
 			'',
@@ -664,7 +664,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_INVOICE_IDTooltip',
 			'',
 			'',
@@ -684,7 +684,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_INVOICE_DATETooltip',
 			'',
 			'',
@@ -704,7 +704,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_LAST_OUTPUTTooltip',
 			'',
 			'',
@@ -724,7 +724,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_LAST_MODIFICATION_DATETooltip',
 			'',
 			'',
@@ -744,7 +744,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_HASHTooltip',
 			'',
 			'',
@@ -764,7 +764,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'verifactu_GENERATION_DATETIMETooltip',
 			'',
 			'',
@@ -810,7 +810,7 @@ class modVerifactu extends DolibarrModules
 			'',
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			5,
+			-5,
 			'VERIFACTU_MODETooltip',
 			'',
 			'',
@@ -841,6 +841,10 @@ class modVerifactu extends DolibarrModules
 
 		// Determine the display value based on Dolibarr version
 		$displayValue = (versioncompare(explode('.', DOL_VERSION), array(12)) < 0) ? 3 : 4;
+		// Same visibility, negative: the column stays available in the column
+		// selector of the lists but is not checked by default, so the fiscal
+		// detail does not widen every invoice list from the start.
+		$displayValueList = -$displayValue;
 
 		$result = $extrafields->addExtraField(
 			'verifactu_inicio_separador2',
@@ -852,7 +856,7 @@ class modVerifactu extends DolibarrModules
 			0,
 			0,
 			'',
-			array('options' => array('1' => null)),
+			array('options' => array('2' => null)),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
 			$displayValue,
@@ -877,7 +881,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_INVOICE_TYPETooltip',
 			'',
 			'',
@@ -899,7 +903,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_TAX_TYPETooltip',
 			'',
 			'',
@@ -921,7 +925,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_TAX_REGIMETooltip',
 			'',
 			'',
@@ -946,7 +950,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_OPERATION_QUALIFICATIONTooltip',
 			'',
 			'',
@@ -970,7 +974,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_EXEMPT_OPERATIONTooltip',
 			'',
 			'',
@@ -994,7 +998,7 @@ class modVerifactu extends DolibarrModules
 			),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
-			$displayValue,
+			$displayValueList,
 			'verifactu_INCIDENTTooltip',
 			'',
 			'',
@@ -1015,7 +1019,7 @@ class modVerifactu extends DolibarrModules
 			0,
 			0,
 			'',
-			array('options' => array('1' => null)),
+			array('options' => array('2' => null)),
 			1,
 			'($user->rights->verifactu->manage || $user->admin)',
 			5,
@@ -1191,6 +1195,13 @@ class modVerifactu extends DolibarrModules
 		}
 
 
+		// An extrafield that already exists is not redefined by addExtraField(),
+		// so installations created by an earlier version keep the old display
+		// settings. These two updates bring them in line with the definitions
+		// above: the fiscal blocks collapsed on the invoice card, and the
+		// technical columns available but unchecked in the lists.
+		$this->alignExtraFieldDisplay();
+
 		// Permissions
 		$this->remove($options);
 		$badge = '<div class="center"><span class="badge badge-status8 classfortooltip badge-status" attr-status="' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '">' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '</span></div>';
@@ -1227,5 +1238,73 @@ class modVerifactu extends DolibarrModules
 			'last_version' => $this->version,
 			'current_version' => $this->version
 		];
+	}
+
+	/**
+	 * Brings the display settings of already created extrafields in line with
+	 * the definitions of init().
+	 *
+	 * addExtraField() leaves an existing field untouched, so without this an
+	 * installation that upgrades keeps the fiscal blocks expanded and every
+	 * technical column shown in the invoice lists.
+	 *
+	 * @return void
+	 */
+	private function alignExtraFieldDisplay()
+	{
+		global $conf;
+
+		// Collapsible separators, collapsed by default: showSeparator() reads
+		// the first key of the options array, where 2 means collapsed.
+		$sql = "UPDATE " . MAIN_DB_PREFIX . "extrafields";
+		$sql .= " SET param = '" . $this->db->escape(serialize(array('options' => array('2' => null)))) . "'";
+		$sql .= " WHERE elementtype IN ('facture', 'societe')";
+		$sql .= " AND type = 'separate'";
+		$sql .= " AND name LIKE 'verifactu_inicio_separador%'";
+		$sql .= " AND entity = " . ((int) $conf->entity);
+		$this->db->query($sql);
+
+		// Technical columns: a negative visibility keeps them selectable in the
+		// lists without checking them by default. The status column is left as it
+		// is, since it is the one worth seeing at a glance. The values are read
+		// and rewritten one by one instead of with a SQL expression, which would
+		// need different syntax on each database engine.
+		$technical = array(
+			'verifactu_error', 'verifactu_csv_factura', 'verifactu_id_factura',
+			'verifactu_fecha_factura', 'verifactu_ultima_salida',
+			'verifactu_ultimafecha_modificacion', 'verifactu_huella',
+			'verifactu_fecha_hora_generacion', 'verifactu_modo',
+			'verifactu_factura_tipo', 'verifactu_impuesto', 'verifactu_clave_regimen',
+			'verifactu_calificacion_operacion', 'verifactu_operacion_exenta',
+			'verifactu_incidencia',
+		);
+
+		$sql = "SELECT rowid, list FROM " . MAIN_DB_PREFIX . "extrafields";
+		$sql .= " WHERE elementtype = 'facture'";
+		$sql .= " AND name IN ('" . implode("', '", $technical) . "')";
+		$sql .= " AND entity = " . ((int) $conf->entity);
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			dol_syslog(__METHOD__ . ': unable to read the extrafield visibility: ' . $this->db->lasterror(), LOG_WARNING);
+			return;
+		}
+
+		$toHide = array();
+		while ($obj = $this->db->fetch_object($resql)) {
+			// Only plain positive numbers: a visibility written as a condition is
+			// the administrator's own setting and is left alone.
+			if (preg_match('/^[0-9]+$/', (string) $obj->list) && (int) $obj->list > 0) {
+				$toHide[(int) $obj->rowid] = '-' . (int) $obj->list;
+			}
+		}
+		$this->db->free($resql);
+
+		foreach ($toHide as $rowid => $visibility) {
+			$sql = "UPDATE " . MAIN_DB_PREFIX . "extrafields";
+			$sql .= " SET list = '" . $this->db->escape($visibility) . "'";
+			$sql .= " WHERE rowid = " . ((int) $rowid);
+			$this->db->query($sql);
+		}
 	}
 }

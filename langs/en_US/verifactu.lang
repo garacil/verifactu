@@ -776,3 +776,5 @@ ERROR_FETCHING_INVOICE = Could not load invoice %s from the database
 VERIFACTU_HOLDER_COMPANY_NAME_HELP = Legal name of the taxpayer as it must appear in the billing records (NombreRazon).
 VERIFACTU_HOLDER_NIF_HELP = Tax ID of the taxpayer issuing the invoices. It is locked as soon as the first chained fingerprint exists.
 VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP = Tax ID of the legal representative, for information only. It is not sent to AEAT.
+VERIFACTU_USE_OPERATION_DATE = Transmit the operation date
+VERIFACTU_USE_OPERATION_DATE_HELP = When the date an operation was carried out differs from the invoice issue date, it is transmitted to AEAT in the FechaOperacion field. That date is the one the VAT period follows, while the issue date is the one that orders the invoice numbering. Enabling this also turns on the Dolibarr "Taxes" date field on the invoice, which is where the date is taken from. The record is only affected when both dates differ.
