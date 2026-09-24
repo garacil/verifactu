@@ -352,6 +352,66 @@ class Invoice
     }
 
     /**
+     * Sets the date the operation was carried out.
+     *
+     * FechaOperacion is the date of the transaction itself, which the VAT
+     * period follows, and it is a different thing from the issue date that
+     * numbers the invoice (Art. 6.1.f RD 1619/2012, Art. 10.1.d RD 1007/2023).
+     * SuministroInformacion.xsd declares it optional and of type sf:fecha, the
+     * same dd-mm-yyyy format as FechaExpedicionFactura, and places it right
+     * before DescripcionOperacion, so the key is inserted in that position.
+     *
+     * It takes no part in the fingerprint, which is built from IDEmisorFactura,
+     * NumSerieFactura, FechaExpedicionFactura, TipoFactura, CuotaTotal,
+     * ImporteTotal, the previous fingerprint and FechaHoraHusoGenRegistro.
+     *
+     * @param  string|null $date Operation date as dd-mm-yyyy, or null to drop it
+     * @return self
+     * @throws \InvalidArgumentException When the format is not the one the schema expects
+     */
+    public function setOperationDate(?string $date): self
+    {
+        if ($date === null || $date === '') {
+            unset($this->payload['FechaOperacion']);
+            return $this;
+        }
+
+        if (!preg_match('/^\d{2}-\d{2}-\d{4}$/', $date)) {
+            throw new \InvalidArgumentException('The operation date must be formatted as dd-mm-yyyy');
+        }
+
+        // Rebuild the payload so the key lands before DescripcionOperacion, the
+        // position the schema sequence gives it.
+        $rebuilt = [];
+        $placed = false;
+        foreach ($this->payload as $key => $value) {
+            if ($key === 'DescripcionOperacion') {
+                $rebuilt['FechaOperacion'] = $date;
+                $placed = true;
+            }
+            if ($key !== 'FechaOperacion') {
+                $rebuilt[$key] = $value;
+            }
+        }
+        if (!$placed) {
+            $rebuilt['FechaOperacion'] = $date;
+        }
+        $this->payload = $rebuilt;
+
+        return $this;
+    }
+
+    /**
+     * Returns the operation date, when one was set.
+     *
+     * @return string Operation date as dd-mm-yyyy, empty when not informed
+     */
+    public function getOperationDate(): string
+    {
+        return $this->payload['FechaOperacion'] ?? '';
+    }
+
+    /**
      * Sets external reference identifier.
      *
      * @param string $ref Reference string
@@ -1123,6 +1183,11 @@ class Invoice
         }
         if ($breakdownCount > 12) {
             throw new \InvalidArgumentException("An invoice cannot have more than 12 tax breakdown details");
+        }
+
+        if (!empty($this->payload['FechaOperacion'])
+            && !preg_match('/^\d{2}-\d{2}-\d{4}$/', $this->payload['FechaOperacion'])) {
+            throw new \InvalidArgumentException("Operation date must be formatted as dd-mm-yyyy");
         }
 
         $chain = $this->payload['Encadenamiento'] ?? [];

@@ -317,6 +317,17 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 	$invoice->setDescription($description);
 	$invoice->setType($facture->array_options['options_verifactu_factura_tipo'] ?? VerifactuInvoice::TYPE_STANDARD);
 
+	// Operation date, when it differs from the issue date. Dolibarr stores it in
+	// date_pointoftax, the field INVOICE_POINTOFTAX_DATE shows on the invoice
+	// card. The VAT period follows this date, while the issue date is the one
+	// that numbers the invoice (Art. 10.1.d RD 1007/2023), so it is transmitted
+	// only when the user actually informed a different date.
+	$operationDate = getVerifactuOperationDate($facture);
+	if (!empty($operationDate)) {
+		$invoice->setOperationDate($operationDate);
+		dol_syslog("VERIFACTU: operation date " . $operationDate . " transmitted for " . $facture->ref, LOG_DEBUG);
+	}
+
 	// Set VeriFactu incidence flag (default 'N' - no incidence)
 	$incidence = $facture->array_options['options_verifactu_incidencia'] ?? 'N';
 	$invoice->setIncidence($incidence);
