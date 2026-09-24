@@ -621,5 +621,61 @@ VERIFACTU_CHAIN_LOCK_BUSY = Estase encadeando outra factura neste momento e venc
 VERIFACTU_PENDING_SUBMISSION_INFO = A factura %s validouse co rexistro VeriFactu pendente de envío, porque o envío directo na validación está desactivado. Enviarase desde a cola de reintentos.
 VERIFACTU_TAX_IDENTITY_ALREADY_USED = O NIF do obrigado tributario xa está configurado na entidade VeriFactu %s. Cada entidade con VeriFactu activado é un obrigado tributario distinto, coa súa propia cadea de rexistros.
 VERIFACTU_SHARED_INVOICE_NUMBERING_WARNING = Multicompany está compartindo a numeración de facturas entre entidades. Dous obrigados tributarios tomarían a súa serie do mesmo contador, algo que VeriFactu non pode conciliar: cada obrigado debe manter a súa propia numeración.
+
+# Keys the code references under a different name than the one defined above (2.2.2).
+# Each alias carries the text of its canonical key; keep them in sync.
+VERIFACTU_INVOICE_CAN_NOT_BE_MODIFIED = A factura %s non pode modificarse (restrición VeriFactu)
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_CIF_REQUIRED = Factura %s: CIF/NIF do cliente obrigatorio para VeriFactu
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_TVA_INTRA_REQUIRED = Factura %s: CIF Intracomunitario obrigatorio para VeriFactu
+VERIFACTU_INVOICE_CAN_NOT_BE_VALID_ADDRESS_REQUIRED = Factura %s: Enderezo do cliente obrigatorio para VeriFactu
+VERIFACTU_STATUS_ANULADA = Anulada
+VERIFACTU_ERROR_FACTURA_YA_ANULADA = A factura xa está anulada en VeriFactu
+SOCIETE_HAVE_INVOICES_NOT_IDPROF1_MODIFIED = <strong>CIF/NIF</strong> non actualizado. <strong>%s</strong> ten <strong>%s</strong> facturas en VeriFactu.
+SOCIETE_HAVE_INVOICES_NOT_TVAINTRA_MODIFIED = <strong>CIF Intra</strong> non actualizado. <strong>%s</strong> ten <strong>%s</strong> facturas en VeriFactu.
+VERIFACTU_DEFAULT_SOCIETE_IMPUESTO_SET = Imposto por defecto de '%s' aplicado
+VERIFACTU_DEFAULT_SOCIETE_CLAVE_REGIMEN_SET = Chave de réxime de '%s' aplicada
+VERIFACTU_DEFAULT_SOCIETE_CALIFICACION_OPERACION_SET = Cualificación de '%s' aplicada
+VERIFACTU_DEFAULT_SOCIETE_OPERACION_EXENTA_SET = Operación exenta de '%s' aplicada
+VERIFACTU_TIPO_ANULACION = Tipo de anulación
+VERIFACTU_ANULACION_NORMAL = Anulación normal
+VERIFACTU_ANULACION_RECHAZO_PREVIO = Por rexeitamento previo
+VERIFACTU_ANULACION_SIN_REGISTRO_PREVIO = Sen rexistro previo
+VERIFACTU_INFO_ANULACION_NORMAL = <strong>Normal:</strong> Anula facturas rexistradas correctamente.
+VERIFACTU_INFO_ANULACION_RECHAZO_PREVIO = <strong>Por Rexeitamento:</strong> Anula facturas rexeitadas anteriormente.
+VERIFACTU_INFO_ANULACION_SIN_REGISTRO_PREVIO = <strong>Sen Rexistro:</strong> Anula facturas non rexistradas en VeriFactu.
+verifactu_FACTURA_Simplificada = Factura Simplificada
+verifactu_SIMPLIFIED_INVOICE_CUSTOMER = Cliente de factura simplificada
+verifactu_SIMPLIFIED_INVOICE_CUSTOMERTooltip = Se está activo, as facturas envíanse como tipo F2 (simplificada)
+verifactu_STATUSTooltip = Estado da factura en VeriFactu
+verifactu_ERRORTooltip = Último erro ao enviar a VeriFactu
+verifactu_INVOICE_IDTooltip = Identificador da factura en VeriFactu
+verifactu_INVOICE_DATETooltip = Data de emisión rexistrada en VeriFactu
+verifactu_LAST_OUTPUTTooltip = Última resposta de VeriFactu
+verifactu_LAST_MODIFICATION_DATETooltip = Data de última modificación en VeriFactu
+verifactu_GENERATION_DATETIMETooltip = Data e hora de xeración da pegada (ISO 8601)
+verifactu_INVOICE_TYPETooltip = Tipo de factura para VeriFactu
+verifactu_TAX_TYPETooltip = Tipo de imposto aplicábel. Por defecto IVE. Necesario para a tipoloxía de factura.
+verifactu_OPERATION_QUALIFICATIONTooltip = Chave de operación suxeita/non exenta ou non suxeita. S1=Sen inversión, S2=Con inversión, N1=Non suxeita art.7,14, N2=Non suxeita localización.
+verifactu_EXEMPT_OPERATIONTooltip = Tipo de exención (E1-E6) cando a operación está exenta de IVE/IGIC/IPSI.
+verifactu_INCIDENTTooltip = Indica se houbo incidencia técnica (sen electricidade, sen internet, fallo do sistema). Por defecto "N".
+verifactu_ID_TYPETooltip = Tipo de identificación do destinatario estranxeiro.
+VERIFACTU_MODE_HELP = Actualmente só dispoñíbel o modo VeriFactu. Modo NON-VeriFactu en desenvolvemento.
+VERIFACTU_CERTIFICATE_HELP = Certificado de sinatura electrónica para VeriFactu. Formato PEM requirido; os formatos P12/PFX convértense automaticamente.
+VERIFACTU_CERT_TYPE_HELP = Tipo de certificado para VeriFactu.<br><strong>Normal:</strong> Compatíbel con todos os certificados (recomendado)<br><strong>Selo:</strong> Só certificados empresariais de selo<br><br>Se obtén erros "no XML document" en consultas, use 'normal'.
+ERROR_FETCHING_INVOICE = Non se puido cargar a factura %s desde a base de datos
+VERIFACTU_HOLDER_COMPANY_NAME_HELP = Razón social do obrigado tributario tal como debe constar nos rexistros de facturación (NombreRazon).
+VERIFACTU_HOLDER_NIF_HELP = NIF do obrigado tributario que emite as facturas. Queda bloqueado en canto exista a primeira pegada encadeada.
+VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP = NIF do representante legal, a título informativo. Non se transmite á AEAT.
+
+# Mass validation and help guide texts, previously only in es_ES and en_US (2.2.2).
+VERIFACTU_FAQ_TITLE = Guía de axuda VeriFactu
+VERIFACTU_MASS_VALIDATE_INFO = O módulo VeriFactu xestiona a validación masiva con transaccións independentes por factura para evitar inconsistencias coa AEAT.
+VERIFACTU_MASS_VALIDATE_PARTIAL = Validáronse %s facturas correctamente, %s tiveron erros. As facturas correctas non se ven afectadas polos erros doutras.
+VERIFACTU_MASS_VALIDATE_FETCH_ERROR = Non se puido cargar a factura con ID %s
+VERIFACTU_MASS_VALIDATE_ALREADY_VALIDATED = A factura %s non pode validarse desde o seu estado actual
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_TITLE = Axuste de datas necesario
+VERIFACTU_MASS_VALIDATE_DATE_CONFIRM_MSG = Detectáronse <b>%s factura(s)</b> con data anterior ao <b>%s</b> (última factura validada: %s).<br><br>As datas axustaranse automaticamente ao mínimo necesario para cumprir a orde cronolóxica que require VeriFactu.<br><br>Desexa continuar coa validación?
+VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = Axustouse a data de %s factura(s) para respectar a orde cronolóxica de VeriFactu.
+VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Axuste de data:</strong> A data orixinal da factura (<strong>%s</strong>) axustouse a <strong>%s</strong> para respectar a orde cronolóxica de VeriFactu (última factura validada: %s).
 VERIFACTU_USE_OPERATION_DATE = Transmitir a data de operación
 VERIFACTU_USE_OPERATION_DATE_HELP = Cando a data na que se efectúa a operación é distinta da data de expedición da factura, transmítese á AEAT no campo FechaOperacion. Esa data é a que determina o devengo do IVE, mentres que a de expedición é a que ordena a numeración. Ao activalo habilítase tamén o campo de data «Impostos» de Dolibarr na factura, que é de onde se toma. Só afecta ao rexistro cando ambas as datas difiren.

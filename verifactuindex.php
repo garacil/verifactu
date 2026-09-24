@@ -64,6 +64,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/dolgraph.class.php';
 require_once DOL_DOCUMENT_ROOT . '/compta/facture/class/facture.class.php';
+// Date helpers (first/last day of the year) used by the monthly chart below
+require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
 
 // Load translation files required by the page
 $langs->loadLangs(array("verifactu@verifactu", "bills", "companies"));

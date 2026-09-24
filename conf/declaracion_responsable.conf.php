@@ -463,7 +463,7 @@ $declaracionResponsable['metadata'] = array(
     /**
      * Última modificación
      */
-    'ultima_modificacion' => '2025-12-19',
+    'ultima_modificacion' => '2026-09-19',
 
     /**
      * Autor de la configuración
