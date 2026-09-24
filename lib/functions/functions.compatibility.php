@@ -141,6 +141,15 @@ function isVerifactuApplicableInvoice($invoice)
  */
 function getVerifactuOperationDate($facture)
 {
+	global $conf;
+
+	// Off by default: informing FechaOperacion changes what is transmitted, so
+	// each installation decides. The setting lives in the module configuration
+	// screen, which also turns on the Dolibarr field the date comes from.
+	if (empty($conf->global->VERIFACTU_USE_OPERATION_DATE)) {
+		return '';
+	}
+
 	if (!is_object($facture) || empty($facture->date_pointoftax)) {
 		return '';
 	}

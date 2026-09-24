@@ -103,6 +103,21 @@ check(
 $submission = file_get_contents(__DIR__ . '/../lib/functions/functions.submission.php');
 check(strpos($submission, 'setOperationDate($operationDate)') !== false, 'the submission informs it');
 
+check(
+	strpos($compat, 'VERIFACTU_USE_OPERATION_DATE') !== false,
+	'and it is off until the installation enables the setting, because it changes what is transmitted'
+);
+
+$setup = file_get_contents(__DIR__ . '/../admin/setup.php');
+check(
+	strpos($setup, "newItem('VERIFACTU_USE_OPERATION_DATE')") !== false,
+	'the setting is offered in the module configuration screen'
+);
+check(
+	strpos($setup, "dolibarr_set_const(\$db, 'INVOICE_POINTOFTAX_DATE'") !== false,
+	'and enabling it also turns on the Dolibarr field the date comes from, a hidden constant otherwise'
+);
+
 echo "\nInvoice card and lists\n";
 
 $module = file_get_contents(__DIR__ . '/../core/modules/modVerifactu.class.php');
