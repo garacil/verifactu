@@ -626,7 +626,6 @@ class Invoice
         ?float $surAmount
     ): array {
         $group = [
-            'CalificacionOperacion' => $qual,
             'BaseImponibleOimporteNoSujeto' => 0,
             'Impuesto' => $tax,
         ];
@@ -635,9 +634,18 @@ class Invoice
             $group['ClaveRegimen'] = $regime;
         }
 
+        // SuministroInformacion.xsd places CalificacionOperacion and
+        // OperacionExenta in an xs:choice ahead of
+        // BaseImponibleOimporteNoSujeto: exactly one of the two travels. An
+        // empty qualification used to be written anyway, the choice was left
+        // unsatisfied and the AEAT answered 4102 naming the next mandatory
+        // element of the sequence, which was never the one missing.
         if (!empty($exempt)) {
             $group['OperacionExenta'] = $exempt;
         } else {
+            if (!empty($qual)) {
+                $group['CalificacionOperacion'] = $qual;
+            }
             if ($rate !== null) {
                 $group['TipoImpositivo'] = round($rate, 2);
             }
@@ -1183,6 +1191,23 @@ class Invoice
         }
         if ($breakdownCount > 12) {
             throw new \InvalidArgumentException("An invoice cannot have more than 12 tax breakdown details");
+        }
+
+        // The xs:choice of the breakdown: a line carries a qualification or an
+        // exemption, never both and never neither.
+        foreach ($this->taxEntries as $position => $entry) {
+            $qualified = !empty($entry['CalificacionOperacion']);
+            $exempted = !empty($entry['OperacionExenta']);
+            if ($qualified && $exempted) {
+                throw new \InvalidArgumentException(
+                    "Breakdown detail " . ($position + 1) . " cannot carry an operation qualification and an exemption at the same time"
+                );
+            }
+            if (!$qualified && !$exempted) {
+                throw new \InvalidArgumentException(
+                    "Breakdown detail " . ($position + 1) . " needs an operation qualification or an exemption"
+                );
+            }
         }
 
         if (!empty($this->payload['FechaOperacion'])

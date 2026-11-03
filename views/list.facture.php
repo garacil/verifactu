@@ -1952,7 +1952,12 @@ if ($resql) {
 			$facturestatic->multicurrency_total_ht = $obj->multicurrency_total_ht;
 			$facturestatic->multicurrency_total_tva = $obj->multicurrency_total_vat;
 			$facturestatic->multicurrency_total_ttc = $obj->multicurrency_total_ttc;
+			// Both properties: Dolibarr 19 builds the label from $statut and
+			// Dolibarr 20 and later from $status. Filling only the first one left
+			// every unpaid invoice shown as a draft on the newer versions,
+			// because getLibStatut() then read a status that was still 0.
 			$facturestatic->statut = $obj->fk_statut;
+			$facturestatic->status = $obj->fk_statut;
 			$facturestatic->close_code = $obj->close_code;
 			$facturestatic->total_ttc = $obj->total_ttc;
 			$facturestatic->paye = $obj->paye;

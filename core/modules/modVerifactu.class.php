@@ -77,8 +77,8 @@ class modVerifactu extends DolibarrModules
 		$this->editor_url = '';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '2.2.3';
-		$this->verifactu_version = '2.2.3';
+		$this->version = '2.2.4';
+		$this->verifactu_version = '2.2.4';
 		$this->verifactu_version_date = '19/09/2026';
 		// Url to the file with your last numberversion of this module
 		$this->url_last_version = '';
@@ -195,6 +195,8 @@ class modVerifactu extends DolibarrModules
 			19 => array('FAC_FORCE_DATE_VALIDATION', 'chaine', '1', $langs->trans('FAC_FORCE_DATE_VALIDATION'), 1),
 			20 => array('VERIFACTU_COMPANY_TYPE', 'chaine', 'sociedad', $langs->trans('VERIFACTU_COMPANY_TYPE'), 1),
 			21 => array('VERIFACTU_QR_SHOW_TEXT_TPV', 'chaine', '1', $langs->trans('VERIFACTU_QR_SHOW_TEXT_TPV'), 1),
+			// Empty: look for Ghostscript or qpdf only if a PDF cannot be read
+			22 => array('VERIFACTU_PDF_NORMALIZER', 'chaine', '', $langs->trans('VERIFACTU_PDF_NORMALIZER'), 1),
 		);
 
 		// Some keys to add into the overwriting translation tables

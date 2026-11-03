@@ -679,3 +679,7 @@ VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = Axustouse a data de %s factura(s) para 
 VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Axuste de data:</strong> A data orixinal da factura (<strong>%s</strong>) axustouse a <strong>%s</strong> para respectar a orde cronolóxica de VeriFactu (última factura validada: %s).
 VERIFACTU_USE_OPERATION_DATE = Transmitir a data de operación
 VERIFACTU_USE_OPERATION_DATE_HELP = Cando a data na que se efectúa a operación é distinta da data de expedición da factura, transmítese á AEAT no campo FechaOperacion. Esa data é a que determina o devengo do IVE, mentres que a de expedición é a que ordena a numeración. Ao activalo habilítase tamén o campo de data «Impostos» de Dolibarr na factura, que é de onde se toma. Só afecta ao rexistro cando ambas as datas difiren.
+VERIFACTU_PDF_NORMALIZER = Ferramenta para normalizar PDF
+VERIFACTU_PDF_NORMALIZER_HELP = Só se usa cando o PDF da factura non se pode ler para incorporarlle o QR. Baleiro: busca Ghostscript ou qpdf no servidor. Ruta dun executable para indicar un concreto. «off» para non tentalo nunca.
+VERIFACTU_PDF_WITHOUT_QR = O PDF da factura %s xerouse sen o QR tributario. Consulte o rexistro de Dolibarr para ver o motivo.
+VERIFACTU_QUALIFICATION_DEFAULTED = A factura %s non tiña cualificación de operación configurada: transmitiuse S1 (suxeita e non exenta). Revíseo na lapela VeriFactu da factura.

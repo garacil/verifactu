@@ -317,6 +317,11 @@ if ($basicFieldsComplete) {
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_ALL_PAGES_HELP');
 	$item->cssClass = 'width150';
 
+	// Tool used to rewrite a PDF the TCPDF parser cannot read
+	$item = $formSetup->newItem('VERIFACTU_PDF_NORMALIZER');
+	$item->helpText = $langs->transnoentities('VERIFACTU_PDF_NORMALIZER_HELP');
+	$item->cssClass = 'minwidth300';
+
 	// Title for advanced configuration
 	$formSetup->newItem('AdvancedConfig')->setAsTitle();
 

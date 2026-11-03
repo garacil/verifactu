@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '2.2.3',
+		'version' => '2.2.4',
 	];
 
 	// Bind the global before including: the declaration file assigns
@@ -336,49 +336,93 @@ function getSystemConfig()
 }
 
 /**
+ * Picks the value configured for one VeriFactu field, from the most specific
+ * source to the least: the invoice's own VeriFactu tab, the customer and the
+ * module defaults.
+ *
+ * @param Facture $facture The invoice
+ * @param Societe|null $thirdparty Its customer, already loaded, or null
+ * @param string $extrafield Name of the extrafield, without the options_ prefix
+ * @param string $globalKey Constant holding the module default
+ * @return string Configured value, empty string if none
+ */
+function getVerifactuConfiguredValue($facture, $thirdparty, $extrafield, $globalKey)
+{
+	global $conf;
+
+	$candidates = array();
+	if (isset($facture->array_options['options_' . $extrafield])) {
+		$candidates[] = $facture->array_options['options_' . $extrafield];
+	}
+	if (is_object($thirdparty) && isset($thirdparty->array_options['options_' . $extrafield])) {
+		$candidates[] = $thirdparty->array_options['options_' . $extrafield];
+	}
+	if (isset($conf->global->$globalKey)) {
+		$candidates[] = $conf->global->$globalKey;
+	}
+
+	foreach ($candidates as $value) {
+		// '0' is what the empty option of these selects stores.
+		if (!empty($value) && $value != '0') {
+			return $value;
+		}
+	}
+
+	return '';
+}
+
+/**
  * Gets VeriFactu parameters from the invoice using ONLY manually configured values
  *
  * Automatic inference was removed to avoid legal/fiscal issues.
  * Users must configure these values consulting with their tax advisor.
+ *
+ * An invoice created before the module was installed carries none of these
+ * values, because they are written by the creation trigger. The customer's
+ * configuration and the module defaults are read as fallbacks so that those
+ * invoices can be transmitted with what the administrator already configured,
+ * instead of reaching the AEAT with an incomplete breakdown.
  *
  * @param Facture $facture The invoice to get parameters from
  * @return array Array with the 4 necessary VeriFactu parameters
  */
 function getVerifactuParams(Facture $facture)
 {
+	$thirdparty = null;
+	if (!empty($facture->socid)) {
+		if (!is_object($facture->thirdparty)) {
+			$facture->fetch_thirdparty();
+		}
+		if (is_object($facture->thirdparty) && $facture->thirdparty->id > 0) {
+			if (!isset($facture->thirdparty->array_options) || !is_array($facture->thirdparty->array_options)) {
+				$facture->thirdparty->fetch_optionals();
+			}
+			$thirdparty = $facture->thirdparty;
+		}
+	}
+
+	// Tax Type: VAT (01), IPSI (02), IGIC (03), Others (05)
+	$taxType = getVerifactuConfiguredValue($facture, $thirdparty, 'verifactu_impuesto', 'VERIFACTU_DEFAULT_TAX_TYPE');
+
+	// Regime Key: Only for VAT (01) and IGIC (03), empty for IPSI (02) and Others (05)
+	$regimeKey = getVerifactuConfiguredValue($facture, $thirdparty, 'verifactu_clave_regimen', 'VERIFACTU_DEFAULT_TAX_REGIME');
+
+	// Operation Qualification: S1, S2, N1, N2
+	$qualification = getVerifactuConfiguredValue($facture, $thirdparty, 'verifactu_calificacion_operacion', 'VERIFACTU_DEFAULT_OPERATION_QUALIFICATION');
+
+	// Exempt Operation: E1, E2, E3, E4, E5, E6 or null if not exempt
+	$exempt = getVerifactuConfiguredValue($facture, $thirdparty, 'verifactu_operacion_exenta', 'VERIFACTU_DEFAULT_EXEMPT_OPERATION');
+
 	return [
-		// Tax Type: VAT (01), IPSI (02), IGIC (03), Others (05)
-		'taxType' => (!empty($facture->array_options['options_verifactu_impuesto']) && $facture->array_options['options_verifactu_impuesto'] != '0')
-			? $facture->array_options['options_verifactu_impuesto']
-			: '',
-
-		// Regime Key: Only for VAT (01) and IGIC (03), empty for IPSI (02) and Others (05)
-		'regimeKey' => (!empty($facture->array_options['options_verifactu_clave_regimen']) && $facture->array_options['options_verifactu_clave_regimen'] != '0')
-			? $facture->array_options['options_verifactu_clave_regimen']
-			: '',
-
-		// Operation Qualification: S1, S2, N1, N2
-		'operationQualification' => (!empty($facture->array_options['options_verifactu_calificacion_operacion']) && $facture->array_options['options_verifactu_calificacion_operacion'] != '0')
-			? $facture->array_options['options_verifactu_calificacion_operacion']
-			: null,
-
-		// Exempt Operation: E1, E2, E3, E4, E5, E6 or null if not exempt
-		'exemptOperation' => (!empty($facture->array_options['options_verifactu_operacion_exenta']) && $facture->array_options['options_verifactu_operacion_exenta'] != '0')
-			? $facture->array_options['options_verifactu_operacion_exenta']
-			: null,
+		'taxType' => $taxType,
+		'regimeKey' => $regimeKey,
+		'operationQualification' => ($qualification !== '' ? $qualification : null),
+		'exemptOperation' => ($exempt !== '' ? $exempt : null),
 
 		// BACKWARD COMPATIBILITY: Keep old Spanish key names for existing code
-		'tipoImpuesto' => (!empty($facture->array_options['options_verifactu_impuesto']) && $facture->array_options['options_verifactu_impuesto'] != '0')
-			? $facture->array_options['options_verifactu_impuesto']
-			: '',
-		'claveRegimen' => (!empty($facture->array_options['options_verifactu_clave_regimen']) && $facture->array_options['options_verifactu_clave_regimen'] != '0')
-			? $facture->array_options['options_verifactu_clave_regimen']
-			: '',
-		'calificacionOperacion' => (!empty($facture->array_options['options_verifactu_calificacion_operacion']) && $facture->array_options['options_verifactu_calificacion_operacion'] != '0')
-			? $facture->array_options['options_verifactu_calificacion_operacion']
-			: null,
-		'operacionExenta' => (!empty($facture->array_options['options_verifactu_operacion_exenta']) && $facture->array_options['options_verifactu_operacion_exenta'] != '0')
-			? $facture->array_options['options_verifactu_operacion_exenta']
-			: null
+		'tipoImpuesto' => $taxType,
+		'claveRegimen' => $regimeKey,
+		'calificacionOperacion' => ($qualification !== '' ? $qualification : null),
+		'operacionExenta' => ($exempt !== '' ? $exempt : null)
 	];
 }
