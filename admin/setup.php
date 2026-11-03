@@ -317,6 +317,26 @@ if ($basicFieldsComplete) {
 	$item->helpText = $langs->transnoentities('VERIFACTU_QR_ALL_PAGES_HELP');
 	$item->cssClass = 'width150';
 
+	// Ghostscript fallback for PDFs TCPDI cannot import (encrypted PDF or
+	// streams its parser cannot decode, issue #55). Empty: looked up in the
+	// PATH; a path: that binary; 0: disabled.
+	$item = $formSetup->newItem('VERIFACTU_PDF_GHOSTSCRIPT');
+	$item->cssClass = 'minwidth300';
+	$item->helpText = $langs->transnoentities('VERIFACTU_PDF_GHOSTSCRIPT_HELP');
+
+	$item = $formSetup->newItem('VERIFACTU_PDF_GHOSTSCRIPT_STATUS');
+	$ghostscriptSetting = strtolower(trim((string) ($conf->global->VERIFACTU_PDF_GHOSTSCRIPT ?? '')));
+	if (in_array($ghostscriptSetting, array('0', 'off', 'no', 'disabled'), true)) {
+		$item->fieldOverride = '<span class="opacitymedium">' . $langs->trans('VERIFACTU_PDF_GHOSTSCRIPT_DISABLED') . '</span>';
+	} else {
+		$ghostscriptBinary = function_exists('getVerifactuGhostscriptBinary') ? getVerifactuGhostscriptBinary() : '';
+		if ($ghostscriptBinary !== '') {
+			$item->fieldOverride = '<span class="badge badge-status4">' . $langs->trans('VERIFACTU_PDF_GHOSTSCRIPT_FOUND') . '</span> <span class="opacitymedium">' . dol_escape_htmltag($ghostscriptBinary) . '</span>';
+		} else {
+			$item->fieldOverride = '<span class="badge badge-status1">' . $langs->trans('VERIFACTU_PDF_GHOSTSCRIPT_NOT_FOUND') . '</span>';
+		}
+	}
+
 	// Title for advanced configuration
 	$formSetup->newItem('AdvancedConfig')->setAsTitle();
 

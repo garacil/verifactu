@@ -33,6 +33,7 @@
  * - functions.certificates.php    : Digital certificate management
  * - functions.hash.php            : Chaining and SHA-256 fingerprints
  * - functions.qr.php              : QR code generation
+ * - functions.pdf.php             : QR placement on invoice PDFs
  * - functions.response.php        : AEAT response processing
  * - functions.submission.php      : Invoice submission (Creation/Modification)
  * - functions.cancellation.php    : Invoice cancellation
@@ -73,6 +74,7 @@ dol_include_once('/verifactu/lib/functions/functions.certificates.php');
 // 4. Processing modules (depend on configuration)
 dol_include_once('/verifactu/lib/functions/functions.hash.php');
 dol_include_once('/verifactu/lib/functions/functions.qr.php');
+dol_include_once('/verifactu/lib/functions/functions.pdf.php');
 dol_include_once('/verifactu/lib/functions/functions.response.php');
 
 // 5. AEAT operation modules (depend on various previous modules)
@@ -129,6 +131,14 @@ use Sietekas\Verifactu\QRGenerator;
  * - getQrBase64($facture, $size, $margin)     : Generates QR in base64
  * - getQRUrl($facture)                        : Generates AEAT verification URL
  * - isInvoiceSentToVerifactu($facture)        : Checks if invoice was sent
+ *
+ * PDF FUNCTIONS (functions.pdf.php):
+ * - getVerifactuQrPdfSettings()               : QR layout settings from the configuration
+ * - computeVerifactuQrPlacement(...)          : Position of the QR block on a page
+ * - drawVerifactuQrOnPdfPage(...)             : Draws the QR block on a TCPDF page
+ * - isVerifactuPdfEncrypted($file)            : Tells whether TCPDI will be unable to import a PDF
+ * - getVerifactuGhostscriptBinary()           : Ghostscript binary for the import fallback
+ * - normalizeVerifactuPdfWithGhostscript(...) : Rewrites a PDF so TCPDI can import it
  *
  * RESPONSE FUNCTIONS (functions.response.php):
  * - saveVerifactuErrorData($facture, $data)   : Saves errors with independent connection

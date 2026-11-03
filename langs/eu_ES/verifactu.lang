@@ -682,3 +682,15 @@ VERIFACTU_USE_OPERATION_DATE_HELP = Eragiketa egiten den data fakturaren jaulkip
 
 # 2.2.4 - Modulua baino lehenagoko fakturak (issue #54) eta QRa PDFan (issue #55)
 VERIFACTU_LEGACY_FISCAL_DEFAULTS_APPLIED = %s fakturak ez zituen VeriFactu datu fiskal guztiak beteta (modulua aktibatu aurretik sortu zen). Eremu hauek balio lehenetsiekin osatu dira: %s. Berrikusi VeriFactu fitxan, egokiak ez badira.
+VERIFACTU_PDF_QR_NOT_ADDED = %s fakturaren PDFa QR tributario koderik gabe sortu da, eta derrigorrezkoa da: %s
+VERIFACTU_PDF_QR_REASON_TCPDI_MISSING = TCPDI liburutegia ez dago erabilgarri (Dolibarren MAIN_DISABLE_TCPDI konstantea).
+VERIFACTU_PDF_QR_REASON_ENCRYPTED = PDFa zifratuta dago («PDFa babestu» aukera, Dolibarren PDF_SECURITY_ENCRYPTION konstantea) eta TCPDIk ezin ditu zifratutako dokumentuak inportatu.
+VERIFACTU_PDF_QR_REASON_IMPORT_FAILED = TCPDIk ezin izan du PDFa inportatu (%s).
+VERIFACTU_PDF_QR_REASON_WRITE_FAILED = ezin izan da QRa duen PDFa diskoan idatzi.
+VERIFACTU_PDF_QR_HINT = Instalatu Ghostscript zerbitzarian, moduluak PDFa inportatu aurretik normalizatzeko erabiltzen duena, edo erabili «verifactu» PDF txantiloia, dokumentua sortzean QRa txertatzen duena.
+VERIFACTU_PDF_GHOSTSCRIPT = Ghostscript PDFaren QRrako
+VERIFACTU_PDF_GHOSTSCRIPT_HELP = TCPDIk txantiloiak sortutako PDFa inportatu ezin duenean (PDF zifratua edo bere analizatzaileak deskodetzen ez dituen fluxuak dituena), moduluak Ghostscript-ekin berridazten du QRa gehitu aurretik. Hutsik: binarioa (gs) zerbitzariaren PATHean bilatzen da. Bide bat: binario hori erabiltzen da. 0: Ghostscript ez da erabiltzen. proc_open baimenduta egon behar da.
+VERIFACTU_PDF_GHOSTSCRIPT_STATUS = Ghostscript detektatua
+VERIFACTU_PDF_GHOSTSCRIPT_FOUND = Erabilgarri
+VERIFACTU_PDF_GHOSTSCRIPT_NOT_FOUND = Ez da aurkitu. TCPDIk inportatu ezin dituen PDFei bakarrik eragiten die.
+VERIFACTU_PDF_GHOSTSCRIPT_DISABLED = Desaktibatuta

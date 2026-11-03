@@ -781,3 +781,15 @@ VERIFACTU_USE_OPERATION_DATE_HELP = Cuando la fecha en que se efectúa la operac
 
 # 2.2.4 - Facturas anteriores al modulo (issue #54) y QR en el PDF (issue #55)
 VERIFACTU_LEGACY_FISCAL_DEFAULTS_APPLIED = La factura %s no tenía informados todos sus datos fiscales VeriFactu (se creó antes de activar el módulo). Se han completado con los valores por defecto los campos: %s. Revíselos en la pestaña VeriFactu si no son los que corresponden.
+VERIFACTU_PDF_QR_NOT_ADDED = El PDF de la factura %s se ha generado sin el código QR tributario, que es obligatorio: %s
+VERIFACTU_PDF_QR_REASON_TCPDI_MISSING = la librería TCPDI no está disponible (constante MAIN_DISABLE_TCPDI de Dolibarr).
+VERIFACTU_PDF_QR_REASON_ENCRYPTED = el PDF está cifrado (opción «Proteger PDF», constante PDF_SECURITY_ENCRYPTION de Dolibarr) y TCPDI no puede importar documentos cifrados.
+VERIFACTU_PDF_QR_REASON_IMPORT_FAILED = TCPDI no ha podido importar el PDF (%s).
+VERIFACTU_PDF_QR_REASON_WRITE_FAILED = no se ha podido escribir el PDF con el QR en el disco.
+VERIFACTU_PDF_QR_HINT = Instale Ghostscript en el servidor, que el módulo utiliza para normalizar el PDF antes de importarlo, o utilice la plantilla PDF «verifactu», que incorpora el QR al generar el documento.
+VERIFACTU_PDF_GHOSTSCRIPT = Ghostscript para el QR del PDF
+VERIFACTU_PDF_GHOSTSCRIPT_HELP = Cuando TCPDI no puede importar el PDF generado por la plantilla (PDF cifrado o con flujos que su analizador no descodifica), el módulo lo reescribe con Ghostscript antes de añadir el QR. Vacío: se busca el binario (gs) en el PATH del servidor. Una ruta: se usa ese binario. 0: no se usa Ghostscript. Hace falta que proc_open esté permitido.
+VERIFACTU_PDF_GHOSTSCRIPT_STATUS = Ghostscript detectado
+VERIFACTU_PDF_GHOSTSCRIPT_FOUND = Disponible
+VERIFACTU_PDF_GHOSTSCRIPT_NOT_FOUND = No encontrado. Solo afecta a los PDF que TCPDI no pueda importar.
+VERIFACTU_PDF_GHOSTSCRIPT_DISABLED = Desactivado

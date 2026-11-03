@@ -25,7 +25,7 @@
  *
  * Implements hooks for:
  * - Modify invoice cards (formObjectOptions, addMoreActionsButtons)
- * - Customize PDF generation (beforePDFCreation, afterPDFCreation)
+ * - Customize PDF generation (beforePDFCreation, afterPDFCreation: tax QR on the PDF)
  * - Add extra fields (formAddObjectLine, formEditObjectLine)
  * - Manage ODT substitutions (ODTSubstitution)
  */
@@ -545,10 +545,15 @@ class ActionsVerifactu
 
 
 	/**
-	 * Execute action
+	 * Adds the tax QR code to the PDF a model has just written.
 	 *
-	 * @param	array	$parameters     Array of parameters
-	 * @param   Object	$pdfhandler     PDF builder handler
+	 * The hook fires once the file is on disk, so the QR is drawn by importing
+	 * the pages with TCPDI and writing them again. The bundled pdf_verifactu
+	 * model draws the QR itself while building the document and says so with
+	 * the verifactu_qr_embedded parameter, in which case nothing is done here.
+	 *
+	 * @param	array	$parameters     Array of parameters (file, object, outputlangs)
+	 * @param   Object	$pdfhandler     PDF model that fired the hook
 	 * @param   string	$action         'add', 'update', 'view'
 	 * @return  int 		            <0 if KO,
 	 *                                  =0 if OK but we want to process standard actions too,
@@ -559,191 +564,251 @@ class ActionsVerifactu
 		global $conf, $user, $langs;
 		global $hookmanager;
 
-		$outputlangs = $langs;
+		dol_syslog(get_class($this) . '::afterPDFCreation action=' . $action);
+		$langs->load("verifactu@verifactu");
 
-		$ret = 0;
-		$deltemp = array();
-		dol_syslog(get_class($this) . '::executeHooks action=' . $action);
+		if (!empty($parameters['verifactu_qr_embedded'])) {
+			return 0;
+		}
 
-		// Check if it's an invoice and if QR is enabled
 		if (
 			isset($parameters['object']) && $parameters['object'] instanceof Facture &&
-			$parameters['object']->id > 0
+			$parameters['object']->id > 0 && !empty($parameters['file'])
 		) {
 			try {
-				$this->addQRToPDFWithTCPDI($parameters, $outputlangs);
-			} catch (Exception $e) {
+				$this->addQRToPDF($parameters['object'], $parameters['file']);
+			} catch (\Throwable $e) {
 				dol_syslog("Verifactu afterPDFCreation QR Error: " . $e->getMessage(), LOG_ERR);
+				$this->warnQrNotAdded($parameters['object'], $langs->trans('VERIFACTU_PDF_QR_REASON_IMPORT_FAILED', $e->getMessage()));
 			}
 		}
 
-		return $ret;
+		return 0;
 	}
 
 	/**
-	 * Adds VeriFactu QR to PDF using TCPDI (compatible with older Dolibarr versions)
+	 * Draws the tax QR on an invoice PDF written by any model, through TCPDI.
 	 *
-	 * @param array $parameters Hook parameters
-	 * @param object $outputlangs Language object
+	 * Steps, each one with its own way out (issue #55):
+	 *  1. TCPDI has to be there. It is loaded by pdf_getInstance(), so the
+	 *     instance is created first and then checked for setSourceFile(): a
+	 *     class_exists('TCPDI') test before pdf_getInstance() answered no on a
+	 *     page where no PDF had been built yet.
+	 *  2. TCPDI cannot read an encrypted PDF (PDF_SECURITY_ENCRYPTION). The
+	 *     file is checked before trying, because a parser failure inside TCPDI
+	 *     may end the request with die() instead of an exception.
+	 *  3. When the import fails anyway, or the file is encrypted, Ghostscript
+	 *     rewrites it into a plain PDF 1.4 and the import is retried once. It
+	 *     is used only when the server has it and proc_open is allowed.
+	 *  4. The result is written to a temporary file next to the original and
+	 *     moved over it only when complete, so a failure never leaves a broken
+	 *     invoice PDF behind.
+	 *  5. If the QR could not be added, the user is told: a VERI*FACTU invoice
+	 *     without its QR does not meet Art. 20 of Orden HAC/1177/2024.
+	 *
+	 * @param Facture $object Invoice
+	 * @param string  $file   Path of the PDF just generated
+	 * @return bool           True when the QR was added
 	 */
-	private function addQRToPDFWithTCPDI($parameters, $outputlangs)
+	private function addQRToPDF(Facture $object, $file)
 	{
 		global $conf, $langs;
 
-		$object = $parameters['object'];
-		$file = $parameters['file'];
-
-		// Check if invoice is sent to VeriFactu
 		$langs->load("verifactu@verifactu");
 		if (isFactureSendToVerifactu($object) === false) {
-			return; // Only process invoices sent to VeriFactu
+			return false; // Only invoices registered at AEAT carry a QR
 		}
 
-		// Check that PDF file exists
 		if (!file_exists($file)) {
 			dol_syslog("Verifactu TCPDI: PDF file not found: " . $file, LOG_WARNING);
-			return;
+			return false;
 		}
 
+		$qrUrl = getQRUrl($object);
+		if (empty($qrUrl)) {
+			dol_syslog("Verifactu TCPDI: QR URL is empty", LOG_WARNING);
+			return false;
+		}
+
+		// pdf_getInstance() is what loads TCPDI, so it comes before the check.
+		$pdf = pdf_getInstance();
+		if (!is_object($pdf) || !method_exists($pdf, 'setSourceFile')) {
+			dol_syslog("Verifactu TCPDI: TCPDI is not available (MAIN_DISABLE_TCPDI?), the QR cannot be added after generation", LOG_ERR);
+			$this->warnQrNotAdded($object, $langs->trans('VERIFACTU_PDF_QR_REASON_TCPDI_MISSING'));
+			return false;
+		}
+
+		$settings = getVerifactuQrPdfSettings();
+		$temporaryFiles = array();
+		$sourceFile = $file;
+		$normalized = false;
+		$reason = '';
+
 		try {
-			// Check that TCPDI is available
-			if (!class_exists('TCPDI')) {
-				dol_syslog("Verifactu TCPDI: TCPDI class not found", LOG_WARNING);
-				return;
-			}
-
-			// Get QR configuration according to official AEAT specifications
-			// Size: Between 30-40mm according to official specification (Art. 21.1)
-			$qrSize = !empty($conf->global->VERIFACTU_QR_SIZE) ? floatval($conf->global->VERIFACTU_QR_SIZE) : 35;
-
-			// Validate that size is within official range
-
-
-			$qrPositionX = $conf->global->VERIFACTU_QR_POSITION_X ?? 'center';
-			$qrPositionY = $conf->global->VERIFACTU_QR_POSITION_Y >= 0 ? floatval($conf->global->VERIFACTU_QR_POSITION_Y) : 15;
-			$qrShowText = !empty($conf->global->VERIFACTU_QR_SHOW_TEXT) ? true : false;
-			$qrTextSize = !empty($conf->global->VERIFACTU_QR_TEXT_SIZE) ? intval($conf->global->VERIFACTU_QR_TEXT_SIZE) : 8;
-
-			// Get QR URL
-			$qrUrl = getQRUrl($object);
-			if (empty($qrUrl)) {
-				dol_syslog("Verifactu TCPDI: QR URL is empty", LOG_WARNING);
-				return;
-			}
-
-			// Create new TCPDI instance
-			$pdf = pdf_getInstance();
-
-			// Disable automatic headers and footers from TCPDF to avoid unwanted lines
-			$pdf->setPrintHeader(false);
-			$pdf->setPrintFooter(false);
-
-			// Count pages from original PDF
-			$pageCount = $pdf->setSourceFile($file);
-			// Copy all pages and add QR according to configuration
-			for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-				$templateId = $pdf->importPage($pageNo);
-				$size = $pdf->getTemplateSize($templateId);
-
-				// Add page with same size as original
-				$pdf->AddPage($size['w'] > $size['h'] ? 'L' : 'P', array($size['w'], $size['h']));
-				$pdf->useTemplate($templateId);
-
-				// Decide on which pages to add QR
-				$addQRToThisPage = false;
-				if (!empty($conf->global->VERIFACTU_QR_ALL_PAGES)) {
-					// QR on all pages
-					$addQRToThisPage = true;
-				} else {
-					// QR only on first page (default behavior)
-					$addQRToThisPage = ($pageNo == 1);
+			if (isVerifactuPdfEncrypted($file)) {
+				dol_syslog("Verifactu TCPDI: " . basename($file) . " is encrypted (PDF_SECURITY_ENCRYPTION), TCPDI cannot import it as it is", LOG_WARNING);
+				$sourceFile = $this->normalizePdfForImport($file, $temporaryFiles);
+				if ($sourceFile === '') {
+					$this->warnQrNotAdded($object, $langs->trans('VERIFACTU_PDF_QR_REASON_ENCRYPTED'));
+					return false;
 				}
+				$normalized = true;
+			}
 
-				if ($addQRToThisPage) {
-					$this->addQRToTCPDIPage($pdf, $size, $qrUrl, $qrSize, $qrPositionX, $qrPositionY, $qrShowText, $qrTextSize, $outputlangs);
+			$attempt = 0;
+			while (true) {
+				$attempt++;
+				try {
+					$output = $this->importAndStampPdf($pdf, $sourceFile, $file, $qrUrl, $settings);
+					break;
+				} catch (\Throwable $e) {
+					$reason = $e->getMessage();
+					dol_syslog("Verifactu TCPDI Error on " . basename($sourceFile) . " (attempt " . $attempt . "): " . $reason, LOG_ERR);
+					if ($normalized || $attempt > 1) {
+						$this->warnQrNotAdded($object, $langs->trans('VERIFACTU_PDF_QR_REASON_IMPORT_FAILED', $reason));
+						return false;
+					}
+					// A second instance: the failed one may hold a half-parsed file
+					$pdf = pdf_getInstance();
+					$sourceFile = $this->normalizePdfForImport($file, $temporaryFiles);
+					if ($sourceFile === '') {
+						$this->warnQrNotAdded($object, $langs->trans('VERIFACTU_PDF_QR_REASON_IMPORT_FAILED', $reason));
+						return false;
+					}
+					$normalized = true;
 				}
 			}
 
-			// Save modified PDF overwriting the original
-			$pdf->Output($file, 'F');
+			if (!$this->replacePdfFile($output, $file)) {
+				$this->warnQrNotAdded($object, $langs->trans('VERIFACTU_PDF_QR_REASON_WRITE_FAILED'));
+				return false;
+			}
 
-			dol_syslog("Verifactu TCPDI: QR added successfully to PDF", LOG_INFO);
-		} catch (Exception $e) {
-			dol_syslog("Verifactu TCPDI Error: " . $e->getMessage(), LOG_ERR);
+			dol_syslog("Verifactu TCPDI: QR added successfully to " . basename($file) . ($normalized ? " after normalizing it with Ghostscript" : ""), LOG_INFO);
+			return true;
+		} finally {
+			foreach ($temporaryFiles as $temporaryFile) {
+				if (is_file($temporaryFile)) {
+					@unlink($temporaryFile);
+				}
+			}
 		}
 	}
 
 	/**
-	 * Adds QR to a specific PDF page using TCPDI according to AEAT specifications
-	 * Complies with Art. 20.1 and 21 of the ministerial order
+	 * Imports every page of a PDF, stamps the QR and writes the result to a
+	 * temporary file next to the original.
 	 *
-	 * @param object $pdf TCPDI instance
-	 * @param array $pageSize Page size
-	 * @param string $qrUrl QR URL
-	 * @param float $qrSize QR size (must be between 30-40mm according to specification)
-	 * @param mixed $qrPositionX QR X position
-	 * @param float $qrPositionY QR Y position
-	 * @param bool $qrShowText Show explanatory text
-	 * @param int $qrTextSize Text size
-	 * @param object $outputlangs Language object
+	 * @param TCPDI  $pdf        Fresh TCPDI instance
+	 * @param string $sourceFile PDF to import (the original or its normalized copy)
+	 * @param string $file       Original PDF, which names the temporary file
+	 * @param string $qrUrl      AEAT verification URL
+	 * @param array  $settings   QR layout settings
+	 * @return string            Path of the temporary PDF with the QR
+	 * @throws \Throwable        Whatever TCPDI raises while importing
 	 */
-	private function addQRToTCPDIPage($pdf, $pageSize, $qrUrl, $qrSize, $qrPositionX, $qrPositionY, $qrShowText, $qrTextSize, $outputlangs)
+	private function importAndStampPdf($pdf, $sourceFile, $file, $qrUrl, array $settings)
 	{
-		// Calculate X position according to configuration
-		$x = $this->calculateQRPositionX($qrPositionX, $pageSize['w'], $qrSize);
+		// No TCPDF header or footer lines on the imported pages
+		$pdf->setPrintHeader(false);
+		$pdf->setPrintFooter(false);
 
-		// Reserve space for "QR tributario:" text that MUST go ABOVE the QR
-		$textHeight = 4; // Height for upper text
-		$spacingBetweenTextAndQR = 1; // Space between text and QR
-		$qrMargin = 2; // Minimum margin around QR (specification: minimum 2mm)
+		$pageCount = $pdf->setSourceFile($sourceFile);
+		for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+			$templateId = $pdf->importPage($pageNo);
+			$size = $pdf->getTemplateSize($templateId);
 
-		// Adjust Y position to include space for upper text and margins
-		$actualY = $qrPositionY + $textHeight + $spacingBetweenTextAndQR;
+			$pdf->AddPage($size['w'] > $size['h'] ? 'L' : 'P', array($size['w'], $size['h']));
+			$pdf->useTemplate($templateId);
 
-		// Verify that QR fits on page with safety margins
-		if (
-			$x - $qrMargin < 0 || $x + $qrSize + $qrMargin > $pageSize['w'] ||
-			$actualY - $qrMargin < 0 || $actualY + $qrSize + $qrMargin > $pageSize['h']
-		) {
-			dol_syslog("Verifactu TCPDI: QR position out of page bounds with required margins", LOG_WARNING);
-			return;
+			// Official specification: first page only, unless configured otherwise
+			if ($pageNo == 1 || !empty($settings['all_pages'])) {
+				drawVerifactuQrOnPdfPage($pdf, $size['w'], $size['h'], $qrUrl, $settings);
+			}
 		}
 
-		// MANDATORY TEXT: "QR tributario:" - MUST go ABOVE the QR according to specification
-		if ($qrShowText) {
-			$pdf->SetTextColor(0, 0, 0);
-			$pdf->SetFont('', 'B', $qrTextSize);
-			$pdf->SetXY($x, $qrPositionY);
-			$pdf->Cell($qrSize, $textHeight, 'QR tributario:', 0, 0, 'C');
+		$output = $file . '.verifactu-' . uniqid() . '.tmp';
+		$pdf->Output($output, 'F');
+		if (!is_file($output) || filesize($output) === 0) {
+			@unlink($output);
+			throw new \RuntimeException('TCPDI produced an empty file');
 		}
 
-
-		// Configure QR style according to ISO/IEC 18004:2015 specifications with M level correction
-		$styleQr = array(
-			'border' => 0,
-			'vpadding' => 0,
-			'hpadding' => 0,
-			'fgcolor' => array(0, 0, 0),
-			'bgcolor' => array(255, 255, 255), // White background for maximum contrast
-			'module_width' => 1,
-			'module_height' => 1
-		);
-
-		// Generate QR with M level error correction (official specification)
-		$pdf->write2DBarcode($qrUrl, 'QRCODE,M', $x, $actualY, $qrSize, $qrSize, $styleQr, 'N');
-
-		// ADDITIONAL TEXT FOR VERIFACTU SYSTEMS: Below the QR
-		// According to official specification: "Factura verificable en la sede electrónica de la AEAT" or "VeriFactu"
-		// Chosen option: "VeriFactu" (more compact and legally valid)
-		if ($qrShowText) {
-			$pdf->SetFont('', 'B', $qrTextSize - 1); // Bold for greater visibility according to specification
-			$textYBelow = $actualY + $qrSize + 1;
-			$pdf->SetXY($x, $textYBelow);
-			$pdf->Cell($qrSize, 3, 'VeriFactu', 0, 0, 'C');
-		}
+		return $output;
 	}
 
+	/**
+	 * Rewrites a PDF with Ghostscript so TCPDI can import it, when possible.
+	 *
+	 * @param string $file           Original PDF
+	 * @param array  $temporaryFiles Files to delete afterwards, completed here
+	 * @return string                Path of the normalized copy, empty when Ghostscript is not usable
+	 */
+	private function normalizePdfForImport($file, array &$temporaryFiles)
+	{
+		$binary = getVerifactuGhostscriptBinary();
+		if ($binary === '') {
+			dol_syslog("Verifactu TCPDI: Ghostscript is not available on this server, the PDF cannot be normalized (set VERIFACTU_PDF_GHOSTSCRIPT to its path if it is installed outside the PATH)", LOG_WARNING);
+			return '';
+		}
 
+		$normalizedFile = $file . '.verifactu-gs-' . uniqid() . '.tmp';
+		$temporaryFiles[] = $normalizedFile;
+
+		$result = normalizeVerifactuPdfWithGhostscript($file, $normalizedFile, $binary);
+		if (!$result['success']) {
+			dol_syslog("Verifactu TCPDI: Ghostscript could not normalize " . basename($file) . ": " . $result['output'], LOG_ERR);
+			return '';
+		}
+
+		dol_syslog("Verifactu TCPDI: " . basename($file) . " normalized with " . $binary, LOG_INFO);
+		return $normalizedFile;
+	}
+
+	/**
+	 * Moves the stamped PDF over the original one.
+	 *
+	 * @param string $output Temporary PDF with the QR
+	 * @param string $file   Original PDF to replace
+	 * @return bool          True when the original now carries the QR
+	 */
+	private function replacePdfFile($output, $file)
+	{
+		global $conf;
+
+		if (!@rename($output, $file)) {
+			dol_syslog("Verifactu TCPDI: could not replace " . $file . " with the stamped copy", LOG_ERR);
+			@unlink($output);
+			return false;
+		}
+
+		if (function_exists('dolChmod')) {
+			dolChmod($file);
+		} elseif (!empty($conf->global->MAIN_UMASK)) {
+			@chmod($file, octdec($conf->global->MAIN_UMASK));
+		}
+
+		return true;
+	}
+
+	/**
+	 * Tells the user that an invoice PDF went out without its mandatory QR.
+	 *
+	 * @param Facture $object Invoice
+	 * @param string  $reason Translated reason
+	 * @return void
+	 */
+	private function warnQrNotAdded(Facture $object, $reason)
+	{
+		global $langs;
+
+		$langs->load("verifactu@verifactu");
+		$message = $langs->trans('VERIFACTU_PDF_QR_NOT_ADDED', $object->ref, $reason) . ' ' . $langs->trans('VERIFACTU_PDF_QR_HINT');
+		dol_syslog("VERIFACTU: " . $message, LOG_ERR);
+		if (function_exists('setEventMessages')) {
+			setEventMessages($message, null, 'warnings');
+		}
+	}
 
 	/**
 	 * Overloading the loadDataForCustomReports function : returns data to complete the customreport tool
@@ -823,40 +888,6 @@ class ActionsVerifactu
 			}
 		}
 		return 0;
-	}
-
-	/**
-	 * Calculates the X position of the QR according to configuration
-	 */
-	private function calculateQRPositionX($positionConfig, $pageWidth, $qrSize)
-	{
-		global $conf;
-
-		// If it's a numeric value, use it directly
-		if (is_numeric($positionConfig)) {
-			return floatval($positionConfig);
-		}
-
-		// Standard PDF margins
-		$leftMargin = 10;
-		$rightMargin = 10;
-
-		switch (strtolower($positionConfig)) {
-			case 'left':
-				return $leftMargin;
-
-			case 'right':
-				return $pageWidth - $rightMargin - $qrSize;
-
-			case 'custom':
-				// Use custom value if configured
-				$customX = !empty($conf->global->VERIFACTU_QR_POSITION_X_CUSTOM) ? floatval($conf->global->VERIFACTU_QR_POSITION_X_CUSTOM) : 50;
-				return $customX;
-
-			case 'center':
-			default:
-				return ($pageWidth - $qrSize) / 2;
-		}
 	}
 
 	/* Add here any other hooked methods... */

@@ -40,6 +40,7 @@ require_once DOL_DOCUMENT_ROOT . '/product/class/product.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
+dol_include_once('/verifactu/lib/verifactu.lib.php');
 
 
 /**
@@ -51,6 +52,16 @@ class pdf_verifactu extends ModelePDFFactures
 	 * @var DoliDb Database handler
 	 */
 	public $db;
+
+	/**
+	 * @var string AEAT verification URL of the invoice being built, empty when it carries no QR
+	 */
+	public $verifactuQrUrl = '';
+
+	/**
+	 * @var bool True once the tax QR has been drawn on the first page
+	 */
+	public $verifactuQrEmbedded = false;
 
 	/**
 	 * @var string model name
@@ -371,6 +382,15 @@ class pdf_verifactu extends ModelePDFFactures
 
 				$pdf->Open();
 				$pagenb = 0;
+
+				// The tax QR is drawn while the document is built, in _pagehead(), so
+				// the PDF never has to be re-opened with TCPDI afterwards (issue #55).
+				// Only an invoice registered at AEAT carries one.
+				$this->verifactuQrUrl = '';
+				$this->verifactuQrEmbedded = false;
+				if (!$object->specimen && function_exists('isFactureSendToVerifactu') && isFactureSendToVerifactu($object)) {
+					$this->verifactuQrUrl = getQRUrl($object);
+				}
 				$pdf->SetDrawColor(128, 128, 128);
 
 				$pdf->SetTitle($outputlangs->convToOutputCharset($object->ref));
@@ -991,7 +1011,8 @@ class pdf_verifactu extends ModelePDFFactures
 
 				// Add pdfgeneration hook
 				$hookmanager->initHooks(array('pdfgeneration'));
-				$parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs);
+				// verifactu_qr_embedded tells the module hook the QR is already on the page
+				$parameters = array('file' => $file, 'object' => $object, 'outputlangs' => $outputlangs, 'verifactu_qr_embedded' => $this->verifactuQrEmbedded);
 				global $action;
 				$reshook = $hookmanager->executeHooks('afterPDFCreation', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
 				if ($reshook < 0) {
@@ -2271,6 +2292,20 @@ class pdf_verifactu extends ModelePDFFactures
 		}
 
 		$pdf->SetTextColor(0, 0, 0);
+
+		// Tax QR (Art. 20 and 21 Orden HAC/1177/2024): on the first page, or on
+		// every page when VERIFACTU_QR_ALL_PAGES asks for it. Drawn here, on top
+		// of the header, at the same place the TCPDI post-processing used.
+		if ($this->verifactuQrUrl !== '' && function_exists('drawVerifactuQrOnPdfPage')) {
+			$qrSettings = getVerifactuQrPdfSettings();
+			if ($showaddress || !empty($qrSettings['all_pages'])) {
+				$drawn = drawVerifactuQrOnPdfPage($pdf, $this->page_largeur, $this->page_hauteur, $this->verifactuQrUrl, $qrSettings);
+				if ($showaddress && $drawn) {
+					$this->verifactuQrEmbedded = true;
+				}
+			}
+		}
+
 		return $top_shift;
 	}
 
