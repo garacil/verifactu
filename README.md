@@ -175,6 +175,29 @@ El código QR se genera automáticamente al enviar la factura y se muestra en:
 - El PDF de la factura (si está configurado)
 - El ticket de TPV (si está habilitado)
 
+En el PDF el QR se incorpora de dos maneras, según la plantilla:
+
+- La plantilla **verifactu** del módulo lo dibuja mientras construye el
+  documento, en la primera página (o en todas, con `VERIFACTU_QR_ALL_PAGES`).
+- Con cualquier otra plantilla (Crabe, Sponge…) el módulo vuelve a abrir el PDF
+  recién generado con la librería TCPDI de Dolibarr, importa sus páginas y
+  dibuja el QR sobre ellas.
+
+La segunda vía depende de que TCPDI pueda leer el fichero. No puede si el PDF
+está cifrado (opción «Proteger PDF» de Dolibarr, `PDF_SECURITY_ENCRYPTION`), y
+hay ficheros con los que su analizador falla con `decodeFilterFlateDecode:
+invalid code`. En esos casos, si el servidor tiene **Ghostscript** y
+`proc_open` permitido, el módulo reescribe el PDF con él antes de importarlo.
+La opción **Ghostscript para el QR del PDF** de la configuración muestra si se
+ha detectado el binario y permite indicar su ruta, o desactivar este recurso
+con el valor `0`. Ghostscript no es un requisito: solo se usa cuando la
+importación directa no es posible.
+
+Si pese a todo el QR no puede incorporarse, el PDF se genera igual y el módulo
+avisa en pantalla de que falta el QR tributario y por qué, en lugar de dejar
+pasar en silencio un documento que no cumple el Art. 20 de la Orden
+HAC/1177/2024.
+
 ## Tipos de Factura Soportados
 
 | Código | Descripción |
@@ -282,6 +305,7 @@ verifactu/
 │       ├── functions.certificates.php  # Certificados
 │       ├── functions.compatibility.php # Funciones de compatibilidad
 │       ├── functions.qr.php            # Generación QR
+│       ├── functions.pdf.php           # QR en los PDF (plantilla y hook)
 │       └── functions.response.php      # Respuestas AEAT
 ├── tests/                  # Tests
 │   ├── MassValidateInterceptionTest.php  # Tests validación masiva
@@ -407,6 +431,21 @@ rm temporal.pem
 
 Después subir `certificado_moderno.p12` desde la pestaña **Certificados**.
 
+### El PDF se genera sin el código QR
+
+Si una factura enviada correctamente muestra el QR en su ficha pero el PDF
+sale sin él, y en el registro aparece `Verifactu TCPDI Error: TCPDF_PARSER
+ERROR: decodeFilterFlateDecode: invalid code`, TCPDI no ha podido importar el
+PDF que ha generado la plantilla. Desde la 2.2.4 el módulo lo avisa en pantalla
+con el motivo. Las causas habituales y su salida:
+
+| Causa | Qué hacer |
+|---|---|
+| PDF cifrado (`PDF_SECURITY_ENCRYPTION`, «Proteger PDF» en la configuración de PDF de Dolibarr) | Desactivar la protección, o instalar Ghostscript: el módulo descifra y reescribe el PDF con él antes de importarlo |
+| Flujos que el analizador de TCPDI no descodifica | Instalar Ghostscript (`apt install ghostscript` en Debian/Ubuntu). Si el binario no está en el `PATH`, indicar su ruta en **Ghostscript para el QR del PDF** |
+| `proc_open` desactivado en el alojamiento | Ghostscript no puede ejecutarse; usar la plantilla PDF **verifactu**, que dibuja el QR al generar el documento sin importarlo |
+| `MAIN_DISABLE_TCPDI` activo | Retirar la constante o usar la plantilla **verifactu** |
+
 ### Pantalla en Blanco
 
 Si aparece una pantalla en blanco al ver facturas:
@@ -422,7 +461,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.2.3
+- **Versión**: 2.2.4
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -456,12 +495,131 @@ uno:
   vista de factura en PHP 8 (issue #32), diagnosticado hasta la línea.
 - **[@jose73wrc](https://github.com/jose73wrc)** (José Antonio) — el error fatal
   del informe de pagos (issue #31), con la traza y la causa raíz ya
-  identificadas; y el aviso de que la corrección de los certificados no servía
+  identificadas; el aviso de que la corrección de los certificados no servía
   en alojamientos compartidos donde `proc_open` está desactivado, que es lo que
   llevó a leer el `.p12` con las funciones nativas de PHP antes que con el
-  binario.
+  binario; y el estado «Borrador» de las facturas validadas en el listado
+  VeriFactu sobre Dolibarr 24 (issue #53), con la base de datos ya comprobada y
+  el fichero señalado.
+- **[@perey2002](https://github.com/perey2002)** (Sergio Pereiro, Check 4
+  Cyber) — el QR que no llegaba al PDF generado con Crabe (issue #55): reprodujo
+  el fallo de importación de TCPDI, aisló la causa en el fichero y no en el
+  envío, comprobó que Ghostscript lo resolvía y propuso punto por punto lo que
+  recoge la 2.2.4.
+- **[@miguelpicher](https://github.com/miguelpicher)** — el rechazo 4102 de la
+  AEAT al enviar facturas creadas antes de activar el módulo (issue #54), con
+  el campo que faltaba ya identificado.
 
 ## Registro de Cambios
+
+### v2.2.4 (2026-11-03)
+
+Atiende las issues #53, #54 y #55, cada una reproducida antes de tocar el código.
+La suite de regresión pasa a 19 ficheros.
+
+#### Facturas validadas que aparecían como «Borrador» en el listado (issue #53)
+
+El listado VeriFactu construye un objeto `Facture` por fila para imprimir el
+estado de Dolibarr con `getLibStatut()`, y solo rellenaba la propiedad
+`statut`. Hasta Dolibarr 19 `getLibStatut()` lee `$this->statut`; desde
+Dolibarr 20 lee `$this->status` (comprobado en `commoninvoice.class.php` de
+22.0 y 24.0). Con ella a `null`, `LibStatut()` bifurca primero por `paye` y
+después toma el estado nulo como borrador: las pagadas salían «Pagada» y todas
+las demás «Borrador», exactamente lo que se veía en Dolibarr 24.0.1. El
+listado rellena ahora las dos propiedades, como hace el propio
+`compta/facture/list.php`.
+
+#### Rechazo 4102 al enviar facturas anteriores al módulo (issue #54)
+
+Una factura creada antes de activar el módulo nunca pasó por el trigger
+`BILL_CREATE` que rellena sus campos fiscales. Dolibarr la deja en uno de dos
+estados: sin fila en `llx_facture_extrafields`, con lo que `fetch_optionals()`
+devuelve `null` en todos los campos y el envío fallaba con *Tax Type not
+configured*; o con una fila que ya existía cuando el módulo añadió sus
+columnas, que recibió los valores por defecto de las columnas que lo tienen
+(tipo F1, impuesto 01, régimen 01) pero no de la calificación, que no lo tiene.
+
+En el segundo caso el registro salía con `CalificacionOperacion` a `null`. El
+esquema declara `CalificacionOperacion` y `OperacionExenta` como un `choice`, y
+el `SoapClient` de PHP **deja de codificar la secuencia** en un `choice` que no
+puede satisfacer: el `DetalleDesglose` se transmitía solo con `Impuesto` y
+`ClaveRegimen`, sin base ni cuota. Es literalmente lo que decía la AEAT:
+*Falta informar campo obligatorio: BaseImponibleOimporteNoSujeto*. Se ha
+reproducido con un WSDL que replica el `choice` y forma parte del test.
+
+- Antes de construir el registro, `completeVerifactuFiscalFields()` rellena los
+  campos fiscales que falten con los **mismos valores que el trigger habría
+  dado a la factura**: tipo según el tipo de factura de Dolibarr y su origen,
+  y impuesto, régimen, calificación y exención con la precedencia que ya
+  aplicaba el trigger (valores del módulo, constantes `VERIFACTU_DEFAULT_*`,
+  configuración del tercero). Los valores presentes no se tocan; la
+  calificación solo se rellena si tampoco hay exención. Se guardan en la
+  factura y se avisa en pantalla de qué campos se han completado, para que se
+  revisen en la pestaña VeriFactu.
+- Esa precedencia vive ahora en `getVerifactuFiscalDefaults()` y las reglas de
+  tipo en `getVerifactuInvoiceTypeForInvoice()`, compartidas por el trigger y
+  por el envío, de modo que no pueden divergir. De paso, el régimen por defecto
+  del módulo deja de aplicarse cuando el impuesto resuelto es IPSI u «otros»,
+  para los que el esquema no admite `ClaveRegimen`; un régimen fijado por la
+  configuración o por el tercero se respeta y lo señala la validación del envío.
+- `Invoice::createTaxGroup()` ya no escribe una calificación vacía, y cuando hay
+  exención transmite solo `OperacionExenta`, como exige el `choice`.
+  `validate()` rechaza localmente, con un mensaje claro, un desglose sin
+  calificación ni exención, o con ambas, antes de que llegue a la AEAT.
+
+#### El QR no se incorporaba al PDF generado con Crabe (issue #55)
+
+Con cualquier plantilla que no sea la del módulo, el QR se añade después de
+generar el PDF: el hook `afterPDFCreation` lo vuelve a abrir con TCPDI, importa
+sus páginas y dibuja el QR. Esa importación no tenía salida cuando TCPDI no
+podía leer el fichero, y el PDF salía sin QR con un único rastro en el log.
+TCPDI no puede importar un PDF cifrado (`PDF_SECURITY_ENCRYPTION`) y hay
+ficheros con los que su analizador falla con `decodeFilterFlateDecode: invalid
+code`; el autor de la issue comprobó que reescribir el PDF con Ghostscript lo
+hacía importable. Ahora:
+
+- La instancia TCPDI se crea con `pdf_getInstance()` **antes** de comprobarla:
+  es esa llamada la que carga TCPDI, así que un `class_exists('TCPDI')` previo
+  respondía que no en cualquier página donde aún no se hubiera generado un PDF.
+- Un PDF cifrado se detecta antes de entregarlo al analizador, porque un fallo
+  dentro de TCPDI puede terminar la petición con `die()` en lugar de una
+  excepción.
+- Si la importación falla, o el PDF está cifrado, el módulo reescribe el
+  fichero con **Ghostscript** (`-dSAFER`, `pdfwrite`, PDF 1.4, páginas sin
+  comprimir, la receta que funcionó en la issue) y reintenta una vez. Solo lo
+  usa si el servidor lo tiene y `proc_open` está permitido; no es una
+  dependencia. La configuración muestra si se ha detectado y permite indicar su
+  ruta o desactivarlo (`VERIFACTU_PDF_GHOSTSCRIPT`).
+- El resultado se escribe en un fichero temporal y se mueve sobre el original
+  solo cuando está completo: un fallo a medias ya no puede dejar un PDF roto.
+- Si el QR no puede incorporarse, el PDF se genera igual y el usuario ve un
+  aviso con el motivo concreto (TCPDI no disponible, PDF cifrado, importación
+  fallida, escritura fallida) y la salida que tiene a mano.
+- La plantilla **verifactu** del módulo dibuja ahora el QR **mientras construye
+  el documento**, en `_pagehead()`, y se lo indica al hook con el parámetro
+  `verifactu_qr_embedded` para que no vuelva a abrir el PDF. Hasta ahora esa
+  plantilla también dependía de la importación posterior. Es la alternativa
+  que la issue pedía como ideal, y la que vale en los alojamientos sin
+  `proc_open`.
+- La geometría y el dibujo del bloque (texto «QR tributario:», código con
+  corrección M, leyenda «VeriFactu», márgenes de 2 mm) están en
+  `lib/functions/functions.pdf.php`, compartidos por el hook y la plantilla.
+
+No se ha podido reproducir el fallo de TCPDI con el fichero de la issue, que no
+se adjuntó. La corrección cubre las dos causas conocidas de ese error y, en
+cualquier otra, deja de ocultarlo.
+
+#### Verificación
+
+Tres tests nuevos, que fallan con el código de la 2.2.3 y pasan con esta
+versión: `tests/ListStatusColumnTest.php`,
+`tests/LegacyInvoiceFiscalDefaultsTest.php` (incluida la truncación del
+`SoapClient`, cuando la extensión `soap` está disponible) y
+`tests/PdfQrFallbackTest.php` (colocación, dibujo sobre un TCPDF simulado,
+detección de cifrado, búsqueda y ejecución de Ghostscript con un binario de
+prueba, y control de tiempo del proceso). `tests/IssueFixesTest.php` se ajusta
+a la nueva ubicación de las reglas de tipo. La suite completa, 19 ficheros,
+pasa.
 
 ### v2.2.3 (2026-09-24)
 
