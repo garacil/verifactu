@@ -590,12 +590,24 @@ require_once $moduleRoot . '/lib/newfenix/src/Invoice.php';
 
 // billCreate() stores the type shown in the VeriFactu tab; functions.submission.php
 // decides what is actually transmitted. They must agree for non-TakePOS invoices.
+// Since 2.2.4 the rules live in getVerifactuInvoiceTypeForInvoice(), in
+// functions.configuration.php, shared by the trigger and the submission of
+// invoices that predate the module.
+$typeRulesSource = file_get_contents($moduleRoot . '/lib/functions/functions.configuration.php');
+assert_test(
+    strpos($triggerSource, 'getVerifactuInvoiceTypeForInvoice($object)') !== false,
+    'billCreate() takes the VeriFactu type from getVerifactuInvoiceTypeForInvoice()',
+    $passed,
+    $failed,
+    $total
+);
+
 $storedCreditNoteType = null;
-if (preg_match('/case \$object::TYPE_CREDIT_NOTE:.*?VerifactuInvoice::(TYPE_\w+)/s', $triggerSource, $matches)) {
+if (preg_match('/case \(int\) \$invoice::TYPE_CREDIT_NOTE:.*?VerifactuInvoice::(TYPE_\w+)/s', $typeRulesSource, $matches)) {
     $storedCreditNoteType = $matches[1];
 }
 $storedReplacementType = null;
-if (preg_match('/case \$object::TYPE_REPLACEMENT:.*?VerifactuInvoice::(TYPE_\w+)/s', $triggerSource, $matches)) {
+if (preg_match('/case \(int\) \$invoice::TYPE_REPLACEMENT:.*?VerifactuInvoice::(TYPE_\w+)/s', $typeRulesSource, $matches)) {
     $storedReplacementType = $matches[1];
 }
 
@@ -610,7 +622,7 @@ assert_test(
 );
 
 $storedProformaType = null;
-if (preg_match('/case \$object::TYPE_PROFORMA:.*?options_verifactu_factura_tipo\'\] = ([^;]+);/s', $triggerSource, $matches)) {
+if (preg_match('/case \(int\) \$invoice::TYPE_PROFORMA:\s*return ([^;]+);/s', $typeRulesSource, $matches)) {
     $storedProformaType = trim($matches[1]);
 }
 assert_test($storedProformaType === "''", 'proforma gets no VeriFactu invoice type', $passed, $failed, $total);

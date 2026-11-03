@@ -127,11 +127,6 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 
 		// Set status to not sent when invoice is created
 		$object->array_options['options_verifactu_estado'] = '<div class="center"><span class="badge badge-status8 classfortooltip badge-status" attr-status="' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '">' . $langs->trans('VERIFACTU_STATUS_NOT_SEND') . '</span></div>';
-		$object->array_options['options_verifactu_impuesto'] = GETPOST('options_verifactu_impuesto', 'alpha') ?: Sietekas\Verifactu\VerifactuInvoice::TAX_VAT;
-		$object->array_options['options_verifactu_clave_regimen'] =  GETPOST('options_verifactu_clave_regimen', 'alpha') ?: Sietekas\Verifactu\VerifactuInvoice::REGIME_GENERAL; // Set general regime by default
-		$object->array_options['options_verifactu_calificacion_operacion'] =  GETPOST('options_verifactu_calificacion_operacion', 'alpha') ?: Sietekas\Verifactu\VerifactuInvoice::QUAL_TAXABLE; // Set operation qualification by default
-		$object->array_options['options_verifactu_operacion_exenta'] =  GETPOST('options_verifactu_operacion_exenta', 'alpha') ?: 0; // Set exempt operation by default
-
 
 		/*
 		Invoice type determination based on source:
@@ -140,92 +135,45 @@ class InterfaceVerifactuTriggers extends DolibarrTriggers
 		- If Facturesim (POS 2byte): The POS module applies a limit of N€:
 		  • If total ≤ N€: Creates Facturesim → type F2 (simplified invoice)
 		  • If total > N€: Creates Facture → type F1 (full invoice)
+		- Replacement invoices and credit notes -> R1, the type functions.submission.php
+		  transmits for them: storing R2 here made the VeriFactu tab show a type that
+		  was never the one sent to AEAT.
+		- Proforma -> no VeriFactu type at all: it is not a legally issued invoice and
+		  must not produce a billing record (Art. 6 RD 1007/2023); it is excluded from
+		  the whole VeriFactu flow by isVerifactuApplicableInvoice().
 
-		See constants: TYPE_STANDARD, TYPE_SIMPLIFIED, TYPE_CREDIT_NOTE_SIMPLIFIED
+		The rules live in getVerifactuInvoiceTypeForInvoice(), shared with the
+		submission of invoices that predate the module.
 		 */
-		if ($object->module_source == 'takepos' || $object instanceof Facturesim || $object->thirdparty->array_options['options_verifactu_factura_simplificada'] == 1) {
-			// Check if it's a TakePOS credit note (refund)
-			if ($object->type == $object::TYPE_CREDIT_NOTE) {
-				// Simplified refund (takepos refund) -> R5
-				$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_SIMPLIFIED;
-			} else {
-				// Simplified invoice (TakePOS) -> F2 (Simplified invoice or without recipient ID art. 6.1.d)
-				$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_SIMPLIFIED;
-			}
-		} else { // Set invoice type fields based on Dolibarr type
+		if ($object->thirdparty->id > 0 && empty($object->thirdparty->array_options)) {
+			$object->thirdparty->fetch_optionals();
+		}
+		$object->array_options['options_verifactu_factura_tipo'] = getVerifactuInvoiceTypeForInvoice($object);
 
-			switch ($object->type) {
-				case $object::TYPE_STANDARD:
-				case $object::TYPE_SITUATION:
-					// Standard and situation invoice -> F1 (Invoice art. 6, 7.2 and 7.3 of RD 1619/2012)
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
-					break;
-				case $object::TYPE_REPLACEMENT:
-					// Replacement invoice -> R1 (Corrective, Art. 80.1 and 80.2 LIVA
-					// and errors in law). Kept in sync with functions.submission.php,
-					// which transmits R1 by substitution for this Dolibarr type:
-					// storing R2 here made the VeriFactu tab show a type that was
-					// never the one sent to AEAT.
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_LEGAL;
-					break;
-				case $object::TYPE_CREDIT_NOTE:
-					// Credit note invoice -> R1 (Corrective, Art. 80.1 and 80.2 LIVA
-					// and errors in law). Kept in sync with functions.submission.php,
-					// which transmits R1 by differences for non-TakePOS credit notes.
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_LEGAL;
-					break;
-				case $object::TYPE_DEPOSIT:
-					// Deposit invoice -> F1 (Considered normal "Invoice" - advance payment)
-					$object->array_options['options_verifactu_factura_tipo'] = Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
-					break;
-				case $object::TYPE_PROFORMA:
-					// Proforma invoice -> no VeriFactu type at all.
-					// A proforma is not a legally issued invoice: it creates no tax
-					// obligation and must not produce a billing record
-					// (Art. 6 RD 1007/2023). It is excluded from the whole
-					// VeriFactu flow by isVerifactuApplicableInvoice().
-					$object->array_options['options_verifactu_factura_tipo'] = '';
-					break;
+		// Fiscal values, by specificity order (lowest to highest): module defaults,
+		// VERIFACTU_DEFAULT_* constants, then the customer's own configuration.
+		// getVerifactuFiscalDefaults() holds that precedence; it is the same one the
+		// submission applies to an invoice created before the module was enabled.
+		// A value typed in the creation form only counts when neither the
+		// configuration nor the customer define one, as it always did.
+		$defaults = getVerifactuFiscalDefaults($object->thirdparty);
+		$messages = array(
+			'impuesto' => 'VERIFACTU_DEFAULT_SOCIETE_IMPUESTO_SET',
+			'clave_regimen' => 'VERIFACTU_DEFAULT_SOCIETE_CLAVE_REGIMEN_SET',
+			'calificacion_operacion' => 'VERIFACTU_DEFAULT_SOCIETE_CALIFICACION_OPERACION_SET',
+			'operacion_exenta' => 'VERIFACTU_DEFAULT_SOCIETE_OPERACION_EXENTA_SET',
+		);
+		foreach ($defaults['values'] as $field => $value) {
+			$posted = GETPOST('options_verifactu_' . $field, 'alpha');
+			if ($defaults['sources'][$field] === 'module' && !empty($posted)) {
+				$value = $posted;
 			}
-		}
+			$object->array_options['options_verifactu_' . $field] = $value;
 
-		// Apply configurations by specificity order (lowest to highest):
-		// 1. Global default values (general system configuration)
-		if (!empty($conf->global->VERIFACTU_DEFAULT_TAX_TYPE)) {
-			$object->array_options['options_verifactu_impuesto'] = $conf->global->VERIFACTU_DEFAULT_TAX_TYPE;
-		}
-		if (!empty($conf->global->VERIFACTU_DEFAULT_TAX_REGIME)) {
-			$object->array_options['options_verifactu_clave_regimen'] = $conf->global->VERIFACTU_DEFAULT_TAX_REGIME;
-		}
-		if (!empty($conf->global->VERIFACTU_DEFAULT_OPERATION_QUALIFICATION)) {
-			$object->array_options['options_verifactu_calificacion_operacion'] = $conf->global->VERIFACTU_DEFAULT_OPERATION_QUALIFICATION;
-		}
-		if (!empty($conf->global->VERIFACTU_DEFAULT_EXEMPT_OPERATION)) {
-			$object->array_options['options_verifactu_operacion_exenta'] = $conf->global->VERIFACTU_DEFAULT_EXEMPT_OPERATION;
-		}
-
-		// 2. Third party (customer) specific values - highest priority
-		if ($object->thirdparty->id > 0 && $object->thirdparty->fetch_optionals() > 0) {
-
-			// If third party has specific configuration, use it instead of global
-			if (!empty($object->thirdparty->array_options['options_verifactu_impuesto'])) {
-				$object->array_options['options_verifactu_impuesto'] = $object->thirdparty->array_options['options_verifactu_impuesto'];
-				setEventMessage($langs->trans('VERIFACTU_DEFAULT_SOCIETE_IMPUESTO_SET', $object->thirdparty->name), 'warnings');
-			}
-			if (!empty($object->thirdparty->array_options['options_verifactu_clave_regimen'])) {
-				$object->array_options['options_verifactu_clave_regimen'] = $object->thirdparty->array_options['options_verifactu_clave_regimen'];
-				setEventMessage($langs->trans('VERIFACTU_DEFAULT_SOCIETE_CLAVE_REGIMEN_SET', $object->thirdparty->name), 'warnings');
-			}
-			if (!empty($object->thirdparty->array_options['options_verifactu_calificacion_operacion'])) {
-				$object->array_options['options_verifactu_calificacion_operacion'] = $object->thirdparty->array_options['options_verifactu_calificacion_operacion'];
-				setEventMessage($langs->trans('VERIFACTU_DEFAULT_SOCIETE_CALIFICACION_OPERACION_SET', $object->thirdparty->name), 'warnings');
-			}
-			if (!empty($object->thirdparty->array_options['options_verifactu_operacion_exenta'])) {
-				$object->array_options['options_verifactu_operacion_exenta'] = $object->thirdparty->array_options['options_verifactu_operacion_exenta'];
-				setEventMessage($langs->trans('VERIFACTU_DEFAULT_SOCIETE_OPERACION_EXENTA_SET', $object->thirdparty->name), 'warnings');
+			if ($defaults['sources'][$field] === 'thirdparty') {
+				setEventMessage($langs->trans($messages[$field], $object->thirdparty->name), 'warnings');
 			}
 		}
-
 
 		// Finally set all extra fields
 		$res = $object->insertExtraFields();

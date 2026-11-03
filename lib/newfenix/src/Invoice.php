@@ -626,7 +626,6 @@ class Invoice
         ?float $surAmount
     ): array {
         $group = [
-            'CalificacionOperacion' => $qual,
             'BaseImponibleOimporteNoSujeto' => 0,
             'Impuesto' => $tax,
         ];
@@ -635,9 +634,19 @@ class Invoice
             $group['ClaveRegimen'] = $regime;
         }
 
+        // The schema declares CalificacionOperacion and OperacionExenta as a
+        // choice: exactly one of them. An exempt operation therefore carries no
+        // qualification, and an empty qualification is not written at all. A
+        // null value would be worse than a missing one: PHP's SoapClient stops
+        // encoding the sequence at a choice it cannot satisfy, so the record
+        // would reach AEAT without BaseImponibleOimporteNoSujeto (error 4102).
         if (!empty($exempt)) {
             $group['OperacionExenta'] = $exempt;
-        } else {
+        } elseif (!empty($qual)) {
+            $group['CalificacionOperacion'] = $qual;
+        }
+
+        if (empty($exempt)) {
             if ($rate !== null) {
                 $group['TipoImpositivo'] = round($rate, 2);
             }
@@ -1183,6 +1192,20 @@ class Invoice
         }
         if ($breakdownCount > 12) {
             throw new \InvalidArgumentException("An invoice cannot have more than 12 tax breakdown details");
+        }
+        foreach ($this->taxEntries as $position => $entry) {
+            $hasQualification = !empty($entry['CalificacionOperacion']);
+            $hasExemption = !empty($entry['OperacionExenta']);
+            if (!$hasQualification && !$hasExemption) {
+                throw new \InvalidArgumentException(
+                    "Tax breakdown detail " . ($position + 1) . " must declare CalificacionOperacion or OperacionExenta"
+                );
+            }
+            if ($hasQualification && $hasExemption) {
+                throw new \InvalidArgumentException(
+                    "Tax breakdown detail " . ($position + 1) . " cannot declare both CalificacionOperacion and OperacionExenta"
+                );
+            }
         }
 
         if (!empty($this->payload['FechaOperacion'])

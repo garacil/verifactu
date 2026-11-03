@@ -131,7 +131,7 @@ function getDeclaredSystemIdentity()
 	$identity = [
 		'name' => 'Dolibarr Verifactu Module',
 		'id' => 'DV',
-		'version' => '2.2.3',
+		'version' => '2.2.4',
 	];
 
 	// Bind the global before including: the declaration file assigns
@@ -381,4 +381,213 @@ function getVerifactuParams(Facture $facture)
 			? $facture->array_options['options_verifactu_operacion_exenta']
 			: null
 	];
+}
+
+
+/**
+ * Resolves the fiscal values a VeriFactu record takes when nothing else sets them.
+ *
+ * This is the single place that knows the precedence, so creating an invoice
+ * and submitting one that predates the module cannot drift apart. Lowest to
+ * highest:
+ *   1. module defaults: VAT (01), general regime (01), taxable operation (S1),
+ *      no exemption;
+ *   2. the VERIFACTU_DEFAULT_* constants of the module configuration;
+ *   3. the VeriFactu extrafields of the customer.
+ *
+ * ClaveRegimen must be empty for IPSI (02) and other taxes (05) according to
+ * the AEAT schema, so the module default regime is not applied when the tax
+ * resolved to one of them; a regime set by the configuration or the customer is
+ * kept as it is and the submission validation reports it.
+ *
+ * @param  Societe|null $thirdparty Customer, with its extrafields loaded when available
+ * @return array{values: array<string,string>, sources: array<string,string>}
+ *         Values keyed by extrafield suffix (impuesto, clave_regimen,
+ *         calificacion_operacion, operacion_exenta) and where each one came
+ *         from: 'module', 'config' or 'thirdparty'
+ */
+function getVerifactuFiscalDefaults($thirdparty = null)
+{
+	global $conf;
+
+	$fields = array(
+		'impuesto' => array('module' => Sietekas\Verifactu\VerifactuInvoice::TAX_VAT, 'const' => 'VERIFACTU_DEFAULT_TAX_TYPE'),
+		'clave_regimen' => array('module' => Sietekas\Verifactu\VerifactuInvoice::REGIME_GENERAL, 'const' => 'VERIFACTU_DEFAULT_TAX_REGIME'),
+		'calificacion_operacion' => array('module' => Sietekas\Verifactu\VerifactuInvoice::QUAL_TAXABLE, 'const' => 'VERIFACTU_DEFAULT_OPERATION_QUALIFICATION'),
+		'operacion_exenta' => array('module' => '', 'const' => 'VERIFACTU_DEFAULT_EXEMPT_OPERATION'),
+	);
+
+	$thirdpartyOptions = array();
+	if (is_object($thirdparty) && !empty($thirdparty->id)) {
+		if (empty($thirdparty->array_options) && method_exists($thirdparty, 'fetch_optionals')) {
+			$thirdparty->fetch_optionals();
+		}
+		if (is_array($thirdparty->array_options)) {
+			$thirdpartyOptions = $thirdparty->array_options;
+		}
+	}
+
+	$values = array();
+	$sources = array();
+	foreach ($fields as $field => $definition) {
+		$values[$field] = $definition['module'];
+		$sources[$field] = 'module';
+
+		$constName = $definition['const'];
+		if (!empty($conf->global->$constName)) {
+			$values[$field] = (string) $conf->global->$constName;
+			$sources[$field] = 'config';
+		}
+
+		if (!empty($thirdpartyOptions['options_verifactu_' . $field])) {
+			$values[$field] = (string) $thirdpartyOptions['options_verifactu_' . $field];
+			$sources[$field] = 'thirdparty';
+		}
+	}
+
+	$regimeFreeTaxes = array(Sietekas\Verifactu\VerifactuInvoice::TAX_IPSI, Sietekas\Verifactu\VerifactuInvoice::TAX_OTHER);
+	if ($sources['clave_regimen'] === 'module' && in_array($values['impuesto'], $regimeFreeTaxes, true)) {
+		$values['clave_regimen'] = '';
+	}
+
+	return array('values' => $values, 'sources' => $sources);
+}
+
+/**
+ * Returns the VeriFactu invoice type that corresponds to a Dolibarr invoice.
+ *
+ * TakePOS, the Facturesim objects of the 2byte POS and customers flagged as
+ * simplified-invoice customers produce simplified invoices (F2) and their
+ * credit notes (R5). Any other invoice follows its Dolibarr type: standard,
+ * situation and deposit invoices are F1; replacement invoices and credit notes
+ * are R1, the type functions.submission.php actually transmits for them; a
+ * proforma has no type at all, since it never produces a billing record
+ * (Art. 6 RD 1007/2023).
+ *
+ * @param  Facture $invoice Invoice, with its thirdparty loaded when available
+ * @return string           Type code (F1, F2, R1, R5) or '' for a proforma
+ */
+function getVerifactuInvoiceTypeForInvoice($invoice)
+{
+	$thirdpartySimplified = false;
+	if (is_object($invoice->thirdparty) && is_array($invoice->thirdparty->array_options)) {
+		$thirdpartySimplified = ((int) ($invoice->thirdparty->array_options['options_verifactu_factura_simplificada'] ?? 0) === 1);
+	}
+
+	$isSimplifiedSource = (!empty($invoice->module_source) && $invoice->module_source == 'takepos')
+		|| (class_exists('Facturesim') && $invoice instanceof Facturesim)
+		|| $thirdpartySimplified;
+
+	if ($isSimplifiedSource) {
+		if ((int) $invoice->type === (int) $invoice::TYPE_CREDIT_NOTE) {
+			return Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_SIMPLIFIED;
+		}
+		return Sietekas\Verifactu\VerifactuInvoice::TYPE_SIMPLIFIED;
+	}
+
+	switch ((int) $invoice->type) {
+		case (int) $invoice::TYPE_REPLACEMENT:
+		case (int) $invoice::TYPE_CREDIT_NOTE:
+			return Sietekas\Verifactu\VerifactuInvoice::TYPE_CREDIT_NOTE_LEGAL;
+		case (int) $invoice::TYPE_PROFORMA:
+			return '';
+		default:
+			// Standard, situation and deposit invoices
+			return Sietekas\Verifactu\VerifactuInvoice::TYPE_STANDARD;
+	}
+}
+
+/**
+ * Fills the VeriFactu fiscal extrafields an invoice is missing before it is sent.
+ *
+ * An invoice created before the module was enabled never went through the
+ * BILL_CREATE trigger that sets them. Dolibarr leaves two states behind:
+ *   - no row in facture_extrafields: fetch_optionals() returns null for every
+ *     field, and the submission failed with "Tax Type not configured";
+ *   - a row that already existed when the module added its columns: the
+ *     columns declared with a default (type F1, tax 01, regime 01) got it, the
+ *     qualification did not. The record then carried a null
+ *     CalificacionOperacion, PHP's SoapClient drops everything after a choice
+ *     it cannot encode, and AEAT rejected the record with error 4102, "Falta
+ *     informar campo obligatorio: BaseImponibleOimporteNoSujeto" (issue #54).
+ *
+ * The missing values are resolved with getVerifactuFiscalDefaults(), the same
+ * precedence the trigger applies to a new invoice, and the invoice type with
+ * getVerifactuInvoiceTypeForInvoice(). Values already present are never
+ * touched. The qualification is only filled when there is no exemption either,
+ * since the schema takes one or the other.
+ *
+ * @param  Facture $facture Invoice with its extrafields loaded
+ * @param  bool    $persist Store the completed fields in the database
+ * @return string[]         Suffixes of the fields that were filled, empty when nothing was missing
+ */
+function completeVerifactuFiscalFields($facture, $persist = true)
+{
+	if (!is_array($facture->array_options)) {
+		$facture->array_options = array();
+		if (method_exists($facture, 'fetch_optionals')) {
+			$facture->fetch_optionals();
+		}
+	}
+
+	$isMissing = function ($value) {
+		return $value === null || $value === '' || $value === '0' || $value === 0;
+	};
+
+	$filled = array();
+
+	if (!is_object($facture->thirdparty) && method_exists($facture, 'fetch_thirdparty')) {
+		$facture->fetch_thirdparty();
+	}
+	if (is_object($facture->thirdparty) && empty($facture->thirdparty->array_options) && method_exists($facture->thirdparty, 'fetch_optionals')) {
+		$facture->thirdparty->fetch_optionals();
+	}
+
+	if ($isMissing($facture->array_options['options_verifactu_factura_tipo'] ?? null)) {
+		$type = getVerifactuInvoiceTypeForInvoice($facture);
+		if ($type !== '') {
+			$facture->array_options['options_verifactu_factura_tipo'] = $type;
+			$filled[] = 'factura_tipo';
+		}
+	}
+
+	$defaults = getVerifactuFiscalDefaults($facture->thirdparty);
+
+	foreach (array('impuesto', 'clave_regimen') as $field) {
+		if ($isMissing($facture->array_options['options_verifactu_' . $field] ?? null) && $defaults['values'][$field] !== '') {
+			$facture->array_options['options_verifactu_' . $field] = $defaults['values'][$field];
+			$filled[] = $field;
+		}
+	}
+
+	$exemptionMissing = $isMissing($facture->array_options['options_verifactu_operacion_exenta'] ?? null);
+	if ($exemptionMissing && $defaults['values']['operacion_exenta'] !== '') {
+		$facture->array_options['options_verifactu_operacion_exenta'] = $defaults['values']['operacion_exenta'];
+		$filled[] = 'operacion_exenta';
+		$exemptionMissing = false;
+	}
+
+	if ($exemptionMissing && $isMissing($facture->array_options['options_verifactu_calificacion_operacion'] ?? null)) {
+		$facture->array_options['options_verifactu_calificacion_operacion'] = $defaults['values']['calificacion_operacion'];
+		$filled[] = 'calificacion_operacion';
+	}
+
+	if (empty($filled)) {
+		return $filled;
+	}
+
+	dol_syslog(
+		"VERIFACTU: invoice " . ($facture->ref ?? $facture->id) . " had no VeriFactu value for " . implode(', ', $filled)
+		. "; the defaults applied at invoice creation are used (" . json_encode($defaults['values']) . ")",
+		LOG_WARNING
+	);
+
+	if ($persist && method_exists($facture, 'insertExtraFields')) {
+		$result = $facture->insertExtraFields();
+		if ($result < 0) {
+			dol_syslog("VERIFACTU: the completed fiscal fields of invoice " . ($facture->ref ?? $facture->id) . " could not be stored: " . implode(', ', (array) $facture->errors), LOG_ERR);
+		}
+	}
+
+	return $filled;
 }

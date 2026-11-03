@@ -312,7 +312,17 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 	// Set description
 	$description = 'Invoice ' . $facture->ref . '' . ($facture->ref_client ? ' Customer Ref: ' . $facture->ref_client : '');
 	$invoice->setDescription($description);
-	$invoice->setType($facture->array_options['options_verifactu_factura_tipo'] ?? VerifactuInvoice::TYPE_STANDARD);
+
+	// An invoice created before the module was enabled never went through the
+	// BILL_CREATE trigger, so its fiscal extrafields are null, or partly filled
+	// by the column defaults. The missing ones take the same values the trigger
+	// would have given them, and the user is told which ones (issue #54).
+	$completedFields = completeVerifactuFiscalFields($facture);
+	if (!empty($completedFields)) {
+		setEventMessage($langs->trans('VERIFACTU_LEGACY_FISCAL_DEFAULTS_APPLIED', $facture->ref, implode(', ', $completedFields)), 'warnings');
+	}
+
+	$invoice->setType(!empty($facture->array_options['options_verifactu_factura_tipo']) ? $facture->array_options['options_verifactu_factura_tipo'] : VerifactuInvoice::TYPE_STANDARD);
 
 	// Operation date, when it differs from the issue date. Dolibarr stores it in
 	// date_pointoftax, the field INVOICE_POINTOFTAX_DATE shows on the invoice

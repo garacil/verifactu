@@ -679,3 +679,6 @@ VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = S'ha ajustat la data de %s factura(es) 
 VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Ajust de data:</strong> La data original de la factura (<strong>%s</strong>) s'ha ajustat a <strong>%s</strong> per respectar l'ordre cronològic de VeriFactu (última factura validada: %s).
 VERIFACTU_USE_OPERATION_DATE = Transmetre la data d'operació
 VERIFACTU_USE_OPERATION_DATE_HELP = Quan la data en què s'efectua l'operació és diferent de la data d'expedició de la factura, es transmet a l'AEAT al camp FechaOperacion. Aquesta data és la que determina la meritació de l'IVA, mentre que la d'expedició és la que ordena la numeració. En activar-ho s'habilita també el camp de data «Impostos» de Dolibarr a la factura, que és d'on es pren. Només afecta el registre quan les dues dates difereixen.
+
+# 2.2.4 - Factures anteriors al modul (issue #54) i QR al PDF (issue #55)
+VERIFACTU_LEGACY_FISCAL_DEFAULTS_APPLIED = La factura %s no tenia informades totes les seves dades fiscals VeriFactu (es va crear abans d'activar el mòdul). S'han completat amb els valors per defecte els camps: %s. Reviseu-los a la pestanya VeriFactu si no són els que corresponen.
