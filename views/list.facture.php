@@ -1952,7 +1952,12 @@ if ($resql) {
 			$facturestatic->multicurrency_total_ht = $obj->multicurrency_total_ht;
 			$facturestatic->multicurrency_total_tva = $obj->multicurrency_total_vat;
 			$facturestatic->multicurrency_total_ttc = $obj->multicurrency_total_ttc;
-			$facturestatic->statut = $obj->fk_statut;
+			// Both properties are filled on purpose: getLibStatut() reads $this->statut up to
+			// Dolibarr 19 and $this->status from Dolibarr 20 on. With only the deprecated one
+			// set, recent versions saw a null status, which LibStatut() takes as draft, so every
+			// validated and unpaid invoice was listed as "Draft" (issue #53).
+			$facturestatic->statut = $obj->fk_statut;	// deprecated
+			$facturestatic->status = $obj->fk_statut;
 			$facturestatic->close_code = $obj->close_code;
 			$facturestatic->total_ttc = $obj->total_ttc;
 			$facturestatic->paye = $obj->paye;
@@ -2017,7 +2022,7 @@ if ($resql) {
 			$multicurrency_totalpay = $multicurrency_paiement + $multicurrency_totalcreditnotes + $multicurrency_totaldeposits;
 			$multicurrency_remaintopay = price2num($facturestatic->multicurrency_total_ttc - $multicurrency_totalpay);
 
-			if ($facturestatic->statut == Facture::STATUS_CLOSED && $facturestatic->close_code == 'discount_vat') {		// If invoice closed with discount for anticipated payment
+			if ($facturestatic->status == Facture::STATUS_CLOSED && $facturestatic->close_code == 'discount_vat') {		// If invoice closed with discount for anticipated payment
 				$remaintopay = 0;
 				$multicurrency_remaintopay = 0;
 			}
