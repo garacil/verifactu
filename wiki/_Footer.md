@@ -1,0 +1,1 @@
+VeriFactu para Dolibarr · [Repositorio](https://github.com/garacil/verifactu) · [Versiones publicadas](https://github.com/garacil/verifactu/releases) · [Incidencias](https://github.com/garacil/verifactu/issues) · Licencia GPL-3.0-or-later

@@ -1,0 +1,51 @@
+name: Publicar wiki
+
+# La wiki es un repositorio git aparte (verifactu.wiki.git) al que no se llega
+# con las credenciales de trabajo habituales. El token de Actions sí puede
+# escribir en la wiki del propio repositorio, así que las páginas se dejan en
+# la carpeta wiki/ y este flujo las copia allí.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'wiki/**'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Copiar las páginas a la wiki
+        run: |
+          set -euo pipefail
+
+          if ! ls wiki/*.md >/dev/null 2>&1; then
+            echo "No hay páginas en wiki/; nada que publicar."
+            exit 0
+          fi
+
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki-remota
+
+          cp wiki/*.md wiki-remota/
+
+          cd wiki-remota
+          git config user.name "Germán Luis Aracil Boned"
+          git config user.email "garacilb@gmail.com"
+
+          if git diff --quiet && git diff --cached --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "La wiki ya está al día."
+            exit 0
+          fi
+
+          version=$(sed -n "s/.*verifactu_version = '\([0-9.]*\)'.*/\1/p" ../core/modules/modVerifactu.class.php | head -1)
+
+          git add -A
+          git commit -m "docs: actualizar la wiki a la version ${version}"
+          git push
