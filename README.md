@@ -407,6 +407,45 @@ rm temporal.pem
 
 Después subir `certificado_moderno.p12` desde la pestaña **Certificados**.
 
+### El QR no aparece en el PDF de la factura
+
+El QR se añade reimportando el PDF que ya ha escrito la plantilla, y hay
+documentos que el parser de TCPDF no consigue leer: en el registro de Dolibarr
+aparece entonces `TCPDF_PARSER ERROR: decodeFilterFlateDecode: invalid code`.
+Diagnosticado y reproducido por **[@perey2002](https://github.com/perey2002)**
+(Sergio Pereiro) sobre la plantilla Crabe con Dolibarr 22.0.3 y TCPDF 6.7.5
+(issue #55).
+
+Desde la versión 2.2.4, cuando eso ocurre el módulo reintenta sobre una copia
+normalizada del documento, y la factura queda avisada en pantalla si aun así no
+se ha podido incorporar el QR. La opción **Herramienta para normalizar PDF** de
+la configuración gobierna ese segundo intento:
+
+| Valor | Efecto |
+|---|---|
+| vacío | Por defecto. Busca `gs` (Ghostscript) o `qpdf` en el servidor |
+| ruta del ejecutable | Usa ese binario concreto |
+| `off` | No se intenta |
+
+Ninguna de las dos herramientas es dependencia del módulo: solo se usan en ese
+segundo intento. Donde `exec()` está deshabilitado el reintento no existe, y
+hace falta una plantilla cuyo PDF se pueda reimportar.
+
+### La AEAT rechaza con 4102 una factura creada antes de instalar el módulo
+
+Si el error es `Codigo[4102].El XML no cumple el esquema. Falta informar campo
+obligatorio.: BaseImponibleOimporteNoSujeto`, ese campo no es el que falta. Lo
+que falta es la calificación de la operación o la exención, que el esquema
+coloca justo antes. Lo reportó
+**[@miguelpicher](https://github.com/miguelpicher)** (issue #54).
+
+Las facturas creadas antes de instalar el módulo no tienen configurados los
+campos fiscales. Desde la versión 2.2.4 se toman, por este orden, de la pestaña
+VeriFactu de la factura, de la configuración del cliente y de los valores por
+defecto del módulo; si no hay nada en ninguno de los tres sitios se transmite S1
+y se avisa. Conviene revisar esos campos en **Configuración → Valores por
+defecto** antes de enviar facturas antiguas.
+
 ### Pantalla en Blanco
 
 Si aparece una pantalla en blanco al ver facturas:
@@ -422,7 +461,7 @@ El módulo calcula correctamente el `ImporteTotal` para VeriFactu excluyendo la 
 
 ## Información del Módulo
 
-- **Versión**: 2.2.3
+- **Versión**: 2.2.4
 - **Autor**: Germán Luis Aracil Boned
 - **Email**: garacilb@gmail.com
 - **Licencia**: GPL-3.0-or-later
@@ -456,12 +495,126 @@ uno:
   vista de factura en PHP 8 (issue #32), diagnosticado hasta la línea.
 - **[@jose73wrc](https://github.com/jose73wrc)** (José Antonio) — el error fatal
   del informe de pagos (issue #31), con la traza y la causa raíz ya
-  identificadas; y el aviso de que la corrección de los certificados no servía
+  identificadas; el aviso de que la corrección de los certificados no servía
   en alojamientos compartidos donde `proc_open` está desactivado, que es lo que
   llevó a leer el `.p12` con las funciones nativas de PHP antes que con el
-  binario.
+  binario; y las facturas validadas que el listado mostraba como borrador
+  (issue #53), señalando ya la inicialización del objeto como causa.
+- **[@perey2002](https://github.com/perey2002)** (Sergio Pereiro, Check 4 Cyber
+  SARL-S) — el QR que no se incorporaba al PDF con la plantilla Crabe
+  (issue #55). Un informe modelo: comunicación con la AEAT descartada, hook
+  confirmado en los registros, el fallo del parser reproducido con TCPDI en tres
+  líneas, el orden de inicialización de la biblioteca corregido y la
+  normalización previa del documento ya probada en su instalación. De ahí sale
+  entero el trabajo de la 2.2.4 sobre el PDF.
+- **[@miguelpicher](https://github.com/miguelpicher)** — el rechazo 4102 de la
+  AEAT al enviar facturas creadas antes de instalar el módulo (issue #54). El
+  campo que la AEAT señalaba no era el que faltaba, y seguir su aviso llevó al
+  `xs:choice` del desglose que salía sin ninguno de sus dos términos.
 
 ## Registro de Cambios
+
+### v2.2.4 (2026-11-03)
+
+Tres fallos reportados sobre la 2.2.3, cada uno con el diagnóstico ya hecho por
+quien lo encontró.
+
+#### El QR no llegaba al PDF con la plantilla Crabe
+
+Lo reportó **[@perey2002](https://github.com/perey2002)** (Sergio Pereiro,
+Check 4 Cyber SARL-S) en la issue #55, con el error del parser aislado, la
+reproducción con TCPDI en tres líneas y la normalización con Ghostscript ya
+probada en su instalación.
+
+El QR se incorpora al PDF una vez que la plantilla lo ha cerrado y escrito: el
+hook `afterPDFCreation` se dispara con el documento ya en disco, así que hay que
+reimportarlo para estamparlo. Y esa reimportación es la parte frágil, porque hay
+documentos que el parser de TCPDF no sabe leer. Cuatro cambios:
+
+- **Orden de inicialización.** Se comprobaba `class_exists('TCPDI')` *antes* de
+  llamar a `pdf_getInstance()`, y es `pdf_getInstance()` quien carga la
+  biblioteca (`htdocs/core/lib/pdf.lib.php`: `require_once TCPDI_PATH.'tcpdi.php'`).
+  Ahora se crea la instancia primero y se pregunta sobre ella si admite
+  `setSourceFile()` e `importPage()`, que es lo que de verdad hace falta y además
+  detecta las instalaciones con `MAIN_DISABLE_TCPDI`.
+- **La factura ya no se sobrescribe a ciegas.** El resultado se escribe en un
+  temporal y solo reemplaza al PDF original cuando existe, empieza por `%PDF-` y
+  no está truncado. Antes, un fallo a mitad de escritura se llevaba por delante
+  el PDF bueno.
+- **`catch (Exception)` pasa a `catch (\Throwable)`.** El parser avisa lanzando,
+  y en PHP 8 un método que no existe es un `Error`, no una `Exception`: ese caso
+  se escapaba e interrumpía la generación del documento.
+- **Si la importación falla, se reintenta sobre una copia normalizada.** Ni
+  Ghostscript ni qpdf son dependencia del módulo: se usan solo en ese segundo
+  intento y solo si están disponibles. Hay una opción nueva, **Herramienta para
+  normalizar PDF**: vacío busca `gs` o `qpdf` en el servidor, una ruta fija cuál
+  usar y `off` lo desactiva. Donde `exec()` está deshabilitado —habitual en
+  alojamiento compartido— simplemente no se intenta y queda anotado.
+
+Y si al final no se ha podido, se avisa en pantalla y en el registro: el QR es
+parte obligatoria de la factura (Art. 20.1 y 21 de la Orden HAC/1177/2024), así
+que un PDF sin él no puede pasar desapercibido.
+
+Lo que **no** se ha hecho es insertar el QR durante la generación original, que
+es lo que propone Sergio y sería lo ideal. Los hooks que ofrece Dolibarr no lo
+permiten: `beforePDFCreation` se ejecuta cuando todavía no hay páginas y
+`pdf_pagefoot` no recibe la instancia del PDF, solo recoge HTML para el pie.
+Mientras siga así, hay que reimportar.
+
+#### Error 4102 de la AEAT en facturas creadas antes de instalar el módulo
+
+Lo reportó **[@miguelpicher](https://github.com/miguelpicher)** en la issue #54:
+«El XML no cumple el esquema. Falta informar campo obligatorio.:
+BaseImponibleOimporteNoSujeto».
+
+Ese campo no faltaba nunca. `SuministroInformacion.xsd` coloca
+`CalificacionOperacion` y `OperacionExenta` en un `xs:choice` situado justo antes
+de `BaseImponibleOimporteNoSujeto`: viaja una de las dos, nunca las dos ni
+ninguna. Las facturas creadas antes de instalar el módulo no tienen esos valores
+—los escribe el disparador de creación—, así que el registro salía sin ninguno
+de los dos términos, el validador de la AEAT se quedaba sin la opción y señalaba
+el siguiente campo obligatorio de la secuencia, que no era el que faltaba.
+
+- Los cuatro parámetros fiscales se resuelven ahora de lo más concreto a lo más
+  general: la pestaña VeriFactu de la factura, la configuración del cliente y los
+  valores por defecto del módulo. Solo se leía la factura, de modo que lo que el
+  administrador tuviera configurado no servía para las facturas antiguas.
+- Si después de eso no hay calificación ni exención, se transmite **S1**, sujeta
+  y no exenta, que es con la que nace toda factura creada por el módulo. Se avisa
+  en pantalla y en el registro, porque es una decisión fiscal y no puede ser
+  silenciosa.
+- Si están configuradas las dos, viaja la exención, que es la más específica, y
+  queda anotado.
+- La biblioteca ya no construye un desglose a medias: `createTaxGroup()` no
+  escribe una calificación vacía y `validate()` rechaza una línea sin
+  calificación ni exención, o con ambas. Se detecta aquí y no en la respuesta de
+  la AEAT.
+
+#### Facturas validadas sin cobrar que figuraban como borrador
+
+Lo reportó **[@jose73wrc](https://github.com/jose73wrc)** (José Antonio) en la
+issue #53, con la causa ya localizada en la inicialización de `$facturestatic`.
+
+Era exactamente eso. El listado rellenaba `$facturestatic->statut`, pero
+`getLibStatut()` lee `$this->status` desde Dolibarr 20
+(`htdocs/core/class/commoninvoice.class.php`: `LibStatut($this->paye, $this->status, ...)`,
+donde la 19 pasa `$this->statut`). Con `status` a 0, toda factura sin cobrar
+salía como «Borrador» y solo las cobradas mostraban «Pagada»: los dos únicos
+valores que aparecían. Se rellenan ambas propiedades, así que el listado dice lo
+mismo en la 19 que en la 24.
+
+#### Verificación
+
+Sobre la biblioteca, generando el registro con cada combinación: una línea sin
+calificación ni exención ya no sale del módulo, una exenta viaja sin
+`CalificacionOperacion`, una con las dos configuradas viaja solo con la exención
+y el caso normal no cambia. La suite de regresión pasa completa, los 16 ficheros.
+
+Lo que no se ha podido comprobar aquí es el PDF concreto que el parser no sabe
+leer —hace falta ese documento— ni el envío real a la AEAT, que exige
+certificado. La normalización con Ghostscript que ahora se intenta en segundo
+lugar es la que Sergio dejó funcionando en su instalación, con Dolibarr 22.0.3 y
+TCPDF 6.7.5.
 
 ### v2.2.3 (2026-09-24)
 

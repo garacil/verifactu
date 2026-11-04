@@ -778,3 +778,7 @@ VERIFACTU_HOLDER_NIF_HELP = Tax ID of the taxpayer issuing the invoices. It is l
 VERIFACTU_HOLDER_REPRESENTATIVE_NIF_HELP = Tax ID of the legal representative, for information only. It is not sent to AEAT.
 VERIFACTU_USE_OPERATION_DATE = Transmit the operation date
 VERIFACTU_USE_OPERATION_DATE_HELP = When the date an operation was carried out differs from the invoice issue date, it is transmitted to AEAT in the FechaOperacion field. That date is the one the VAT period follows, while the issue date is the one that orders the invoice numbering. Enabling this also turns on the Dolibarr "Taxes" date field on the invoice, which is where the date is taken from. The record is only affected when both dates differ.
+VERIFACTU_PDF_NORMALIZER = PDF normalization tool
+VERIFACTU_PDF_NORMALIZER_HELP = Used only when the invoice PDF cannot be read in order to add the QR to it. Empty: look for Ghostscript or qpdf on the server. Path of an executable to use a specific one. "off" to never try.
+VERIFACTU_PDF_WITHOUT_QR = The PDF of invoice %s has been generated without the tax QR. Check the Dolibarr log for the reason.
+VERIFACTU_QUALIFICATION_DEFAULTED = Invoice %s had no operation qualification configured: S1 (taxable, not exempt) has been transmitted. Please review it in the VeriFactu tab of the invoice.

@@ -416,6 +416,24 @@ function handleInvoiceCreationOrSubsanation($manager, Facture $facture, $certOpt
 	$baseOperationQualification = $verifactuParamsBase['calificacionOperacion'];
 	$baseExemptOperation = $verifactuParamsBase['operacionExenta'];
 
+	// The breakdown must carry one, and only one, of the two terms of the
+	// xs:choice that SuministroInformacion.xsd places before
+	// BaseImponibleOimporteNoSujeto. Sending both leaves the record invalid and
+	// sending neither makes the AEAT answer 4102 naming that field, which is not
+	// the one missing.
+	if (!empty($baseOperationQualification) && !empty($baseExemptOperation)) {
+		dol_syslog("VERIFACTU: {$facture->ref} has a qualification and an exemption configured at the same time; the exemption {$baseExemptOperation} is the one transmitted", LOG_WARNING);
+		$baseOperationQualification = null;
+	} elseif (empty($baseOperationQualification) && empty($baseExemptOperation)) {
+		// Every invoice the module creates is born as S1, taxable and not
+		// exempt. An invoice that predates the installation has nothing
+		// configured, so the same documented default applies, and it is said out
+		// loud because it is a tax decision.
+		$baseOperationQualification = VerifactuInvoice::QUAL_TAXABLE;
+		dol_syslog("VERIFACTU: {$facture->ref} has no operation qualification configured; S1 is applied by default", LOG_WARNING);
+		setEventMessage($langs->trans('VERIFACTU_QUALIFICATION_DEFAULTED', $facture->ref), 'warnings');
+	}
+
 	// VALIDATION: Critical fields must be manually configured
 	if (empty($baseTaxType)) {
 		throw new Exception("ERROR: Tax Type not configured. Must be manually configured in the VeriFactu tab of the invoice after consulting with your tax advisor.");

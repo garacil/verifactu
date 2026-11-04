@@ -679,3 +679,7 @@ VERIFACTU_MASS_VALIDATE_DATES_ADJUSTED = %s fakturaren data doitu da VeriFactu-r
 VERIFACTU_SINGLE_VALIDATE_DATE_ADJUSTED = ⚠️ <strong>Data doitzea:</strong> Fakturaren jatorrizko data (<strong>%s</strong>) <strong>%s</strong> datara doitu da, VeriFactu-ren hurrenkera kronologikoa errespetatzeko (baliozkotutako azken faktura: %s).
 VERIFACTU_USE_OPERATION_DATE = Eragiketaren data bidali
 VERIFACTU_USE_OPERATION_DATE_HELP = Eragiketa egiten den data fakturaren jaulkipen-datatik desberdina denean, AEATera bidaltzen da FechaOperacion eremuan. Data horrek zehazten du BEZaren sortzapena, eta jaulkipen-datak, berriz, zenbakitzea ordenatzen du. Aktibatzean, Dolibarren «Zergak» data-eremua ere gaitzen da fakturan, hortik hartzen baita. Bi datak desberdinak direnean bakarrik eragiten dio erregistroari.
+VERIFACTU_PDF_NORMALIZER = PDFa normalizatzeko tresna
+VERIFACTU_PDF_NORMALIZER_HELP = Fakturaren PDFa QRa gehitzeko irakurri ezin denean bakarrik erabiltzen da. Hutsik: Ghostscript edo qpdf bilatzen du zerbitzarian. Exekutagarri baten bidea, zehatz bat adierazteko. «off» inoiz ez saiatzeko.
+VERIFACTU_PDF_WITHOUT_QR = %s fakturaren PDFa zerga QRrik gabe sortu da. Ikusi Dolibarren erregistroa arrazoia jakiteko.
+VERIFACTU_QUALIFICATION_DEFAULTED = %s fakturak ez zuen eragiketaren kalifikazioa konfiguratuta: S1 (lotua eta ez salbuetsia) bidali da. Egiaztatu fakturaren VeriFactu fitxan.
