@@ -80,6 +80,16 @@ Consecuencias prácticas:
 - Una rama con trabajo pendiente nunca se toca, aunque lleve meses.
 - Desde la 2.2.0 la limpieza no se acota a un prefijo concreto: cualquier rama integrada, se llame como se llame, se borra.
 
+## El flujo `publicar-wiki.yml`
+
+Esta wiki es un repositorio git aparte (`verifactu.wiki.git`) al que no se llega con las credenciales de trabajo habituales, pero el token de Actions sí puede escribir en la wiki del propio repositorio. Las páginas viven por tanto en la carpeta `wiki/` del repositorio, y el flujo las copia allí:
+
+- Se dispara con cualquier integración en `main` que toque `wiki/**`.
+- Clona la wiki con `x-access-token`, copia los `.md` de `wiki/` encima y commitea **solo si hay cambios**, con el número de versión que declare el descriptor del módulo.
+- El autor del commit es el del módulo, para que el historial de la wiki no se mezcle con el de los automatismos.
+
+Para cambiar una página, edítala en `wiki/` y súbela con el resto del cambio: no hace falta tocar la wiki a mano. Editar una página desde la interfaz de GitHub también funciona, pero el siguiente cambio en `wiki/` la sobrescribirá.
+
 ## Criterios de numeración
 
 El proyecto usa tres componentes `MAYOR.MENOR.PARCHE`. Del historial se deducen estos criterios:

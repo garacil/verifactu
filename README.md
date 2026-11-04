@@ -247,6 +247,11 @@ Para más detalles, ver `docs/responsible_declaration.md`.
 
 ```
 verifactu/
+├── .github/
+│   └── workflows/          # Automatismos del repositorio
+│       ├── release.yml         # Etiqueta y publica la versión declarada
+│       ├── limpiar-ramas.yml   # Borra las ramas ya integradas en main
+│       └── publicar-wiki.yml   # Copia wiki/ a la wiki del repositorio
 ├── admin/                  # Páginas de administración
 │   ├── setup.php           # Configuración general
 │   ├── managecertificates.php  # Gestión de certificados
@@ -262,6 +267,8 @@ verifactu/
 │   └── triggers/           # Triggers automáticos
 │       ├── interface_900_modVerifactu_BillRestrictions.class.php
 │       └── interface_999_modVerifactu_VerifactuTriggers.class.php
+├── doc/
+│   └── img/                # Capturas usadas en este README
 ├── docs/                   # Documentación
 │   └── responsible_declaration.md  # Doc. declaración responsable
 ├── lib/
@@ -281,11 +288,15 @@ verifactu/
 │       ├── functions.cancellation.php  # Anulación
 │       ├── functions.certificates.php  # Certificados
 │       ├── functions.compatibility.php # Funciones de compatibilidad
+│       ├── functions.configuration.php # Parámetros fiscales e identidad
+│       ├── functions.hash.php          # Huella y encadenamiento
 │       ├── functions.qr.php            # Generación QR
-│       └── functions.response.php      # Respuestas AEAT
-├── tests/                  # Tests
-│   ├── MassValidateInterceptionTest.php  # Tests validación masiva
-│   └── SchemaManagerTest.php             # Tests gestión de esquemas
+│       ├── functions.response.php      # Respuestas AEAT
+│       ├── functions.admin.php         # Apoyo a las pantallas de administración
+│       └── functions.utilities.php     # Utilidades comunes
+├── sql/                    # Tablas e índices del módulo
+├── tests/                  # Suite de regresión (16 ficheros, `php tests/<fichero>.php`)
+├── wiki/                   # Páginas de la wiki, publicadas por Actions
 ├── views/                  # Vistas y páginas
 │   ├── list.facture.php    # Lista de facturas
 │   ├── query.facture.php   # Consulta AEAT
