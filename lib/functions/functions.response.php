@@ -97,6 +97,211 @@ function isAEATResponseAccepted($response)
 }
 
 /**
+ * Returns the SQL literal Dolibarr stores for an invoice extrafield value.
+ *
+ * Mirrors the conversion CommonObject::insertExtraFields() applies to the types
+ * the VeriFactu fields use (varchar, text, select, date and datetime): an empty
+ * value is stored as NULL, a date or datetime goes through $db->idate(), and
+ * anything else is stored as an escaped string.
+ *
+ * @param object $db    Database handler (escape() and idate())
+ * @param string $type  Extrafield type
+ * @param mixed  $value Value to store
+ * @return string SQL literal
+ */
+function getVerifactuExtraFieldSqlValue($db, $type, $value)
+{
+	if ($value === null || $value === '' || $value === false) {
+		return 'null';
+	}
+
+	if ($type === 'date' || $type === 'datetime') {
+		if (!is_numeric($value) || $value != intval($value)) {
+			$value = strtotime((string) $value);
+			if ($value === false) {
+				return 'null';
+			}
+		}
+		return "'" . $db->escape($db->idate((int) $value)) . "'";
+	}
+
+	return "'" . $db->escape((string) $value) . "'";
+}
+
+/**
+ * Limits how long the independent connection waits for a row lock.
+ *
+ * The independent connection writes while the transaction of the main
+ * connection is still open. When that transaction already holds the row to
+ * write (a TakePOS refund, for instance, updates the invoice and its
+ * extrafields before validating it), waiting cannot succeed: the main
+ * connection only releases the row after the caller returns. Giving up quickly
+ * lets the caller fall back to the main connection instead of waiting for
+ * innodb_lock_wait_timeout (50 s by default) (issue #57).
+ *
+ * Only MySQL/MariaDB has innodb_lock_wait_timeout; other handlers are left alone.
+ *
+ * @param object $independentDb Independent database handler
+ * @return void
+ */
+function limitVerifactuIndependentLockWait($independentDb)
+{
+	global $conf;
+
+	if (!in_array($independentDb->type, array('mysql', 'mysqli'), true)) {
+		return;
+	}
+
+	$seconds = max(1, (int) ($conf->global->VERIFACTU_INDEPENDENT_LOCK_WAIT_TIMEOUT ?? 1));
+	if (!$independentDb->query("SET SESSION innodb_lock_wait_timeout = " . $seconds)) {
+		dol_syslog("VERIFACTU: could not limit the lock wait of the independent connection: " . $independentDb->lasterror(), LOG_WARNING);
+	}
+}
+
+/**
+ * Writes VeriFactu fields of an invoice touching only its extrafields table.
+ *
+ * Since Dolibarr 23, CommonObject::insertExtraFields() and updateExtraField()
+ * also run "UPDATE llx_facture SET fk_user_modif = ..." on the parent table.
+ * The independent connection writes while the validation transaction of the
+ * main connection still holds that row, so on MySQL/MariaDB it waited for
+ * innodb_lock_wait_timeout (50 s by default) on every validation (issue #57).
+ * Writing the extrafields row directly keeps the purpose of the independent
+ * connection, an AEAT response that survives a rollback, without touching the
+ * invoice row. Used for MySQL/MariaDB, see storeVerifactuIndependentData().
+ *
+ * Values are converted as CommonObject::insertExtraFields() does. Attributes
+ * that are not invoice extrafields, separators and unexpected names are ignored.
+ *
+ * @param object     $db         Database handler to write with
+ * @param int        $invoiceId  Invoice id
+ * @param array      $values     attribute => value, attribute without the 'options_' prefix
+ * @param array|null $attributes Invoice extrafields definition, as in
+ *                               ExtraFields::$attributes['facture']; read when null
+ * @return bool True when the values were stored
+ */
+function writeVerifactuInvoiceExtraFields($db, $invoiceId, array $values, $attributes = null)
+{
+	$invoiceId = (int) $invoiceId;
+	if ($invoiceId <= 0) {
+		return false;
+	}
+
+	if ($attributes === null) {
+		if (!class_exists('ExtraFields')) {
+			require_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
+		}
+		$extrafields = new ExtraFields($db);
+		$extrafields->fetch_name_optionals_label('facture');
+		$attributes = $extrafields->attributes['facture'] ?? array();
+	}
+	$types = $attributes['type'] ?? array();
+
+	$columns = array();
+	foreach ($values as $attribute => $value) {
+		if (!isset($types[$attribute]) || $types[$attribute] === 'separate' || !preg_match('/^[A-Za-z0-9_]+$/', $attribute)) {
+			continue;
+		}
+		$columns[$attribute] = getVerifactuExtraFieldSqlValue($db, $types[$attribute], $value);
+	}
+	if (empty($columns)) {
+		if (empty($values)) {
+			return true;
+		}
+		// Nothing would be stored: let the caller fall back instead of reporting success
+		dol_syslog("VERIFACTU: none of " . implode(', ', array_keys($values)) . " is an invoice extrafield", LOG_WARNING);
+		return false;
+	}
+
+	// The invoice must be visible to this connection. One created inside a
+	// transaction that is still open is not, and writing its extrafields row
+	// from here would leave the row behind if that transaction rolled back.
+	$resql = $db->query("SELECT rowid FROM " . MAIN_DB_PREFIX . "facture WHERE rowid = " . $invoiceId);
+	if (!$resql) {
+		return false;
+	}
+	$invoiceVisible = (bool) $db->fetch_object($resql);
+	$db->free($resql);
+	if (!$invoiceVisible) {
+		dol_syslog("VERIFACTU: invoice " . $invoiceId . " is not visible to the independent connection yet", LOG_WARNING);
+		return false;
+	}
+
+	$table = MAIN_DB_PREFIX . "facture_extrafields";
+	$resql = $db->query("SELECT rowid FROM " . $table . " WHERE fk_object = " . $invoiceId);
+	if (!$resql) {
+		return false;
+	}
+	$rowExists = (bool) $db->fetch_object($resql);
+	$db->free($resql);
+
+	if ($rowExists) {
+		$assignments = array();
+		foreach ($columns as $column => $sqlValue) {
+			$assignments[] = $column . " = " . $sqlValue;
+		}
+		$sql = "UPDATE " . $table . " SET " . implode(', ', $assignments) . " WHERE fk_object = " . $invoiceId;
+	} else {
+		// As insertExtraFields(): fields that are mandatory in other entities
+		// get a default value, so their NOT NULL columns do not make it fail
+		foreach (($attributes['mandatoryfieldsofotherentities'] ?? array()) as $attribute => $type) {
+			if (isset($columns[$attribute]) || !preg_match('/^[A-Za-z0-9_]+$/', $attribute)) {
+				continue;
+			}
+			$columns[$attribute] = in_array($type, array('int', 'double', 'price'), true) ? '0' : "''";
+		}
+		$sql = "INSERT INTO " . $table . " (fk_object, " . implode(', ', array_keys($columns)) . ")";
+		$sql .= " VALUES (" . $invoiceId . ", " . implode(', ', $columns) . ")";
+	}
+
+	if (!$db->query($sql)) {
+		dol_syslog("VERIFACTU: could not write the VeriFactu fields of invoice " . $invoiceId . ": " . $db->lasterror(), LOG_ERR);
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * Stores VeriFactu fields of an invoice through the independent connection.
+ *
+ * MySQL/MariaDB: the extrafields row is written directly, see
+ * writeVerifactuInvoiceExtraFields(), and the session gives up on a held row
+ * after a short wait, see limitVerifactuIndependentLockWait() (issue #57).
+ *
+ * Other databases keep the insertExtraFields() path used so far. On PostgreSQL
+ * pg_connect() hands back the main connection for the same connection string,
+ * so the independent handler shares the session of the main connection and
+ * does not wait for its locks; its behaviour is left as it was.
+ *
+ * @param object  $independentDb Independent database handler
+ * @param Facture $facture       Invoice
+ * @param array   $values        attribute => value, attribute without the 'options_' prefix
+ * @return bool True when the values were stored
+ */
+function storeVerifactuIndependentData($independentDb, Facture $facture, array $values)
+{
+	if (in_array($independentDb->type, array('mysql', 'mysqli'), true)) {
+		limitVerifactuIndependentLockWait($independentDb);
+		return writeVerifactuInvoiceExtraFields($independentDb, $facture->id, $values);
+	}
+
+	$factureIndependent = new Facture($independentDb);
+	if ($factureIndependent->fetch($facture->id) <= 0) {
+		dol_syslog("VERIFACTU: Could not load invoice with independent connection: " . $facture->id, LOG_ERR);
+		return false;
+	}
+	foreach ($values as $attribute => $value) {
+		$factureIndependent->array_options['options_' . $attribute] = $value;
+	}
+	if ($factureIndependent->insertExtraFields() > 0) {
+		return true;
+	}
+	dol_syslog("VERIFACTU: Error saving extrafields with independent connection: " . implode(', ', $factureIndependent->errors), LOG_ERR);
+	return false;
+}
+
+/**
  * Saves VeriFactu error data using an independent connection
  * to prevent data loss in case of transaction rollback
  *
@@ -127,52 +332,41 @@ function saveVerifactuErrorData(Facture $facture, $errorData)
 		// For PostgreSQL, don't close connection as it may be the same as main
 		$canCloseConnection = ($dbType !== 'pgsql');
 
-		// Create new invoice instance with independent connection
-		$factureIndependent = new Facture($independentDb);
-		$result = $factureIndependent->fetch($facture->id);
-
-		if ($result <= 0) {
-			dol_syslog("VERIFACTU: Could not load invoice with independent connection: " . $facture->id, LOG_ERR);
-			if ($canCloseConnection) {
-				$independentDb->close();
-			}
-			return false;
-		}
-
-		// Update fields with error data
+		// Fields to store, attribute => value
+		$values = array();
 		if (isset($errorData['estado'])) {
-			$factureIndependent->array_options['options_verifactu_estado'] = $errorData['estado'];
+			$values['verifactu_estado'] = $errorData['estado'];
 		}
 		if (isset($errorData['error'])) {
-			$factureIndependent->array_options['options_verifactu_error'] = $errorData['error'];
+			$values['verifactu_error'] = $errorData['error'];
 		}
 		if (isset($errorData['ultima_salida'])) {
-			$factureIndependent->array_options['options_verifactu_ultima_salida'] = $errorData['ultima_salida'];
+			$values['verifactu_ultima_salida'] = $errorData['ultima_salida'];
 		}
 		if (isset($errorData['fecha_modificacion'])) {
-			$factureIndependent->array_options['options_verifactu_ultimafecha_modificacion'] = $errorData['fecha_modificacion'];
+			$values['verifactu_ultimafecha_modificacion'] = $errorData['fecha_modificacion'];
 		}
 		if (isset($errorData['csv_factura'])) {
-			$factureIndependent->array_options['options_verifactu_csv_factura'] = $errorData['csv_factura'];
+			$values['verifactu_csv_factura'] = $errorData['csv_factura'];
 		}
 		if (isset($errorData['huella'])) {
-			$factureIndependent->array_options['options_verifactu_huella'] = $errorData['huella'];
+			$values['verifactu_huella'] = $errorData['huella'];
 		}
 		if (isset($errorData['fecha_hora_generacion'])) {
-			$factureIndependent->array_options['options_verifactu_fecha_hora_generacion'] = $errorData['fecha_hora_generacion'];
+			$values['verifactu_fecha_hora_generacion'] = $errorData['fecha_hora_generacion'];
 		}
 
-		// Save extrafields using independent connection
-		$result = $factureIndependent->insertExtraFields();
+		// Save without waiting for the invoice row the validation holds (#57)
+		$result = storeVerifactuIndependentData($independentDb, $facture, $values);
 
-		if ($result > 0) {
+		if ($result) {
 			dol_syslog("VERIFACTU: Error data saved successfully in independent DB for invoice " . $facture->ref, LOG_DEBUG);
 			if ($canCloseConnection) {
 				$independentDb->close();
 			}
 			return true;
 		} else {
-			dol_syslog("VERIFACTU: Error saving extrafields with independent connection: " . implode(', ', $factureIndependent->errors), LOG_ERR);
+			dol_syslog("VERIFACTU: Error saving extrafields with independent connection for invoice " . $facture->ref . ": " . $independentDb->lasterror(), LOG_ERR);
 			if ($canCloseConnection) {
 				$independentDb->close();
 			}
@@ -218,66 +412,55 @@ function saveVerifactuSuccessData(Facture $facture, $successData)
 		// For PostgreSQL, don't close connection as it may be the same as main
 		$canCloseConnection = ($dbType !== 'pgsql');
 
-		// Create new invoice instance with independent connection
-		$factureIndependent = new Facture($independentDb);
-		$result = $factureIndependent->fetch($facture->id);
-
-		if ($result <= 0) {
-			dol_syslog("VERIFACTU: Could not load invoice with independent connection: " . $facture->id, LOG_ERR);
-			if ($canCloseConnection) {
-				$independentDb->close();
-			}
-			return false;
-		}
-
-		// Update fields with success data
+		// Fields to store, attribute => value
+		$values = array();
 		if (isset($successData['estado'])) {
-			$factureIndependent->array_options['options_verifactu_estado'] = $successData['estado'];
+			$values['verifactu_estado'] = $successData['estado'];
 		}
 		if (isset($successData['csv_factura'])) {
-			$factureIndependent->array_options['options_verifactu_csv_factura'] = $successData['csv_factura'];
+			$values['verifactu_csv_factura'] = $successData['csv_factura'];
 		}
 		if (isset($successData['payload'])) {
-			$factureIndependent->array_options['options_verifactu_payload'] = $successData['payload'];
+			$values['verifactu_payload'] = $successData['payload'];
 		}
 		if (isset($successData['entorno'])) {
-			$factureIndependent->array_options['options_verifactu_entorno'] = $successData['entorno'];
+			$values['verifactu_entorno'] = $successData['entorno'];
 		}
 		if (isset($successData['modo'])) {
-			$factureIndependent->array_options['options_verifactu_modo'] = $successData['modo'];
+			$values['verifactu_modo'] = $successData['modo'];
 		}
 		if (isset($successData['id_factura'])) {
-			$factureIndependent->array_options['options_verifactu_id_factura'] = $successData['id_factura'];
+			$values['verifactu_id_factura'] = $successData['id_factura'];
 		}
 		if (isset($successData['fecha_factura'])) {
-			$factureIndependent->array_options['options_verifactu_fecha_factura'] = $successData['fecha_factura'];
+			$values['verifactu_fecha_factura'] = $successData['fecha_factura'];
 		}
 		if (isset($successData['ultima_salida'])) {
-			$factureIndependent->array_options['options_verifactu_ultima_salida'] = $successData['ultima_salida'];
+			$values['verifactu_ultima_salida'] = $successData['ultima_salida'];
 		}
 		if (isset($successData['fecha_modificacion'])) {
-			$factureIndependent->array_options['options_verifactu_ultimafecha_modificacion'] = $successData['fecha_modificacion'];
+			$values['verifactu_ultimafecha_modificacion'] = $successData['fecha_modificacion'];
 		}
 		if (isset($successData['huella'])) {
-			$factureIndependent->array_options['options_verifactu_huella'] = $successData['huella'];
+			$values['verifactu_huella'] = $successData['huella'];
 		}
 		if (isset($successData['fecha_hora_generacion'])) {
-			$factureIndependent->array_options['options_verifactu_fecha_hora_generacion'] = $successData['fecha_hora_generacion'];
+			$values['verifactu_fecha_hora_generacion'] = $successData['fecha_hora_generacion'];
 		}
 		// Clear error field
-		$factureIndependent->array_options['options_verifactu_error'] = '';
+		$values['verifactu_error'] = '';
 
-		// Save extrafields using independent connection
-		$result = $factureIndependent->insertExtraFields();
+		// Save without waiting for the invoice row the validation holds (#57)
+		$result = storeVerifactuIndependentData($independentDb, $facture, $values);
 
-		if ($result > 0) {
+		if ($result) {
 			dol_syslog("VERIFACTU: Success data saved successfully in independent DB for invoice " . $facture->ref, LOG_DEBUG);
 			if ($canCloseConnection) {
 				$independentDb->close();
 			}
 			return true;
 		} else {
-			dol_syslog("VERIFACTU: Error saving success extrafields with independent connection: " . implode(', ', $factureIndependent->errors), LOG_ERR);
+			dol_syslog("VERIFACTU: Error saving success extrafields with independent connection for invoice " . $facture->ref . ": " . $independentDb->lasterror(), LOG_ERR);
 			if ($canCloseConnection) {
 				$independentDb->close();
 			}
