@@ -453,9 +453,10 @@ function queryInvoiceInAEAT($invoiceNumber, $invoiceDate)
  *
  * @param string $numeroFactura Invoice number
  * @param string $fechaExpedicion Invoice date (format dd-mm-yyyy)
+ * @param array $fechasExtra Other dates (dd-mm-yyyy) whose fiscal periods are also searched if not found
  * @return object|false Invoice data from AEAT or false if not exists/error
  */
-function consultarFacturaEnAEAT($numeroFactura, $fechaExpedicion)
+function consultarFacturaEnAEAT($numeroFactura, $fechaExpedicion, $fechasExtra = array())
 {
 	global $conf;
 
@@ -484,8 +485,59 @@ function consultarFacturaEnAEAT($numeroFactura, $fechaExpedicion)
 		}
 	}
 
+	// AEAT files a record under the month of its FechaOperacion, not of its issue date,
+	// so a record sent with an operation date in another month is only found in that period.
+	$triedPeriods = array(substr($fechaExpedicion, 6, 4) . substr($fechaExpedicion, 3, 2) => true);
+	foreach ($fechasExtra as $fecha) {
+		if (empty($fecha)) {
+			continue;
+		}
+		$ejercicio = substr($fecha, 6, 4);
+		$periodo = substr($fecha, 3, 2);
+		if (isset($triedPeriods[$ejercicio . $periodo])) {
+			continue;
+		}
+		$triedPeriods[$ejercicio . $periodo] = true;
+
+		dol_syslog("VERIFACTU: Querying invoice $numeroFactura in AEAT period $ejercicio/$periodo", LOG_INFO);
+		$response = execVERIFACTUQuery(array(
+			'IDFactura' => array('NumSerieFacturaEmisor' => $numeroFactura),
+			'PeriodoImputacion' => array('Ejercicio' => $ejercicio, 'Periodo' => $periodo)
+		));
+		if (!$response || ($response->ResultadoConsulta ?? '') !== 'ConDatos') {
+			continue;
+		}
+		$invoices = $response->RegistroRespuestaConsultaFactuSistemaFacturacion ?? array();
+		foreach ((is_array($invoices) ? $invoices : array($invoices)) as $invoice) {
+			if (($invoice->IDFactura->NumSerieFactura ?? '') === $numeroFactura
+				&& ($invoice->IDFactura->FechaExpedicionFactura ?? '') === $fechaExpedicion) {
+				dol_syslog("VERIFACTU: Invoice found in AEAT period $ejercicio/$periodo", LOG_INFO);
+				return $invoice;
+			}
+		}
+	}
+
 	dol_syslog("VERIFACTU: Invoice not found in AEAT or query error", LOG_WARNING);
 	return false;
+}
+
+/**
+ * Dates whose fiscal periods may hold the invoice record besides its issue month:
+ * the current operation date and, optionally, the previous months, because the
+ * operation date may have been changed after the record was sent.
+ *
+ * @param Facture $facture Dolibarr invoice
+ * @param int $monthsBack Number of months before the issue month to also search
+ * @return array Dates in dd-mm-yyyy format
+ */
+function getVerifactuAlternativeQueryDates($facture, $monthsBack = 0)
+{
+	$dates = array(getVerifactuOperationDate($facture));
+	$firstOfMonth = strtotime(date('Y-m-01', $facture->date));
+	for ($i = 1; $i <= $monthsBack; $i++) {
+		$dates[] = date('d-m-Y', strtotime('-' . $i . ' month', $firstOfMonth));
+	}
+	return $dates;
 }
 
 /**
@@ -630,7 +682,7 @@ function preCheckInvoiceInAEAT($facture)
 	$invoiceDate = date('d-m-Y', $facture->date);
 
 	// Query invoice in AEAT
-	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate);
+	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate, getVerifactuAlternativeQueryDates($facture));
 
 	if (!$aeatInvoice) {
 		// Invoice does NOT exist in AEAT - can be sent
@@ -696,7 +748,7 @@ function verificarEstadoFacturaAEAT($facture)
 	$invoiceDate = date('d-m-Y', $facture->date);
 
 	// Query invoice in AEAT
-	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate);
+	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate, getVerifactuAlternativeQueryDates($facture, 12));
 
 	if (!$aeatInvoice) {
 		// Invoice doesn't exist in AEAT - remove ALL VeriFactu marks
@@ -818,7 +870,7 @@ function manejarFacturaDuplicada($facture)
 	$invoiceDate = date('d-m-Y', $facture->date);
 
 	// Query invoice in AEAT
-	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate);
+	$aeatInvoice = consultarFacturaEnAEAT($facture->ref, $invoiceDate, getVerifactuAlternativeQueryDates($facture, 12));
 
 	if (!$aeatInvoice) {
 		// Could not query - may be connection error or invoice doesn't really exist
