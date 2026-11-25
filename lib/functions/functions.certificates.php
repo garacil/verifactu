@@ -872,6 +872,48 @@ function extraerCertificadoPublicoConOpenSSL(
 }
 
 /**
+ * Reads the expiration date of the configured certificate file.
+ *
+ * A .pfx/.p12 container is encrypted, so openssl_x509_read() cannot open it
+ * and the setup page always reported it as unreadable. It is opened with its
+ * password through extractPublicCertificateWithOpenSSL(), the same path used
+ * to send to AEAT, legacy FNMT containers included. A .pem file holds the
+ * certificate in clear and is read directly.
+ *
+ * @param string $certificateFile Path to the .pfx, .p12 or .pem file
+ * @param string $certificatePassword Password of a .pfx/.p12 container
+ * @return array{validTo:int, error:string} Expiration timestamp, or the
+ *         language key that explains why it could not be read
+ */
+function getCertificateValidTo(string $certificateFile, string $certificatePassword): array
+{
+	if (preg_match('/\.(pfx|p12)$/i', $certificateFile)) {
+		$run = extractPublicCertificateWithOpenSSL($certificateFile, $certificatePassword);
+		if (empty($run['success'])) {
+			if (!empty($run['wrong_password'])) {
+				return array('validTo' => 0, 'error' => 'VERIFACTU_CERT_ERROR_WRONG_PASSWORD');
+			}
+			if (!empty($run['legacy_cipher'])) {
+				return array('validTo' => 0, 'error' => 'VERIFACTU_CERT_ERROR_LEGACY_ALGORITHM');
+			}
+			return array('validTo' => 0, 'error' => 'CertificateUnreadable');
+		}
+		$publicPem = $run['public_cert_pem'];
+	} else {
+		$publicPem = (string) @file_get_contents($certificateFile);
+	}
+
+	$certResource = @openssl_x509_read($publicPem);
+	if (!$certResource) {
+		return array('validTo' => 0, 'error' => 'CertificateUnreadable');
+	}
+	$certInfo = openssl_x509_parse($certResource);
+	$validTo = (int) ($certInfo['validTo_time_t'] ?? 0);
+
+	return array('validTo' => $validTo, 'error' => $validTo > 0 ? '' : 'CertificateExpirationUnreadable');
+}
+
+/**
  * Generates detailed certificate information for display to the user
  * Similar to information seen in the Windows certificate viewer
  *
