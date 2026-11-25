@@ -126,6 +126,8 @@ class Manager
                     $schemaManager->downloadSchemas();
                 }
                 if ($schemaManager->schemasExist()) {
+                    // Repairs an xmldsig schema stored by an earlier version
+                    $schemaManager->stripXmldsigDoctype();
                     $settings->setLocalWsdlPath($schemaManager->getLocalWsdlPath());
                 }
             }

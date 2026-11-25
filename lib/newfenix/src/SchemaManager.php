@@ -195,6 +195,41 @@ class SchemaManager
             );
             file_put_contents($file, $content);
         }
+
+        $this->stripXmldsigDoctype();
+    }
+
+    /**
+     * Removes the DOCTYPE of the W3C xmldsig schema.
+     *
+     * The W3C file starts with a DOCTYPE whose internal subset declares
+     * xmlns:ds again and some entities that its body never uses. Current PHP
+     * builds (CloudLinux alt-php since its November 2026 update, cPanel ea-php,
+     * PHP 8.2 on Debian) then fail to load the WSDL with "SOAP-ERROR: Parsing Schema:
+     * can't import schema from 'xmldsig-core-schema.xsd'", which breaks every
+     * submission and query. Without the DOCTYPE the schema is the same.
+     *
+     * It also repairs the file stored by an earlier version, so existing
+     * installations recover without downloading the schemas again.
+     *
+     * @return bool True when the file exists and has no DOCTYPE
+     */
+    public function stripXmldsigDoctype(): bool
+    {
+        $path = $this->schemasDir . '/xmldsig-core-schema.xsd';
+        $content = @file_get_contents($path);
+        if ($content === false) {
+            return false;
+        }
+        if (strpos($content, '<!DOCTYPE') === false) {
+            return true;
+        }
+
+        $clean = preg_replace('/<!DOCTYPE[^\[>]*(\[.*?\])?\s*>/s', '', $content, 1);
+        if ($clean === null || strpos($clean, '<!DOCTYPE') !== false) {
+            return false;
+        }
+        return file_put_contents($path, $clean) !== false;
     }
 
     /**
