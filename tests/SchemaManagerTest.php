@@ -170,6 +170,77 @@ $config->reset();
 assert_test($config->getLocalWsdlPath() === null, 'Reset clears localWsdlPath', $passed, $failed, $total);
 echo "\n";
 
+// ---------------------------------------------------------------
+echo "Test 13: stripXmldsigDoctype() removes the DOCTYPE of the W3C xmldsig schema\n";
+// Header of http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd as served by W3C
+$xmldsigDoctype = '<?xml version="1.0" encoding="utf-8"?>' . "\n"
+    . '<!DOCTYPE schema' . "\n"
+    . '  PUBLIC "-//W3C//DTD XMLSchema 200102//EN" "http://www.w3.org/2001/XMLSchema.dtd"' . "\n"
+    . ' [' . "\n"
+    . '   <!ATTLIST schema ' . "\n"
+    . '     xmlns:ds CDATA #FIXED "http://www.w3.org/2000/09/xmldsig#">' . "\n"
+    . "   <!ENTITY dsig 'http://www.w3.org/2000/09/xmldsig#'>\n"
+    . "   <!ENTITY % p ''>\n"
+    . "   <!ENTITY % s ''>\n"
+    . '  ]>' . "\n";
+$xmldsigBody = '<schema xmlns="http://www.w3.org/2001/XMLSchema"' . "\n"
+    . '        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"' . "\n"
+    . '        targetNamespace="http://www.w3.org/2000/09/xmldsig#"' . "\n"
+    . '        version="0.1" elementFormDefault="qualified">' . "\n"
+    . '<element name="Signature" type="ds:SignatureType"/>' . "\n"
+    . '<complexType name="SignatureType"><sequence><element name="SignatureValue" type="base64Binary"/></sequence></complexType>' . "\n"
+    . '</schema>' . "\n";
+$doctypeDir = $testDir . '/doctype';
+@mkdir($doctypeDir, 0755, true);
+$xmldsigPath = $doctypeDir . '/xmldsig-core-schema.xsd';
+file_put_contents($xmldsigPath, $xmldsigDoctype . $xmldsigBody);
+$sm = new SchemaManager($doctypeDir);
+assert_test($sm->stripXmldsigDoctype(), 'stripXmldsigDoctype() reports success', $passed, $failed, $total);
+$stripped = file_get_contents($xmldsigPath);
+assert_test(strpos($stripped, '<!DOCTYPE') === false && strpos($stripped, '<!ENTITY') === false, 'DOCTYPE and its internal subset removed', $passed, $failed, $total);
+assert_test($stripped === '<?xml version="1.0" encoding="utf-8"?>' . "\n\n" . $xmldsigBody, 'XML declaration and schema body kept unchanged', $passed, $failed, $total);
+assert_test($sm->stripXmldsigDoctype() && file_get_contents($xmldsigPath) === $stripped, 'Second call leaves a clean file as it is', $passed, $failed, $total);
+assert_test(!(new SchemaManager($doctypeDir . '/missing'))->stripXmldsigDoctype(), 'Missing file reports failure', $passed, $failed, $total);
+echo "\n";
+
+// ---------------------------------------------------------------
+echo "Test 14: a WSDL importing the cleaned xmldsig schema loads in SoapClient\n";
+if (!class_exists('SoapClient')) {
+    echo "  SKIP: the soap extension is not loaded\n";
+} else {
+    file_put_contents($doctypeDir . '/test.wsdl', '<?xml version="1.0" encoding="utf-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="urn:verifactu-test"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#" targetNamespace="urn:verifactu-test">
+  <types>
+    <xs:schema targetNamespace="urn:verifactu-test" elementFormDefault="qualified">
+      <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" schemaLocation="xmldsig-core-schema.xsd"/>
+      <xs:element name="Request"><xs:complexType><xs:sequence>
+        <xs:element ref="ds:Signature" minOccurs="0"/>
+      </xs:sequence></xs:complexType></xs:element>
+    </xs:schema>
+  </types>
+  <message name="RequestMessage"><part name="body" element="tns:Request"/></message>
+  <portType name="TestPort"><operation name="Send"><input message="tns:RequestMessage"/><output message="tns:RequestMessage"/></operation></portType>
+  <binding name="TestBinding" type="tns:TestPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="Send"><soap:operation soapAction=""/><input><soap:body use="literal"/></input><output><soap:body use="literal"/></output></operation>
+  </binding>
+  <service name="TestService"><port name="TestPort" binding="tns:TestBinding"><soap:address location="http://localhost/"/></port></service>
+</definitions>');
+    try {
+        new SoapClient($doctypeDir . '/test.wsdl', ['cache_wsdl' => WSDL_CACHE_NONE]);
+        $loaded = true;
+    } catch (Throwable $e) {
+        $loaded = false;
+        echo "  " . $e->getMessage() . "\n";
+    }
+    assert_test($loaded, 'SoapClient parses the WSDL with the cleaned schema', $passed, $failed, $total);
+}
+array_map('unlink', glob($doctypeDir . '/*'));
+@rmdir($doctypeDir);
+echo "\n";
+
 // Cleanup
 $sm = new SchemaManager($testDir);
 $sm->clearSchemas();
