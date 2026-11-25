@@ -295,7 +295,7 @@ verifactu/
 │       ├── functions.admin.php         # Apoyo a las pantallas de administración
 │       └── functions.utilities.php     # Utilidades comunes
 ├── sql/                    # Tablas e índices del módulo
-├── tests/                  # Suite de regresión (16 ficheros, `php tests/<fichero>.php`)
+├── tests/                  # Suite de regresión (17 ficheros, `php tests/<fichero>.php`)
 ├── wiki/                   # Páginas de la wiki, publicadas por Actions
 ├── views/                  # Vistas y páginas
 │   ├── list.facture.php    # Lista de facturas
